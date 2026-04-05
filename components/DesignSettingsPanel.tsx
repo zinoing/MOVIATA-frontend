@@ -38,6 +38,7 @@ type DesignSettingsPanelProps = {
   isAddingFriend?: boolean;
   isGeneratingSnapshot?: boolean;
   onConfirm: () => void;
+  activityType?: 'running' | 'hiking' | null;
 };
 
 function updateField<K extends keyof DesignEditorState>(
@@ -93,6 +94,7 @@ export default function DesignSettingsPanel({
   isAddingFriend = false,
   isGeneratingSnapshot = false,
   onConfirm,
+  activityType = null,
 }: DesignSettingsPanelProps) {
   const handleInput =
     (key: 'title' | 'date' | 'location' | 'distance' | 'time' | 'myInstagramId') =>
@@ -290,69 +292,73 @@ export default function DesignSettingsPanel({
           </div>
         </section>
 
-        <div className="rounded-[24px] border border-neutral-200 p-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-neutral-900">Map</p>
-              <p className="mt-1 text-xs text-neutral-500">
-                Show or hide the background map.
-              </p>
+        {activityType !== 'hiking' && (
+          <div className="rounded-[24px] border border-neutral-200 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-neutral-900">Map</p>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Show or hide the background map.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  onChange({
+                    ...value,
+                    showMap: !value.showMap,
+                    showContours: !value.showMap ? false : value.showContours,
+                  })
+                }
+                disabled={isGeneratingSnapshot}
+                className={`relative h-7 w-12 rounded-full transition ${
+                  value.showMap ? 'bg-neutral-900' : 'bg-neutral-200'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                <span
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+                    value.showMap ? 'left-6' : 'left-1'
+                  }`}
+                />
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                onChange({
-                  ...value,
-                  showMap: !value.showMap,
-                  showContours: !value.showMap ? false : value.showContours,
-                })
-              }
-              disabled={isGeneratingSnapshot}
-              className={`relative h-7 w-12 rounded-full transition ${
-                value.showMap ? 'bg-neutral-900' : 'bg-neutral-200'
-              } disabled:cursor-not-allowed disabled:opacity-50`}
-            >
-              <span
-                className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
-                  value.showMap ? 'left-6' : 'left-1'
-                }`}
-              />
-            </button>
           </div>
-        </div>
+        )}
 
-        <div className="rounded-[24px] border border-neutral-200 p-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-neutral-900">Contours</p>
-              <p className="mt-1 text-xs text-neutral-500">
-                Show contour lines for terrain-based map styling.
-              </p>
+        {activityType !== 'running' && (
+          <div className="rounded-[24px] border border-neutral-200 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-neutral-900">Contours</p>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Show contour lines for terrain-based map styling.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  onChange({
+                    ...value,
+                    showContours: !value.showContours,
+                  })
+                }
+                className={`relative h-7 w-12 rounded-full transition ${
+                  value.showContours ? 'bg-neutral-900' : 'bg-neutral-200'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+                aria-pressed={value.showContours}
+                disabled={isGeneratingSnapshot || !value.showMap}
+              >
+                <span
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+                    value.showContours ? 'left-6' : 'left-1'
+                  }`}
+                />
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                onChange({
-                  ...value,
-                  showContours: !value.showContours,
-                })
-              }
-              className={`relative h-7 w-12 rounded-full transition ${
-                value.showContours ? 'bg-neutral-900' : 'bg-neutral-200'
-              } disabled:cursor-not-allowed disabled:opacity-50`}
-              aria-pressed={value.showContours}
-              disabled={isGeneratingSnapshot || !value.showMap}
-            >
-              <span
-                className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
-                  value.showContours ? 'left-6' : 'left-1'
-                }`}
-              />
-            </button>
           </div>
-        </div>
+        )}
 
         <div className="rounded-[24px] border border-neutral-200 p-4">
           <div className="flex items-center justify-between gap-4">

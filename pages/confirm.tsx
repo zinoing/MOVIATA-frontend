@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
+import Layout from '../components/Layout';
 import ShirtMockup from '../components/ShirtMockup';
 import { useDesignConfig } from '../context/DesignConfigContext';
 
@@ -40,7 +41,7 @@ export default function ConfirmPage() {
 
   if (!config || !posterSnapshot) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f3f3f1]">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <p className="text-sm text-neutral-500">Redirecting…</p>
       </div>
     );
@@ -70,23 +71,26 @@ export default function ConfirmPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f3f1] px-5 py-8 lg:px-10 lg:py-10">
+    <Layout title="Confirm Your Order">
+    <div className="min-h-screen bg-white px-5 py-8 lg:px-10 lg:py-10">
+      <div className="mx-auto w-full max-w-[1440px] pb-6">
+        <p className="text-sm text-neutral-500">Preview</p>
+
+        <div className="mt-2">
+          <button
+            type="button"
+            onClick={handleBackToDesign}
+            className="text-sm text-neutral-500 transition hover:text-neutral-900"
+          >
+            ← Back to design
+          </button>
+        </div>
+      </div>
+
       <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 lg:flex-row lg:items-start">
         {/* LEFT */}
         <section className="flex min-w-0 flex-1">
           <div className="flex w-full flex-col gap-6 rounded-[36px] bg-[#fbfbf9] px-6 py-6 shadow-[0_30px_80px_rgba(0,0,0,0.08)] lg:px-10 lg:py-8">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-neutral-400">Preview</p>
-
-              <button
-                type="button"
-                onClick={handleBackToDesign}
-                className="rounded-full border border-neutral-300 bg-white px-5 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
-              >
-                Back to design
-              </button>
-            </div>
-
             <div className="flex items-center justify-center py-2">
               <div className="flex w-full items-center justify-center">
                 <ShirtMockup
@@ -370,6 +374,7 @@ export default function ConfirmPage() {
         </aside>
       </div>
     </div>
+    </Layout>
   );
 }
 

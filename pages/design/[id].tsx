@@ -72,14 +72,14 @@ function restoreEditorFromConfig(config: import('../../lib/poster/types').Design
   };
 }
 
-function buildInitialEditorState(activity: ActivityResponse): DesignEditorState {
+function buildInitialEditorState(activity: ActivityResponse, activityType: 'running' | 'hiking' | null): DesignEditorState {
   return {
     instagramEnabled: false,
     shirtColor: 'white',
     routeColor: 'red',
     showMap: true,
     showRoutePoints: false,
-    showContours: false,
+    showContours: activityType === 'hiking',
     title: activity.name || 'Untitled Activity',
     date: formatPosterDate(activity.start_date_local),
     location: '',
@@ -134,6 +134,7 @@ export default function DesignWorkspacePage() {
 
   const [activity, setActivity] = useState<ActivityResponse | null>(null);
   const [editor, setEditor] = useState<DesignEditorState | null>(null);
+  const [activityType, setActivityType] = useState<'running' | 'hiking' | null>(null);
   const [activityFetchState, setActivityFetchState] =
     useState<ActivityFetchState>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -146,6 +147,13 @@ export default function DesignWorkspacePage() {
   const mapSnapshotRef = useRef<string | null>(null);
 
   useEffect(() => {
+    const stored = sessionStorage.getItem('activityType');
+    if (stored === 'running' || stored === 'hiking') {
+      setActivityType(stored);
+    }
+  }, []);
+
+  useEffect(() => {
     if (typeof id !== 'string') return;
 
     let ignore = false;
@@ -156,13 +164,15 @@ export default function DesignWorkspacePage() {
         setError(null);
 
         const data = await apiFetch<ActivityResponse>(`/activities/${id}`);
+        const stored = sessionStorage.getItem('activityType');
+        const type = stored === 'running' || stored === 'hiking' ? stored : null;
 
         if (!ignore) {
           setActivity(data);
           setEditor(
             savedConfig && savedConfig.activityId === id
               ? restoreEditorFromConfig(savedConfig)
-              : buildInitialEditorState(data),
+              : buildInitialEditorState(data, type),
           );
           setActivityFetchState('success');
         }
@@ -468,7 +478,7 @@ export default function DesignWorkspacePage() {
       {(routeState.status === 'ready' || routeState.status === 'not_found') &&
         activity &&
         editor && (
-          <div className="min-h-screen bg-neutral-100 px-4 py-8 lg:px-8">
+          <div className="min-h-screen bg-white px-4 py-8 lg:px-8">
             {isGeneratingSnapshot && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
                 <div className="rounded-2xl bg-white px-6 py-4 shadow-lg">
@@ -544,6 +554,7 @@ export default function DesignWorkspacePage() {
                 isAddingFriend={isAddingFriend}
                 isGeneratingSnapshot={isGeneratingSnapshot}
                 onConfirm={handleConfirm}
+                activityType={activityType}
               />
             </div>
           </div>

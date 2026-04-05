@@ -9,25 +9,13 @@ export default function HomePage() {
         <div className="absolute left-1/2 top-[180px] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-neutral-100 blur-3xl" />
 
         <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-6 pb-20 pt-8 md:px-10 lg:px-12">
-          <header className="flex items-center justify-center py-4">
-            <Link
-              href="/"
-              className="text-[28px] font-black tracking-[-0.06em] text-neutral-950 md:text-[34px]"
-            >
-              MOVIATA
-            </Link>
-          </header>
 
           <main className="flex flex-1 flex-col items-center">
             <div className="relative w-full max-w-6xl">
               <div className="relative flex min-h-[940px] flex-col items-center">
                 <div className="relative z-20 mx-auto max-w-4xl text-center">
-                  <p className="mb-4 text-xs font-semibold uppercase tracking-[0.35em] text-neutral-400 md:text-sm">
-                    MOVIATA
-                  </p>
-
                   <h1 className="text-4xl font-black tracking-[-0.06em] text-neutral-950 md:text-6xl lg:text-7xl">
-                    Turn Your Run
+                    Turn Your Movement
                     <br className="hidden sm:block" />
                     Into Something 
                     <br className="hidden sm:block" />
@@ -43,7 +31,7 @@ export default function HomePage() {
                 <div className="pointer-events-none absolute inset-x-0 top-[300px] z-10 flex justify-center">
                   <div className="relative w-full max-w-[820px]">
                     <img
-                      src="/resources/background.png"
+                      src="/index/background.png"
                       alt="MOVIATA route background"
                       className="block w-full select-none object-contain"
                       draggable={false}
@@ -94,8 +82,8 @@ export default function HomePage() {
 
             <div className="relative z-30 mt-12 flex flex-col items-center">
               <Link
-                href="/start"
-                className="inline-flex min-w-[220px] items-center justify-center rounded-full bg-neutral-950 px-8 py-4 text-base font-semibold text-white shadow-[0_18px_50px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:bg-neutral-800"
+                href="/activity-type"
+                className="inline-flex min-w-[220px] items-center justify-center rounded-full bg-neutral-950 px-8 py-4 text-base font-semibold text-white shadow-[0_18px_50px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:bg-[#BC1B22]"
               >
                 Start Your Design
               </Link>

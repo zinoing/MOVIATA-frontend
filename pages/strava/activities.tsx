@@ -309,7 +309,7 @@ export default function ActivitiesPage() {
 
       setActivities([]);
       setPageState('notConnected');
-      await router.replace('/');
+      await router.replace('/start');
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -336,34 +336,23 @@ export default function ActivitiesPage() {
 
   return (
     <Layout title="Recent Activities">
-      <div
-        className="min-h-screen"
-        style={{
-          backgroundImage: 'url(/resources/running-activities.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-        }}
-      >
-        <div className="min-h-screen bg-black/40">
-        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-          <section className="mb-8 overflow-hidden rounded-[32px] border border-white/30 bg-white/40 backdrop-blur-md shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
+      <div className="min-h-screen bg-white px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-6xl">
+
+          {/* Header */}
+          <section className="mb-8 overflow-hidden rounded-[28px] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
             <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.5fr_0.5fr] lg:px-10 lg:py-10">
               <div className="flex flex-col justify-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-neutral-500">
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-neutral-900">
                   MOVIATA × Strava
                 </p>
-
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
+                <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] text-neutral-950 sm:text-4xl lg:text-5xl">
                   Pick a movement you want to keep.
                 </h1>
-
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-neutral-600 sm:text-base">
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-neutral-900 sm:text-base">
                   Your latest Strava activities are ready. Pick one activity and
                   move directly into the design workspace.
                 </p>
-
                 <div className="mt-6 flex flex-wrap items-center gap-3">
                   {showDisconnectButton && (
                     <button
@@ -379,7 +368,7 @@ export default function ActivitiesPage() {
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 max-w-[260px] ml-auto">
-                <div className="rounded-[20px] border border-white/30 bg-white/20 backdrop-blur-sm p-5">
+                <div className="rounded-[20px] shadow-[0_4px_16px_rgba(0,0,0,0.08)] bg-white p-5">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
                     Total Activities
                   </p>
@@ -387,8 +376,7 @@ export default function ActivitiesPage() {
                     {activities.length}
                   </p>
                 </div>
-
-                <div className="rounded-[24px] border border-white/30 bg-white/20 backdrop-blur-sm p-5">
+                <div className="rounded-[20px] shadow-[0_4px_16px_rgba(0,0,0,0.08)] bg-white p-5">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
                     Total Distance
                   </p>
@@ -396,8 +384,7 @@ export default function ActivitiesPage() {
                     {formatDistanceKm(totalDistance)}
                   </p>
                 </div>
-
-                <div className="rounded-[24px] border border-white/30 bg-white/20 backdrop-blur-sm p-5 sm:col-span-2 lg:col-span-1">
+                <div className="rounded-[20px] shadow-[0_4px_16px_rgba(0,0,0,0.08)] bg-white p-5 sm:col-span-2 lg:col-span-1">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
                     Total Moving Time
                   </p>
@@ -410,7 +397,7 @@ export default function ActivitiesPage() {
           </section>
 
           {pageState === 'loading' && (
-            <section className="rounded-[28px] border border-white/30 bg-white/40 backdrop-blur-md px-6 py-12 text-center shadow-[0_16px_40px_rgba(0,0,0,0.04)]">
+            <section className="rounded-[28px] bg-white px-6 py-12 text-center shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium text-neutral-500">
                 Loading your activities...
               </p>
@@ -421,7 +408,7 @@ export default function ActivitiesPage() {
           )}
 
           {pageState === 'notConnected' && (
-            <section className="rounded-[28px] border border-white/30 bg-white/40 backdrop-blur-md px-6 py-12 text-center shadow-[0_16px_40px_rgba(0,0,0,0.04)]">
+            <section className="rounded-[28px] bg-white px-6 py-12 text-center shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
                 Connection required
               </p>
@@ -429,14 +416,12 @@ export default function ActivitiesPage() {
                 Connect your Strava account first
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-neutral-600">
-                Once your account is connected, your recent activities will appear
-                here automatically.
+                Once your account is connected, your recent activities will appear here automatically.
               </p>
-
               <div className="mt-6 flex justify-center">
                 <Link
                   href="/start"
-                  className="inline-flex items-center justify-center rounded-full bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-600"
+                  className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#BC1B22]"
                 >
                   Connect Strava
                 </Link>
@@ -445,7 +430,7 @@ export default function ActivitiesPage() {
           )}
 
           {pageState === 'empty' && (
-            <section className="rounded-[28px] border border-white/30 bg-white/40 backdrop-blur-md px-6 py-12 text-center shadow-[0_16px_40px_rgba(0,0,0,0.04)]">
+            <section className="rounded-[28px] bg-white px-6 py-12 text-center shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
                 No activities found
               </p>
@@ -453,14 +438,13 @@ export default function ActivitiesPage() {
                 Your activity list is currently empty
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-neutral-600">
-                Record a new activity in Strava and come back here to turn it into
-                a poster or apparel design.
+                Record a new activity in Strava and come back here to turn it into a poster or apparel design.
               </p>
             </section>
           )}
 
           {pageState === 'error' && (
-            <section className="rounded-[28px] border border-red-200/50 bg-white/40 backdrop-blur-md px-6 py-12 text-center shadow-[0_16px_40px_rgba(0,0,0,0.04)]">
+            <section className="rounded-[28px] bg-white px-6 py-12 text-center shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-red-500">
                 Error
               </p>
@@ -475,18 +459,16 @@ export default function ActivitiesPage() {
 
           {pageState === 'ready' && (
             <section>
-              <div className="mb-5 flex items-end justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/60">
-                    Activity Library
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-                    Recent activities
-                  </h2>
-                </div>
+              <div className="mb-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">
+                  Activity Library
+                </p>
+                <h2 className="mt-2 text-2xl font-black tracking-[-0.03em] text-neutral-950">
+                  Recent activities
+                </h2>
               </div>
 
-              <div className="grid gap-5">
+              <div className="grid gap-4">
                 {activities.map((activity) => {
                   const hasRoutePreview = Boolean(activity.map?.summary_polyline);
 
@@ -494,26 +476,24 @@ export default function ActivitiesPage() {
                     <Link
                       key={activity.id}
                       href={`/design/${activity.id}`}
-                      className="group block overflow-hidden rounded-[30px] border border-white/30 bg-white/40 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(0,0,0,0.08)]"
+                      className="group block overflow-hidden rounded-[28px] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)]"
                     >
                       <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
                         <div className="flex flex-col justify-between px-6 py-6 sm:px-8 sm:py-8">
                           <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-700">
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
                               Activity
                             </p>
-
                             <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
                               {activity.name || 'Untitled activity'}
                             </h3>
-
-                            <p className="mt-3 text-sm text-neutral-700">
+                            <p className="mt-3 text-sm text-neutral-500">
                               {formatDateTime(activity.start_date_local)}
                             </p>
                           </div>
 
                           <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                            <div className="rounded-2xl border border-white/30 bg-white/30 backdrop-blur-sm px-3 py-3">
+                            <div className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] bg-white px-3 py-3">
                               <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
                                 Distance
                               </p>
@@ -521,8 +501,7 @@ export default function ActivitiesPage() {
                                 {formatDistanceKm(activity.distance)}
                               </p>
                             </div>
-
-                            <div className="rounded-2xl border border-white/30 bg-white/30 backdrop-blur-sm px-3 py-3">
+                            <div className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] bg-white px-3 py-3">
                               <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
                                 Moving Time
                               </p>
@@ -530,8 +509,7 @@ export default function ActivitiesPage() {
                                 {formatMinutes(activity.moving_time)}
                               </p>
                             </div>
-
-                            <div className="rounded-2xl border border-white/30 bg-white/30 backdrop-blur-sm px-3 py-3">
+                            <div className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] bg-white px-3 py-3">
                               <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
                                 Route Data
                               </p>
@@ -542,28 +520,26 @@ export default function ActivitiesPage() {
                           </div>
 
                           <div className="mt-5 flex items-center justify-between gap-4">
-                            <p className="text-sm" style={{ color: 'rgba(0,0,0,0.6)' }}>
+                            <p className="text-sm text-neutral-500">
                               Open this activity in the design workspace.
                             </p>
-
-                            <div className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition group-hover:bg-orange-500">
+                            <div className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition group-hover:bg-[#BC1B22]">
                               Design this activity
                             </div>
                           </div>
                         </div>
 
-                        <div className="border-t border-white/20 bg-white/10 p-6 lg:border-l lg:border-t-0 lg:p-8">
-                          <div className="flex h-full min-h-[200px] flex-col rounded-[24px] border border-white/30 bg-white/30 backdrop-blur-sm p-4">
+                        <div className="border-t border-neutral-100 bg-white p-6 lg:border-l lg:border-t-0 lg:p-8">
+                          <div className="flex h-full min-h-[200px] flex-col rounded-[24px] bg-white p-4 shadow-sm">
                             <div className="flex items-center justify-between">
                               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
                                 Route preview
                               </p>
-                              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-neutral-700">
+                              <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600">
                                 {hasRoutePreview ? 'Live preview' : 'No polyline'}
                               </span>
                             </div>
-
-                            <div className="mt-3 flex flex-1 items-center justify-center rounded-[18px] border border-dashed border-white/40 p-3">
+                            <div className="mt-3 flex flex-1 items-center justify-center rounded-[18px] border border-dashed border-neutral-200 p-3">
                               <RoutePreview
                                 polyline={activity.map?.summary_polyline}
                                 activityName={activity.name || 'Untitled activity'}
@@ -578,7 +554,6 @@ export default function ActivitiesPage() {
               </div>
             </section>
           )}
-        </div>
         </div>
       </div>
     </Layout>

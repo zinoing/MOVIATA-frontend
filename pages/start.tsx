@@ -1,11 +1,9 @@
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 import Layout from '../components/Layout';
 import { API_BASE_URL } from '../lib/api';
 
 export default function SourceSelectionPage() {
-  const router = useRouter();
   const [isStravaLoading, setIsStravaLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -38,105 +36,96 @@ export default function SourceSelectionPage() {
   }
 
   return (
-    <Layout title="Select Activity Source">
-      <div
-        className="min-h-screen flex items-center justify-center px-4"
-        style={{
-          backgroundImage: 'url(/resources/running.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
-        <div className="w-full max-w-5xl bg-black/50 backdrop-blur-sm rounded-3xl px-16 py-16">
+    <Layout title="Connect Your Activity Source">
+      <div className="min-h-screen bg-white px-4 py-8 flex flex-col">
+        <div className="flex flex-1 flex-col items-center justify-center">
+        <div className="w-full max-w-3xl text-center mb-12">
+          <h1 className="text-4xl font-black tracking-[-0.05em] text-neutral-950 sm:text-5xl">
+            CONNECT YOUR DATA
+          </h1>
+          <p className="mt-4 text-sm leading-7 text-neutral-500 sm:text-base">
+            Import your movement and turn it into a wearable design.
+          </p>
+        </div>
 
-          {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-3xl font-semibold tracking-tight text-white">
-              Choose your activity source
-            </h1>
-            <p className="mt-3 text-neutral-300 text-sm">
-              Import your movement and turn it into a wearable design.
-            </p>
+        <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-3">
+          {/* Strava */}
+          <div className="flex flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
+            <div className="flex flex-1 flex-col px-5 py-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-500">
+                Strava
+              </p>
+              <h2 className="mt-3 text-lg font-black tracking-[0.02em] text-neutral-950">
+                CONNECT STRAVA
+              </h2>
+              <p className="mt-2 flex-1 text-xs leading-5 text-neutral-500">
+                Sync your recent activities instantly from your Strava account.
+              </p>
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={handleConnectStrava}
+                  disabled={isStravaLoading}
+                  className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isStravaLoading ? 'Connecting...' : 'SELECT'}
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Cards */}
-          <div className="grid gap-6 md:grid-cols-3">
-
-            {/* STRAVA */}
-            <button
-              type="button"
-              onClick={handleConnectStrava}
-              disabled={isStravaLoading}
-              className="group rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <div className="mb-4 text-orange-500 font-semibold">
-                STRAVA
-              </div>
-
-              <h2 className="text-xl font-semibold text-neutral-900">
-                Connect Strava
-              </h2>
-
-              <p className="mt-2 text-sm text-neutral-500">
-                Sync your recent activities instantly.
+          {/* Garmin */}
+          <div className="flex flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] opacity-50">
+            <div className="flex flex-1 flex-col px-5 py-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">
+                Garmin
               </p>
-
-              <div className="mt-6 text-sm font-medium text-neutral-800 group-hover:text-orange-500">
-                Continue →
-              </div>
-            </button>
-
-            {/* GARMIN */}
-            <button
-              onClick={() => alert('Garmin coming soon')}
-              className="group rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-            >
-              <div className="mb-4 text-blue-500 font-semibold">
-                GARMIN
-              </div>
-
-              <h2 className="text-xl font-semibold text-neutral-900">
-                Connect Garmin
+              <h2 className="mt-3 text-lg font-black tracking-[0.02em] text-neutral-950">
+                CONNECT GARMIN
               </h2>
-
-              <p className="mt-2 text-sm text-neutral-500">
+              <p className="mt-2 flex-1 text-xs leading-5 text-neutral-500">
                 Import activities from Garmin Connect.
               </p>
-
-              <div className="mt-6 text-sm font-medium text-neutral-800 group-hover:text-blue-500">
-                Coming soon
+              <div className="mt-5">
+                <button
+                  type="button"
+                  disabled
+                  className="w-full cursor-not-allowed rounded-full bg-neutral-100 py-2.5 text-sm font-semibold text-neutral-400"
+                >
+                  COMING SOON
+                </button>
               </div>
-            </button>
+            </div>
+          </div>
 
-            {/* GPX */}
-            <button
-              onClick={() => alert('GPX upload coming soon')}
-              className="group rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-            >
-              <div className="mb-4 text-neutral-700 font-semibold">
-                FILE
-              </div>
-
-              <h2 className="text-xl font-semibold text-neutral-900">
-                Upload GPX file
+          {/* GPX */}
+          <div className="flex flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] opacity-50">
+            <div className="flex flex-1 flex-col px-5 py-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                File
+              </p>
+              <h2 className="mt-3 text-lg font-black tracking-[0.02em] text-neutral-950">
+                UPLOAD GPX
               </h2>
-
-              <p className="mt-2 text-sm text-neutral-500">
+              <p className="mt-2 flex-1 text-xs leading-5 text-neutral-500">
                 Upload your route manually as a GPX file.
               </p>
-
-              <div className="mt-6 text-sm font-medium text-neutral-800">
-                Upload →
+              <div className="mt-5">
+                <button
+                  type="button"
+                  disabled
+                  className="w-full cursor-not-allowed rounded-full bg-neutral-100 py-2.5 text-sm font-semibold text-neutral-400"
+                >
+                  COMING SOON
+                </button>
               </div>
-            </button>
-
+            </div>
           </div>
+        </div>
 
-          {/* Bottom hint */}
-          <div className="mt-10 text-center text-xs text-neutral-300">
-            You can change your source later in settings.
-          </div>
+        {message && (
+          <p className="mt-6 text-sm text-red-500">{message}</p>
+        )}
         </div>
       </div>
     </Layout>

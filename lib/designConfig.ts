@@ -10,6 +10,7 @@ export function buildDesignConfig(
     activityId,
     routeCoordinates: coordinates,
     mapStyle: editor.showContours ? 'contours' : 'default',
+    showMap: true,
     routeColor: editor.routeColor,
     backgroundColor: editor.shirtColor,
     showRoutePoints: editor.showRoutePoints,

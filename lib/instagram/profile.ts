@@ -5,9 +5,10 @@ import type {
   InstagramProfileUiState,
 } from '../../types/instagram';
 import { isValidInstagramHandle, normalizeInstagramHandle, toDisplayHandle } from './handle';
+import { API_BASE_URL } from '../api';
 
-const INSTAGRAM_PROFILE_ENDPOINT = 'http://localhost:4000/api/v1/instagram/profile/fetch';
-const INSTAGRAM_AVATAR_PROXY_ENDPOINT = 'http://localhost:4000/api/v1/instagram/avatar';
+const INSTAGRAM_PROFILE_ENDPOINT = `${API_BASE_URL}/instagram/profile/fetch`;
+const INSTAGRAM_AVATAR_PROXY_ENDPOINT = `${API_BASE_URL}/instagram/avatar`;
 
 export function createInstagramProfileIdleState(): InstagramProfileUiState {
   return { status: 'idle' };

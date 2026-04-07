@@ -30,21 +30,25 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
 
       <main className="min-h-screen w-full bg-white">
         <header
-          className={`fixed left-0 top-0 z-50 w-full border-b border-neutral-200 bg-white transition-transform duration-300 ${
+          className={`fixed left-0 top-0 z-50 w-full border-b border-black/[0.08] transition-transform duration-[300ms] ease-[cubic-bezier(0.4,0,0.2,1)] ${
             visible ? 'translate-y-0' : '-translate-y-full'
           }`}
+          style={{
+            backdropFilter: 'blur(20px) saturate(180%)',
+            backgroundColor: 'rgba(255,255,255,0.72)',
+          }}
         >
-          <div className="relative flex h-14 items-center justify-center px-6">
+          <div className="relative flex h-11 items-center justify-center px-6">
             <Link
               href="/"
-              className="text-base font-black tracking-[-0.04em] text-neutral-950 transition hover:opacity-60"
+              className="text-sm font-black tracking-[-0.03em] text-neutral-950 transition-opacity duration-[180ms] hover:opacity-50"
             >
               MOVIATA
             </Link>
           </div>
         </header>
 
-        <div className="pt-14">
+        <div className="pt-11">
           {children}
         </div>
       </main>

@@ -429,6 +429,10 @@ export default function DesignWorkspacePage() {
     setEditor((prev) => (prev ? { ...prev, title: newTitle } : prev));
   }, [editor?.title]);
 
+  const handleMapCanvas = useCallback((canvas: HTMLCanvasElement) => {
+    mapSnapshotRef.current = canvas.toDataURL('image/png');
+  }, []);
+
   const handleConfirm = async () => {
     if (isGeneratingSnapshot) return;
     if (typeof id !== 'string' || !editor) return;
@@ -526,9 +530,7 @@ export default function DesignWorkspacePage() {
                       selectedUsers={editor.selectedUsers}
                       onRemoveUser={handleRemoveUser}
                       onMapViewStateChange={setFixedMapViewState}
-                      onMapCanvas={(canvas) => {
-                        mapSnapshotRef.current = canvas.toDataURL('image/png');
-                      }}
+                      onMapCanvas={handleMapCanvas}
                     />
                   </div>
                 ) : (

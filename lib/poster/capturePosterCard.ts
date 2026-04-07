@@ -20,10 +20,25 @@ export async function capturePosterCard(
 ): Promise<string> {
   const webglCanvas = el.querySelector<HTMLCanvasElement>('.maplibregl-canvas');
 
+  // If no pre-snapshotted data URL, try to read the WebGL canvas directly at
+  // capture time. This is a fallback for mobile where the idle-event snapshot
+  // may not have been captured yet (e.g. slow tile load, context loss race).
+  const effectiveMapDataUrl =
+    mapDataUrl ??
+    (webglCanvas
+      ? (() => {
+          try {
+            return webglCanvas.toDataURL('image/png');
+          } catch {
+            return null;
+          }
+        })()
+      : null);
+
   let placeholder: HTMLImageElement | null = null;
-  if (mapDataUrl && webglCanvas?.parentElement) {
+  if (effectiveMapDataUrl && webglCanvas?.parentElement) {
     placeholder = document.createElement('img');
-    placeholder.src = mapDataUrl;
+    placeholder.src = effectiveMapDataUrl;
     placeholder.style.position = webglCanvas.style.position || 'absolute';
     placeholder.style.top = webglCanvas.style.top || '0';
     placeholder.style.left = webglCanvas.style.left || '0';

@@ -40,7 +40,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className="relative z-20 mt-[800px] grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="relative z-20 mt-[420px] sm:mt-[580px] md:mt-[720px] lg:mt-[800px] grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="rounded-[28px] border border-neutral-200 bg-white/92 px-6 py-6 text-center shadow-[0_12px_40px_rgba(0,0,0,0.04)] backdrop-blur">
                     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-neutral-400">
                       01

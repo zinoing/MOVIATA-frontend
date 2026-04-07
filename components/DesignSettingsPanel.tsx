@@ -338,17 +338,20 @@ export default function DesignSettingsPanel({
 
               <button
                 type="button"
-                onClick={() =>
+                onClick={() => {
+                  const turningOn = !value.showContours;
                   onChange({
                     ...value,
-                    showContours: !value.showContours,
-                  })
-                }
+                    showContours: turningOn,
+                    // Contours OFF → route only (no basemap). Contours ON → keep showMap as-is.
+                    showMap: turningOn ? value.showMap : false,
+                  });
+                }}
                 className={`relative h-7 w-12 shrink-0 rounded-full transition ${
                   value.showContours ? 'bg-neutral-900' : 'bg-neutral-200'
                 } disabled:cursor-not-allowed disabled:opacity-50`}
                 aria-pressed={value.showContours}
-                disabled={isGeneratingSnapshot || !value.showMap}
+                disabled={isGeneratingSnapshot}
               >
                 <span
                   className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${

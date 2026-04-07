@@ -23,6 +23,8 @@ type Point = {
   y: number;
 };
 
+// ─── Shared polyline utilities ────────────────────────────────────────────────
+
 function decodePolyline(encoded: string): [number, number][] {
   let index = 0;
   let lat = 0;
@@ -99,7 +101,6 @@ function normalizeRouteToSvgPoints(
 
 function buildSvgPath(points: Point[]): string {
   if (points.length === 0) return '';
-
   return points
     .map((point, index) =>
       `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`
@@ -115,15 +116,17 @@ function getRouteHint(distanceM: number, points: Point[]): string {
   const spanX = Math.max(...xs) - Math.min(...xs);
   const spanY = Math.max(...ys) - Math.min(...ys);
   const aspectRatio = spanY > 0 ? spanX / spanY : 1;
-
   const km = distanceM / 1000;
 
-  if (km < 3) return 'Compact route — subtle, minimal visual impact';
-  if (aspectRatio < 0.5) return 'Vertical flow — works well on portrait format';
-  if (aspectRatio > 2) return 'Wide spread — strong horizontal composition';
-  if (km > 15) return 'Long route — high visual density, bold print';
-  return 'Balanced route — clean composition, works on any format';
+  if (km < 3)            return 'Short route · Subtle visual impact';
+  if (aspectRatio < 0.5) return 'Vertical flow · Works well on A3';
+  if (aspectRatio > 2)   return 'Wide spread · Strong horizontal layout';
+  if (km > 15)           return 'Long route · High density, bold print';
+  return 'Clean route · Good for A3';
 }
+
+// ─── Desktop: RoutePreview ────────────────────────────────────────────────────
+// Always visible in the right panel of desktop cards.
 
 function RoutePreview({
   polyline,
@@ -144,7 +147,6 @@ function RoutePreview({
 
     return (
       <div className="flex h-full flex-col">
-        {/* Poster-shaped frame */}
         <div className="relative mx-auto aspect-[2/3] w-full max-w-[180px] overflow-hidden rounded-[14px] border border-neutral-200 bg-[#f8f8f7]">
           <svg
             viewBox="0 0 240 320"
@@ -163,8 +165,6 @@ function RoutePreview({
             />
           </svg>
         </div>
-
-        {/* Hint text */}
         {hint && (
           <p className="mt-3 text-center text-[11px] leading-[1.5] text-neutral-400 italic">
             {hint}
@@ -176,6 +176,144 @@ function RoutePreview({
     return null;
   }
 }
+
+// ─── Mobile: MobileActivityCard ───────────────────────────────────────────────
+// Compact card shown only on screens < sm (640px).
+// Preview is hidden by default and expands on demand via "View preview".
+
+function MobileRouteSketch({
+  polyline,
+  distanceM = 0,
+}: {
+  polyline: string;
+  distanceM?: number;
+}) {
+  const { pathData, hint } = useMemo(() => {
+    try {
+      const coords = decodePolyline(polyline);
+      const pts = normalizeRouteToSvgPoints(coords);
+      return { pathData: buildSvgPath(pts), hint: getRouteHint(distanceM, pts) };
+    } catch {
+      return { pathData: '', hint: '' };
+    }
+  }, [polyline, distanceM]);
+
+  if (!pathData) return null;
+
+  return (
+    <div className="flex flex-col items-center py-5">
+      <div className="aspect-[2/3] w-[110px] overflow-hidden rounded-[12px] border border-neutral-200 bg-[#f8f8f7]">
+        <svg viewBox="0 0 240 320" className="h-full w-full" fill="none" aria-hidden="true">
+          <path
+            d={pathData}
+            stroke="#a3a3a3"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeOpacity="0.45"
+          />
+        </svg>
+      </div>
+      <p className="mt-2 text-[10px] italic text-neutral-400">Preview — guide only</p>
+      {hint && <p className="mt-1 text-[11px] text-neutral-500">{hint}</p>}
+    </div>
+  );
+}
+
+function MobileActivityCard({ activity }: { activity: ActivityWithMap }) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const hasRoute    = Boolean(activity.map?.summary_polyline);
+  const hasDistance = (activity.distance || 0) > 0;
+  const canDesign   = hasRoute && hasDistance;
+
+  const hint = useMemo(() => {
+    if (!canDesign) return "No route data · Can't be designed";
+    if (!activity.map?.summary_polyline) return '';
+    try {
+      const coords = decodePolyline(activity.map.summary_polyline);
+      const pts = normalizeRouteToSvgPoints(coords);
+      return getRouteHint(activity.distance || 0, pts);
+    } catch {
+      return '';
+    }
+  }, [canDesign, activity]);
+
+  return (
+    <div
+      className={`overflow-hidden rounded-[18px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.07)] ${
+        !canDesign ? 'opacity-55' : ''
+      }`}
+    >
+      {/* Main row */}
+      <div className="flex items-start gap-3 px-5 py-4">
+        {/* Text block */}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15px] font-semibold tracking-tight text-neutral-900">
+            {activity.name || 'Untitled activity'}
+          </p>
+          <p className="mt-0.5 text-[12px] text-neutral-400">
+            {formatDateTime(activity.start_date_local)}
+          </p>
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-[12px] font-medium text-neutral-700">
+              {formatDistanceKm(activity.distance)}
+            </span>
+            <span className="text-neutral-300">·</span>
+            <span className="text-[12px] text-neutral-500">
+              {formatMinutes(activity.moving_time)}
+            </span>
+          </div>
+          <p
+            className={`mt-1.5 text-[11px] leading-snug ${
+              canDesign ? 'text-neutral-400' : 'text-red-400'
+            }`}
+          >
+            {hint}
+          </p>
+        </div>
+
+        {/* Action column */}
+        <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
+          {canDesign ? (
+            <Link
+              href={`/design/${activity.id}`}
+              className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-4 py-2 text-[12px] font-semibold text-white transition hover:bg-[#FF5A1F] active:scale-95"
+            >
+              Design this
+            </Link>
+          ) : (
+            <span className="inline-flex items-center justify-center rounded-full bg-neutral-100 px-4 py-2 text-[12px] font-semibold text-neutral-400">
+              Unavailable
+            </span>
+          )}
+
+          {canDesign && activity.map?.summary_polyline && (
+            <button
+              type="button"
+              onClick={() => setPreviewOpen((v) => !v)}
+              className="text-[11px] text-neutral-400 underline-offset-2 transition hover:text-neutral-600 hover:underline"
+            >
+              {previewOpen ? 'Hide preview' : 'View preview'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Expandable preview section */}
+      {previewOpen && activity.map?.summary_polyline && (
+        <div className="border-t border-neutral-100 bg-neutral-50">
+          <MobileRouteSketch
+            polyline={activity.map.summary_polyline}
+            distanceM={activity.distance}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ActivitiesPage() {
   const router = useRouter();
@@ -257,7 +395,7 @@ export default function ActivitiesPage() {
       <div className="min-h-screen bg-white px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl">
 
-          {/* Header */}
+          {/* ── Header (shared) ── */}
           <section className="mb-8 overflow-hidden rounded-[20px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
             <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.5fr_0.5fr] lg:px-10 lg:py-10">
               <div className="flex flex-col justify-center">
@@ -314,6 +452,7 @@ export default function ActivitiesPage() {
             </div>
           </section>
 
+          {/* ── State sections (shared) ── */}
           {pageState === 'loading' && (
             <section className="rounded-[20px] bg-white px-6 py-12 text-center shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium text-neutral-500">
@@ -386,11 +525,19 @@ export default function ActivitiesPage() {
                 </h2>
               </div>
 
-              <div className="grid gap-4">
+              {/* ── Mobile list · < sm (640px) ── */}
+              <div className="flex flex-col gap-3 sm:hidden">
+                {activities.map((activity) => (
+                  <MobileActivityCard key={activity.id} activity={activity} />
+                ))}
+              </div>
+
+              {/* ── Desktop list · ≥ sm (640px) — original layout unchanged ── */}
+              <div className="hidden sm:grid gap-4">
                 {activities.map((activity) => {
-                  const hasRoute = Boolean(activity.map?.summary_polyline);
+                  const hasRoute    = Boolean(activity.map?.summary_polyline);
                   const hasDistance = (activity.distance || 0) > 0;
-                  const canDesign = hasRoute && hasDistance;
+                  const canDesign   = hasRoute && hasDistance;
 
                   const cardContent = (
                     <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
@@ -508,6 +655,7 @@ export default function ActivitiesPage() {
               </div>
             </section>
           )}
+
         </div>
       </div>
     </Layout>

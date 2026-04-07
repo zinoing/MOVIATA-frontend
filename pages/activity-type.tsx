@@ -39,7 +39,7 @@ export default function ActivityTypePage() {
     <Layout title="Choose Your Activity — MOVIATA">
       <div className="min-h-screen bg-white px-4 py-16 flex flex-col items-center justify-center">
         <div className="w-full max-w-3xl text-center mb-12">
-          <h1 className="text-4xl font-black tracking-[-0.05em] text-neutral-950 sm:text-5xl">
+          <h1 className="text-4xl font-black tracking-[-0.02em] text-neutral-950 sm:text-5xl">
             CHOOSE YOUR MOVEMENT
           </h1>
           <p className="mt-4 text-sm leading-7 text-neutral-500 sm:text-base">
@@ -51,8 +51,8 @@ export default function ActivityTypePage() {
           {activities.map((activity) => (
             <div
               key={activity.label}
-              className={`relative flex flex-col overflow-hidden rounded-[24px] shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition ${
-                activity.available ? 'hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)]' : 'opacity-50'
+              className={`relative flex flex-col overflow-hidden rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition ${
+                activity.available ? 'hover:-translate-y-1 hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)]' : 'opacity-50'
               }`}
             >
               {/* Image area */}
@@ -77,7 +77,7 @@ export default function ActivityTypePage() {
                     <button
                       type="button"
                       onClick={() => handleSelect(activity.type!)}
-                      className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#BC1B22]"
+                      className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-500"
                     >
                       SELECT
                     </button>

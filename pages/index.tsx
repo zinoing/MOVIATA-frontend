@@ -15,7 +15,7 @@ export default function HomePage() {
               <div className="relative flex min-h-[940px] flex-col items-center">
                 <div className="relative z-20 mx-auto max-w-4xl text-center">
                   <h1 className="text-4xl font-black tracking-[-0.06em] text-neutral-950 md:text-6xl lg:text-7xl">
-                    Turn Your Movement
+                    Turn Your Movement 
                     <br className="hidden sm:block" />
                     Into Something 
                     <br className="hidden sm:block" />

@@ -40,7 +40,7 @@ export default function SourceSelectionPage() {
       <div className="min-h-screen bg-white px-4 py-8 flex flex-col">
         <div className="flex flex-1 flex-col items-center justify-center">
         <div className="w-full max-w-3xl text-center mb-12">
-          <h1 className="text-4xl font-black tracking-[-0.05em] text-neutral-950 sm:text-5xl">
+          <h1 className="text-4xl font-black tracking-[-0.02em] text-neutral-950 sm:text-5xl">
             CONNECT YOUR DATA
           </h1>
           <p className="mt-4 text-sm leading-7 text-neutral-500 sm:text-base">
@@ -50,7 +50,7 @@ export default function SourceSelectionPage() {
 
         <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-3">
           {/* Strava */}
-          <div className="flex flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
+          <div className="flex flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)]">
             <div className="flex flex-1 flex-col px-5 py-6">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-500">
                 Strava
@@ -75,7 +75,7 @@ export default function SourceSelectionPage() {
           </div>
 
           {/* Garmin */}
-          <div className="flex flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] opacity-50">
+          <div className="flex flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] opacity-50">
             <div className="flex flex-1 flex-col px-5 py-6">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">
                 Garmin
@@ -99,7 +99,7 @@ export default function SourceSelectionPage() {
           </div>
 
           {/* GPX */}
-          <div className="flex flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] opacity-50">
+          <div className="flex flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] opacity-50">
             <div className="flex flex-1 flex-col px-5 py-6">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
                 File

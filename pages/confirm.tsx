@@ -90,7 +90,7 @@ export default function ConfirmPage() {
       <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 lg:flex-row lg:items-start">
         {/* LEFT */}
         <section className="flex min-w-0 flex-1">
-          <div className="flex w-full flex-col gap-6 rounded-[36px] bg-[#fbfbf9] px-6 py-6 shadow-[0_30px_80px_rgba(0,0,0,0.08)] lg:px-10 lg:py-8">
+          <div className="flex w-full flex-col gap-6 rounded-[20px] bg-[#F2F2F7] px-6 py-6 shadow-[0_8px_32px_rgba(0,0,0,0.18)] lg:px-10 lg:py-8">
             <div className="flex items-center justify-center py-2">
               <div className="flex w-full items-center justify-center">
                 <ShirtMockup

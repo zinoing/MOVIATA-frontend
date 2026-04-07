@@ -115,7 +115,7 @@ export default function DesignSettingsPanel({
     !isGeneratingSnapshot;
 
   return (
-    <aside className="w-full rounded-[28px] border border-neutral-200 bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] lg:sticky lg:top-6">
+    <aside className="w-full rounded-[20px] border border-neutral-200 bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.08)] lg:sticky lg:top-6">
       <div className="mb-6">
         <h2 className="text-[26px] font-semibold tracking-[-0.02em] text-neutral-950">
           Settings
@@ -293,7 +293,7 @@ export default function DesignSettingsPanel({
         </section>
 
         {activityType !== 'hiking' && (
-          <div className="rounded-[24px] border border-neutral-200 p-4">
+          <div className="rounded-[16px] border border-neutral-200 p-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-neutral-900">Map</p>
@@ -327,7 +327,7 @@ export default function DesignSettingsPanel({
         )}
 
         {activityType !== 'running' && (
-          <div className="rounded-[24px] border border-neutral-200 p-4">
+          <div className="rounded-[16px] border border-neutral-200 p-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-neutral-900">Contours</p>
@@ -360,7 +360,7 @@ export default function DesignSettingsPanel({
           </div>
         )}
 
-        <div className="rounded-[24px] border border-neutral-200 p-4">
+        <div className="rounded-[16px] border border-neutral-200 p-4">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-neutral-900">
@@ -393,7 +393,7 @@ export default function DesignSettingsPanel({
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-neutral-200 p-4">
+        <div className="rounded-[16px] border border-neutral-200 p-4">
           <p className="text-sm font-medium text-neutral-900">Route Color</p>
           <p className="mt-1 text-xs text-neutral-500">
             Choose the route highlight color.

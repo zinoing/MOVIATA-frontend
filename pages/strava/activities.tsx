@@ -150,7 +150,7 @@ function RoutePreview({
 
     return (
       <div className="w-full">
-        <div className="relative mx-auto aspect-[2/3] w-full max-w-[200px] overflow-hidden rounded-[24px] border border-neutral-200 bg-[#f7f7f5]">
+        <div className="relative mx-auto aspect-[2/3] w-full max-w-[200px] overflow-hidden rounded-[16px] border border-neutral-200 bg-[#f7f7f5]">
           <div className="absolute inset-0 opacity-80">
             <svg
               viewBox="0 0 240 320"
@@ -340,7 +340,7 @@ export default function ActivitiesPage() {
         <div className="mx-auto w-full max-w-6xl">
 
           {/* Header */}
-          <section className="mb-8 overflow-hidden rounded-[28px] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+          <section className="mb-8 overflow-hidden rounded-[20px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
             <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.5fr_0.5fr] lg:px-10 lg:py-10">
               <div className="flex flex-col justify-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-neutral-900">
@@ -368,7 +368,7 @@ export default function ActivitiesPage() {
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 max-w-[260px] ml-auto">
-                <div className="rounded-[20px] shadow-[0_4px_16px_rgba(0,0,0,0.08)] bg-white p-5">
+                <div className="rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white p-5">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
                     Total Activities
                   </p>
@@ -376,7 +376,7 @@ export default function ActivitiesPage() {
                     {activities.length}
                   </p>
                 </div>
-                <div className="rounded-[20px] shadow-[0_4px_16px_rgba(0,0,0,0.08)] bg-white p-5">
+                <div className="rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white p-5">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
                     Total Distance
                   </p>
@@ -384,7 +384,7 @@ export default function ActivitiesPage() {
                     {formatDistanceKm(totalDistance)}
                   </p>
                 </div>
-                <div className="rounded-[20px] shadow-[0_4px_16px_rgba(0,0,0,0.08)] bg-white p-5 sm:col-span-2 lg:col-span-1">
+                <div className="rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white p-5 sm:col-span-2 lg:col-span-1">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
                     Total Moving Time
                   </p>
@@ -397,7 +397,7 @@ export default function ActivitiesPage() {
           </section>
 
           {pageState === 'loading' && (
-            <section className="rounded-[28px] bg-white px-6 py-12 text-center shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+            <section className="rounded-[20px] bg-white px-6 py-12 text-center shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium text-neutral-500">
                 Loading your activities...
               </p>
@@ -408,7 +408,7 @@ export default function ActivitiesPage() {
           )}
 
           {pageState === 'notConnected' && (
-            <section className="rounded-[28px] bg-white px-6 py-12 text-center shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+            <section className="rounded-[20px] bg-white px-6 py-12 text-center shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
                 Connection required
               </p>
@@ -430,7 +430,7 @@ export default function ActivitiesPage() {
           )}
 
           {pageState === 'empty' && (
-            <section className="rounded-[28px] bg-white px-6 py-12 text-center shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+            <section className="rounded-[20px] bg-white px-6 py-12 text-center shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
                 No activities found
               </p>
@@ -444,7 +444,7 @@ export default function ActivitiesPage() {
           )}
 
           {pageState === 'error' && (
-            <section className="rounded-[28px] bg-white px-6 py-12 text-center shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+            <section className="rounded-[20px] bg-white px-6 py-12 text-center shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-red-500">
                 Error
               </p>
@@ -476,7 +476,7 @@ export default function ActivitiesPage() {
                     <Link
                       key={activity.id}
                       href={`/design/${activity.id}`}
-                      className="group block overflow-hidden rounded-[28px] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)]"
+                      className="group block overflow-hidden rounded-[20px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)]"
                     >
                       <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
                         <div className="flex flex-col justify-between px-6 py-6 sm:px-8 sm:py-8">
@@ -493,7 +493,7 @@ export default function ActivitiesPage() {
                           </div>
 
                           <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                            <div className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] bg-white px-3 py-3">
+                            <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
                               <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
                                 Distance
                               </p>
@@ -501,7 +501,7 @@ export default function ActivitiesPage() {
                                 {formatDistanceKm(activity.distance)}
                               </p>
                             </div>
-                            <div className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] bg-white px-3 py-3">
+                            <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
                               <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
                                 Moving Time
                               </p>
@@ -509,7 +509,7 @@ export default function ActivitiesPage() {
                                 {formatMinutes(activity.moving_time)}
                               </p>
                             </div>
-                            <div className="rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.06)] bg-white px-3 py-3">
+                            <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
                               <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
                                 Route Data
                               </p>
@@ -530,7 +530,7 @@ export default function ActivitiesPage() {
                         </div>
 
                         <div className="border-t border-neutral-100 bg-white p-6 lg:border-l lg:border-t-0 lg:p-8">
-                          <div className="flex h-full min-h-[200px] flex-col rounded-[24px] bg-white p-4 shadow-sm">
+                          <div className="flex h-full min-h-[200px] flex-col rounded-[16px] bg-white p-4 shadow-sm">
                             <div className="flex items-center justify-between">
                               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
                                 Route preview
@@ -539,7 +539,7 @@ export default function ActivitiesPage() {
                                 {hasRoutePreview ? 'Live preview' : 'No polyline'}
                               </span>
                             </div>
-                            <div className="mt-3 flex flex-1 items-center justify-center rounded-[18px] border border-dashed border-neutral-200 p-3">
+                            <div className="mt-3 flex flex-1 items-center justify-center rounded-[12px] border border-dashed border-neutral-200 p-3">
                               <RoutePreview
                                 polyline={activity.map?.summary_polyline}
                                 activityName={activity.name || 'Untitled activity'}

@@ -312,7 +312,7 @@ export default function DesignSettingsPanel({
                   })
                 }
                 disabled={isGeneratingSnapshot}
-                className={`relative h-7 w-12 rounded-full transition ${
+                className={`relative h-7 w-12 shrink-0 rounded-full transition ${
                   value.showMap ? 'bg-neutral-900' : 'bg-neutral-200'
                 } disabled:cursor-not-allowed disabled:opacity-50`}
               >
@@ -344,7 +344,7 @@ export default function DesignSettingsPanel({
                     showContours: !value.showContours,
                   })
                 }
-                className={`relative h-7 w-12 rounded-full transition ${
+                className={`relative h-7 w-12 shrink-0 rounded-full transition ${
                   value.showContours ? 'bg-neutral-900' : 'bg-neutral-200'
                 } disabled:cursor-not-allowed disabled:opacity-50`}
                 aria-pressed={value.showContours}
@@ -380,7 +380,7 @@ export default function DesignSettingsPanel({
                 })
               }
               disabled={isGeneratingSnapshot}
-              className={`relative h-7 w-12 rounded-full transition ${
+              className={`relative h-7 w-12 shrink-0 rounded-full transition ${
                 value.showRoutePoints ? 'bg-neutral-900' : 'bg-neutral-200'
               } disabled:cursor-not-allowed disabled:opacity-50`}
             >

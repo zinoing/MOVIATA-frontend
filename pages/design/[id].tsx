@@ -516,7 +516,7 @@ export default function DesignWorkspacePage() {
                   </p>
                 )}
                 {routeState.status === 'ready' ? (
-                  <div id="poster-card" className="relative w-full">
+                  <div id="poster-card" className="relative w-fit mx-auto">
                     <PosterCard
                       coordinates={posterCoordinates}
                       title={editor.title}

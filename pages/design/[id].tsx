@@ -486,7 +486,7 @@ export default function DesignWorkspacePage() {
       {(routeState.status === 'ready' || routeState.status === 'not_found') &&
         activity &&
         editor && (
-          <div className="min-h-screen bg-white py-8 lg:px-8">
+          <div className="min-h-[100dvh] bg-white lg:py-8 lg:px-8">
             {isGeneratingSnapshot && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
                 <div className="rounded-2xl bg-white px-6 py-4 shadow-lg">
@@ -494,7 +494,7 @@ export default function DesignWorkspacePage() {
                 </div>
               </div>
             )}
-            <div className="mx-auto w-full max-w-[1440px] px-4 pb-6">
+            <div className="mx-auto w-full max-w-[1440px] px-4 py-4 lg:pb-6 lg:pt-0">
               <p className="text-sm text-neutral-500">Design workspace</p>
 
               <div className="mt-2">
@@ -508,8 +508,8 @@ export default function DesignWorkspacePage() {
               </div>
             </div>
 
-            <div className="mx-auto grid w-full max-w-[1440px] gap-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:px-8 xl:grid-cols-[minmax(0,1fr)_460px]">
-              <div className="lg:sticky lg:top-8 flex min-h-[720px] self-start flex-col items-center justify-center lg:rounded-[20px] lg:border lg:border-neutral-200 bg-[#F2F2F7] py-6 lg:p-10">
+            <div className="mx-auto grid w-full max-w-[1440px] gap-4 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:px-8 xl:grid-cols-[minmax(0,1fr)_460px]">
+              <div className="lg:sticky lg:top-8 flex min-h-[50dvh] lg:min-h-[720px] self-start flex-col items-center justify-center lg:rounded-[20px] lg:border lg:border-neutral-200 bg-[#F2F2F7] py-6 lg:p-10">
                 {routeState.status === 'ready' && (
                   <p className="mb-4 text-xs text-neutral-500 select-none">
                     Scroll to zoom · Drag to move

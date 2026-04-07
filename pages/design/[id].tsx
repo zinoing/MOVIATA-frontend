@@ -447,6 +447,10 @@ export default function DesignWorkspacePage() {
         fixedMapViewState,
       );
 
+      // Wait two animation frames so the WebGL canvas is fully committed
+      // before capture — prevents blank map on mobile (slow GPU scheduling).
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
       let snapshot: string | null = null;
       const posterCard = document.getElementById('poster-card');
       if (posterCard) {

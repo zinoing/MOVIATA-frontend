@@ -356,22 +356,30 @@ export default function ActivityMap({
     const map = mapRef.current;
     if (!map || (!onViewStateChange && !onMapCanvas)) return;
 
-    const emit = () => {
-      if (onViewStateChange) onViewStateChange(readFixedMapViewState(map));
-      if (onMapCanvas) onMapCanvas(map.getCanvas());
+    // Emit after two rAF ticks so the WebGL frame is committed to the canvas
+    // before we call toDataURL(). Without this, 'idle' fires when tile loading
+    // is done but the GPU hasn't drawn the frame yet — causing a blank snapshot
+    // on mobile where rendering is slower.
+    const emitAfterFrame = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (onViewStateChange) onViewStateChange(readFixedMapViewState(map));
+          if (onMapCanvas) onMapCanvas(map.getCanvas());
+        });
+      });
     };
 
-    map.once('idle', emit);
-    map.on('moveend', emit);
-    map.on('zoomend', emit);
-    map.on('rotateend', emit);
-    map.on('pitchend', emit);
+    map.once('idle', emitAfterFrame);
+    map.on('moveend', emitAfterFrame);
+    map.on('zoomend', emitAfterFrame);
+    map.on('rotateend', emitAfterFrame);
+    map.on('pitchend', emitAfterFrame);
 
     return () => {
-      map.off('moveend', emit);
-      map.off('zoomend', emit);
-      map.off('rotateend', emit);
-      map.off('pitchend', emit);
+      map.off('moveend', emitAfterFrame);
+      map.off('zoomend', emitAfterFrame);
+      map.off('rotateend', emitAfterFrame);
+      map.off('pitchend', emitAfterFrame);
     };
   }, [
     onViewStateChange,

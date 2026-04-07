@@ -77,7 +77,7 @@ export default function ActivityTypePage() {
                     <button
                       type="button"
                       onClick={() => handleSelect(activity.type!)}
-                      className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-500"
+                      className="w-full rounded-[14px] bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#FF5A1F]"
                     >
                       SELECT
                     </button>

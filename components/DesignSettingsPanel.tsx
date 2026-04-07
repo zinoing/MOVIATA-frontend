@@ -546,7 +546,7 @@ export default function DesignSettingsPanel({
                 type="button"
                 onClick={onConfirm}
                 disabled={isGeneratingSnapshot}
-                className="w-full rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-[14px] bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#FF5A1F] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isGeneratingSnapshot ? 'Preparing…' : 'Confirm'}
               </button>

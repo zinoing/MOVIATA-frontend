@@ -83,7 +83,7 @@ export default function HomePage() {
             <div className="relative z-30 mt-12 flex flex-col items-center">
               <Link
                 href="/activity-type"
-                className="inline-flex min-w-[220px] items-center justify-center rounded-full bg-neutral-950 px-8 py-4 text-base font-semibold text-white shadow-[0_18px_50px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:bg-[#BC1B22]"
+                className="inline-flex min-w-[220px] items-center justify-center rounded-[14px] bg-neutral-950 px-8 py-4 text-base font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.20)] transition hover:-translate-y-0.5 hover:bg-[#FF5A1F]"
               >
                 Start Your Design
               </Link>

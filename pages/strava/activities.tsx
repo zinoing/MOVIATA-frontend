@@ -107,155 +107,73 @@ function buildSvgPath(points: Point[]): string {
     .join(' ');
 }
 
+function getRouteHint(distanceM: number, points: Point[]): string {
+  if (points.length < 2) return '';
+
+  const xs = points.map((p) => p.x);
+  const ys = points.map((p) => p.y);
+  const spanX = Math.max(...xs) - Math.min(...xs);
+  const spanY = Math.max(...ys) - Math.min(...ys);
+  const aspectRatio = spanY > 0 ? spanX / spanY : 1;
+
+  const km = distanceM / 1000;
+
+  if (km < 3) return 'Compact route — subtle, minimal visual impact';
+  if (aspectRatio < 0.5) return 'Vertical flow — works well on portrait format';
+  if (aspectRatio > 2) return 'Wide spread — strong horizontal composition';
+  if (km > 15) return 'Long route — high visual density, bold print';
+  return 'Balanced route — clean composition, works on any format';
+}
+
 function RoutePreview({
   polyline,
-  activityName,
+  distanceM = 0,
 }: {
   polyline?: string | null;
-  activityName: string;
+  distanceM?: number;
 }) {
-  if (!polyline) {
-    return (
-      <div className="text-center">
-        <p className="text-base font-medium text-neutral-700">
-          Route preview is not available
-        </p>
-        <p className="mt-2 text-sm leading-6 text-neutral-500">
-          This activity does not include summary polyline data yet.
-        </p>
-      </div>
-    );
-  }
+  if (!polyline) return null;
 
   try {
     const decodedCoordinates = decodePolyline(polyline);
     const normalizedPoints = normalizeRouteToSvgPoints(decodedCoordinates);
     const pathData = buildSvgPath(normalizedPoints);
+    if (!pathData) return null;
 
-    if (!pathData) {
-      return (
-        <div className="text-center">
-          <p className="text-base font-medium text-neutral-700">
-            Route preview is not available
-          </p>
-          <p className="mt-2 text-sm leading-6 text-neutral-500">
-            The route data was provided, but the preview could not be rendered.
-          </p>
-        </div>
-      );
-    }
-
-    const startPoint = normalizedPoints[0];
-    const endPoint = normalizedPoints[normalizedPoints.length - 1];
+    const hint = getRouteHint(distanceM, normalizedPoints);
 
     return (
-      <div className="w-full">
-        <div className="relative mx-auto aspect-[2/3] w-full max-w-[200px] overflow-hidden rounded-[16px] border border-neutral-200 bg-[#f7f7f5]">
-          <div className="absolute inset-0 opacity-80">
-            <svg
-              viewBox="0 0 240 320"
-              className="h-full w-full"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-label={`${activityName} route preview`}
-            >
-              <path
-                d="M20 50 H220"
-                stroke="#e5e5e5"
-                strokeWidth="1"
-              />
-              <path
-                d="M20 95 H220"
-                stroke="#ececec"
-                strokeWidth="1"
-              />
-              <path
-                d="M20 140 H220"
-                stroke="#e5e5e5"
-                strokeWidth="1"
-              />
-              <path
-                d="M20 185 H220"
-                stroke="#ececec"
-                strokeWidth="1"
-              />
-              <path
-                d="M20 230 H220"
-                stroke="#e5e5e5"
-                strokeWidth="1"
-              />
-              <path
-                d="M20 275 H220"
-                stroke="#ececec"
-                strokeWidth="1"
-              />
-
-              <path
-                d="M45 20 V300"
-                stroke="#ececec"
-                strokeWidth="1"
-              />
-              <path
-                d="M90 20 V300"
-                stroke="#e5e5e5"
-                strokeWidth="1"
-              />
-              <path
-                d="M135 20 V300"
-                stroke="#ececec"
-                strokeWidth="1"
-              />
-              <path
-                d="M180 20 V300"
-                stroke="#e5e5e5"
-                strokeWidth="1"
-              />
-
-              <path
-                d={pathData}
-                stroke="#111111"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-
-              {startPoint && (
-                <circle
-                  cx={startPoint.x}
-                  cy={startPoint.y}
-                  r="5"
-                  fill="#16a34a"
-                />
-              )}
-
-              {endPoint && (
-                <circle
-                  cx={endPoint.x}
-                  cy={endPoint.y}
-                  r="5"
-                  fill="#f97316"
-                />
-              )}
-            </svg>
-          </div>
+      <div className="flex h-full flex-col">
+        {/* Poster-shaped frame */}
+        <div className="relative mx-auto aspect-[2/3] w-full max-w-[180px] overflow-hidden rounded-[14px] border border-neutral-200 bg-[#f8f8f7]">
+          <svg
+            viewBox="0 0 240 320"
+            className="h-full w-full"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d={pathData}
+              stroke="#a3a3a3"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeOpacity="0.45"
+            />
+          </svg>
         </div>
 
-        <p className="mt-4 text-center text-sm text-neutral-500">
-          Real route preview generated from Strava summary polyline.
-        </p>
+        {/* Hint text */}
+        {hint && (
+          <p className="mt-3 text-center text-[11px] leading-[1.5] text-neutral-400 italic">
+            {hint}
+          </p>
+        )}
       </div>
     );
   } catch {
-    return (
-      <div className="text-center">
-        <p className="text-base font-medium text-neutral-700">
-          Route preview could not be rendered
-        </p>
-        <p className="mt-2 text-sm leading-6 text-neutral-500">
-          The polyline format may be invalid or incomplete.
-        </p>
-      </div>
-    );
+    return null;
   }
 }
 
@@ -421,7 +339,7 @@ export default function ActivitiesPage() {
               <div className="mt-6 flex justify-center">
                 <Link
                   href="/start"
-                  className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#BC1B22]"
+                  className="inline-flex items-center justify-center rounded-[14px] bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#FF5A1F]"
                 >
                   Connect Strava
                 </Link>
@@ -470,7 +388,112 @@ export default function ActivitiesPage() {
 
               <div className="grid gap-4">
                 {activities.map((activity) => {
-                  const hasRoutePreview = Boolean(activity.map?.summary_polyline);
+                  const hasRoute = Boolean(activity.map?.summary_polyline);
+                  const hasDistance = (activity.distance || 0) > 0;
+                  const canDesign = hasRoute && hasDistance;
+
+                  const cardContent = (
+                    <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
+                      {/* Left: activity info */}
+                      <div className="flex flex-col justify-between px-6 py-6 sm:px-8 sm:py-8">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                            Activity
+                          </p>
+                          <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
+                            {activity.name || 'Untitled activity'}
+                          </h3>
+                          <p className="mt-3 text-sm text-neutral-500">
+                            {formatDateTime(activity.start_date_local)}
+                          </p>
+                        </div>
+
+                        <div className="mt-5 grid grid-cols-2 gap-2">
+                          <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
+                            <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
+                              Distance
+                            </p>
+                            <p className="mt-1.5 text-base font-semibold text-neutral-900">
+                              {formatDistanceKm(activity.distance)}
+                            </p>
+                          </div>
+                          <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
+                            <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
+                              Moving Time
+                            </p>
+                            <p className="mt-1.5 text-base font-semibold text-neutral-900">
+                              {formatMinutes(activity.moving_time)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-5 flex items-center justify-between gap-4">
+                          {canDesign ? (
+                            <p className="text-sm text-neutral-400">
+                              Looks good? Design this activity.
+                            </p>
+                          ) : (
+                            <p className="text-sm text-neutral-400">
+                              This activity can&apos;t be designed.
+                            </p>
+                          )}
+                          <div
+                            className={`inline-flex shrink-0 items-center justify-center rounded-[14px] px-5 py-2.5 text-sm font-semibold transition ${
+                              canDesign
+                                ? 'bg-neutral-900 text-white group-hover:bg-[#FF5A1F]'
+                                : 'cursor-default bg-neutral-100 text-neutral-400'
+                            }`}
+                          >
+                            {canDesign ? 'Design this' : 'Unavailable'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: route preview panel */}
+                      <div className="border-t border-neutral-100 bg-neutral-50 lg:border-l lg:border-t-0">
+                        {canDesign ? (
+                          <div className="flex h-full flex-col px-6 py-6">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-400">
+                              Design preview · guide only
+                            </p>
+                            <div className="mt-4 flex flex-1 items-center justify-center">
+                              <RoutePreview
+                                polyline={activity.map?.summary_polyline}
+                                distanceM={activity.distance}
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex h-full flex-col items-center justify-center px-6 py-10 text-center">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200">
+                              <svg className="h-4 w-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                              </svg>
+                            </div>
+                            <p className="mt-3 text-sm font-medium text-neutral-600">
+                              No route data available
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-neutral-400">
+                              {!hasRoute
+                                ? 'Route data is missing for this activity.'
+                                : 'Distance is zero — activity cannot be designed.'}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+
+                  if (!canDesign) {
+                    return (
+                      <div
+                        key={activity.id}
+                        className="block overflow-hidden rounded-[20px] bg-white opacity-60 shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+                      >
+                        {cardContent}
+                      </div>
+                    );
+                  }
 
                   return (
                     <Link
@@ -478,76 +501,7 @@ export default function ActivitiesPage() {
                       href={`/design/${activity.id}`}
                       className="group block overflow-hidden rounded-[20px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)]"
                     >
-                      <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
-                        <div className="flex flex-col justify-between px-6 py-6 sm:px-8 sm:py-8">
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                              Activity
-                            </p>
-                            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
-                              {activity.name || 'Untitled activity'}
-                            </h3>
-                            <p className="mt-3 text-sm text-neutral-500">
-                              {formatDateTime(activity.start_date_local)}
-                            </p>
-                          </div>
-
-                          <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                            <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
-                              <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
-                                Distance
-                              </p>
-                              <p className="mt-1.5 text-base font-semibold text-neutral-900">
-                                {formatDistanceKm(activity.distance)}
-                              </p>
-                            </div>
-                            <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
-                              <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
-                                Moving Time
-                              </p>
-                              <p className="mt-1.5 text-base font-semibold text-neutral-900">
-                                {formatMinutes(activity.moving_time)}
-                              </p>
-                            </div>
-                            <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
-                              <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
-                                Route Data
-                              </p>
-                              <p className="mt-1.5 text-base font-semibold text-neutral-900">
-                                {hasRoutePreview ? 'Available' : 'Missing'}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-5 flex items-center justify-between gap-4">
-                            <p className="text-sm text-neutral-500">
-                              Open this activity in the design workspace.
-                            </p>
-                            <div className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition group-hover:bg-[#BC1B22]">
-                              Design this activity
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="border-t border-neutral-100 bg-white p-6 lg:border-l lg:border-t-0 lg:p-8">
-                          <div className="flex h-full min-h-[200px] flex-col rounded-[16px] bg-white p-4 shadow-sm">
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                                Route preview
-                              </p>
-                              <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-600">
-                                {hasRoutePreview ? 'Live preview' : 'No polyline'}
-                              </span>
-                            </div>
-                            <div className="mt-3 flex flex-1 items-center justify-center rounded-[12px] border border-dashed border-neutral-200 p-3">
-                              <RoutePreview
-                                polyline={activity.map?.summary_polyline}
-                                activityName={activity.name || 'Untitled activity'}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      {cardContent}
                     </Link>
                   );
                 })}

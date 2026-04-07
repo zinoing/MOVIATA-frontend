@@ -52,7 +52,7 @@ export default function SourceSelectionPage() {
           {/* Strava */}
           <div className="flex flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)]">
             <div className="flex flex-1 flex-col px-5 py-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#FF5A1F]">
                 Strava
               </p>
               <h2 className="mt-3 text-lg font-black tracking-[0.02em] text-neutral-950">
@@ -66,7 +66,7 @@ export default function SourceSelectionPage() {
                   type="button"
                   onClick={handleConnectStrava}
                   disabled={isStravaLoading}
-                  className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-[14px] bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#FF5A1F] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isStravaLoading ? 'Connecting...' : 'SELECT'}
                 </button>

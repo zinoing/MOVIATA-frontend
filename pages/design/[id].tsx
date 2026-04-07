@@ -501,7 +501,7 @@ export default function DesignWorkspacePage() {
             </div>
 
             <div className="mx-auto grid w-full max-w-[1440px] gap-8 lg:grid-cols-[minmax(0,1fr)_420px] xl:grid-cols-[minmax(0,1fr)_460px]">
-              <div className="sticky top-8 flex min-h-[720px] self-start flex-col items-center justify-center rounded-[32px] border border-neutral-200 bg-[#f6f5f2] p-6 lg:p-10">
+              <div className="lg:sticky lg:top-8 flex min-h-[720px] self-start flex-col items-center justify-center rounded-[20px] border border-neutral-200 bg-[#F2F2F7] p-6 lg:p-10">
                 {routeState.status === 'ready' && (
                   <p className="mb-4 text-xs text-neutral-500 select-none">
                     Scroll to zoom · Drag to move
@@ -532,7 +532,7 @@ export default function DesignWorkspacePage() {
                     />
                   </div>
                 ) : (
-                  <div className="flex w-[450px] max-w-full items-center justify-center rounded-[30px] bg-white p-10 text-sm text-neutral-500 shadow-[0_24px_70px_rgba(0,0,0,0.10)]">
+                  <div className="flex w-[450px] max-w-full items-center justify-center rounded-[16px] bg-white p-10 text-sm text-neutral-500 shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
                     표시할 경로 데이터가 없습니다.
                   </div>
                 )}

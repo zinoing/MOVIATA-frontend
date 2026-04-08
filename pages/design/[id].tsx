@@ -477,6 +477,18 @@ export default function DesignWorkspacePage() {
   }, [routeState.status, editor]);
 
   const handleConfirm = async () => {
+    const posterCard = document.getElementById('poster-card');
+    const cardRoot = posterCard?.firstElementChild as HTMLElement;
+    const mapContainer = posterCard?.querySelector('.maplibregl-map') as HTMLElement;
+    const cardRect = cardRoot?.getBoundingClientRect();
+    const mapRect = mapContainer?.getBoundingClientRect();
+
+    alert(
+      `cardRoot: x=${cardRect?.x.toFixed(1)} y=${cardRect?.y.toFixed(1)} w=${cardRect?.width} h=${cardRect?.height}\n` +
+      `mapContainer: x=${mapRect?.x.toFixed(1)} y=${mapRect?.y.toFixed(1)} w=${mapRect?.width} h=${mapRect?.height}\n` +
+      `map relative to card: x=${((mapRect?.x ?? 0) - (cardRect?.x ?? 0)).toFixed(1)} y=${((mapRect?.y ?? 0) - (cardRect?.y ?? 0)).toFixed(1)}`
+    );
+    
     if (isGeneratingSnapshot) return;
     if (typeof id !== 'string' || !editor) return;
 
@@ -513,7 +525,7 @@ export default function DesignWorkspacePage() {
         `cardRoot left: ${cardRoot?.getBoundingClientRect().left}\n` +
         `cardRoot tag: ${cardRoot?.tagName} class: ${cardRoot?.className.slice(0, 60)}`
       );
-      
+
       if (posterCard) {
         snapshot = await capturePosterCard(
           posterCard,

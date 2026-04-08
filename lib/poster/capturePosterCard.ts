@@ -16,20 +16,20 @@
  *
  * LEFT-OFFSET FIX:
  * html-to-image uses getBoundingClientRect().left as the SVG x-origin.
- * The card is centered via mx-auto so its left offset varies by viewport
- * (~256px on mobile, ~734px on wide desktop), shifting all content right.
+ * The card is centered via mx-auto so its left varies by viewport width,
+ * shifting all content right and clipping the design.
  *
- * Fix: temporarily set position:fixed + left:0 + top:0 on captureTarget
- * AFTER the WebGL canvas has already been replaced with a static <img>
- * placeholder. Since the live WebGL context is already hidden at this point,
- * moving captureTarget in the stacking context does not cause context loss.
- * After toPng completes, all styles are restored in the finally block.
+ * Fix: after swapping the WebGL canvas for a static placeholder, hide the
+ * entire MapLibre container (display:none) so MapLibre cannot receive resize
+ * events. Then apply position:fixed + left:0 to captureTarget for capture.
+ * Restore everything in the finally block.
  */
 export async function capturePosterCard(
   el: HTMLElement,
   mapDataUrl: string | null,
 ): Promise<string> {
   const webglCanvas = el.querySelector<HTMLCanvasElement>('.maplibregl-canvas');
+  const mapContainer = el.querySelector<HTMLElement>('.maplibregl-map');
 
   const effectiveMapDataUrl =
     mapDataUrl ??
@@ -43,9 +43,7 @@ export async function capturePosterCard(
         })()
       : null);
 
-  // Replace WebGL canvas with a static <img> BEFORE any style changes.
-  // This must happen first so that when we later apply position:fixed to
-  // captureTarget, the WebGL context is already detached from rendering.
+  // Step 1: replace WebGL canvas with static <img> placeholder
   let placeholder: HTMLImageElement | null = null;
   if (effectiveMapDataUrl && webglCanvas?.parentElement) {
     placeholder = document.createElement('img');
@@ -65,6 +63,15 @@ export async function capturePosterCard(
     });
   }
 
+  // Step 2: hide the MapLibre container entirely so it cannot receive resize
+  // events when we later change captureTarget's position. Without this,
+  // MapLibre detects the layout change, re-renders the canvas, and clears
+  // the WebGL drawing buffer — causing a blank map in the capture.
+  const savedMapContainerDisplay = mapContainer?.style.display ?? '';
+  if (mapContainer) {
+    mapContainer.style.display = 'none';
+  }
+
   const controls = el.querySelectorAll<HTMLElement>(
     '.maplibregl-ctrl-top-left, .maplibregl-ctrl-top-right, .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right',
   );
@@ -73,7 +80,11 @@ export async function capturePosterCard(
   const cardRoot = el.firstElementChild as HTMLElement | null;
   const captureTarget = cardRoot ?? el;
 
-  // Save all styles we are about to mutate
+  // Measure dimensions before changing position
+  const captureWidth = captureTarget.offsetWidth;
+  const captureHeight = captureTarget.offsetHeight;
+
+  // Save styles
   const savedBg = captureTarget.style.backgroundColor;
   const savedShadow = captureTarget.style.boxShadow;
   const savedPosition = captureTarget.style.position;
@@ -82,20 +93,27 @@ export async function capturePosterCard(
   const savedZIndex = captureTarget.style.zIndex;
   const savedWidth = captureTarget.style.width;
 
-  const captureWidth = captureTarget.offsetWidth;
-  const captureHeight = captureTarget.offsetHeight;
-
-  // Apply styles for capture
+  // Step 3: fix captureTarget at (0,0) so getBoundingClientRect().left === 0
   captureTarget.style.backgroundColor = 'transparent';
   captureTarget.style.boxShadow = 'none';
-  // Fix at (0,0) so getBoundingClientRect().left === 0 for html-to-image.
-  // Safe to do here because the WebGL canvas is already replaced with a
-  // static <img> — no live GL context will be disrupted.
   captureTarget.style.position = 'fixed';
   captureTarget.style.left = '0';
   captureTarget.style.top = '0';
   captureTarget.style.width = `${captureWidth}px`;
   captureTarget.style.zIndex = '-1';
+
+  // Replace the map area with placeholder img at correct size
+  // so html-to-image sees a static image instead of the hidden GL canvas
+  if (placeholder && mapContainer) {
+    placeholder.style.position = 'absolute';
+    placeholder.style.top = '0';
+    placeholder.style.left = '0';
+    placeholder.style.width = '100%';
+    placeholder.style.height = '100%';
+    placeholder.style.display = 'block';
+    mapContainer.style.display = 'block';
+    mapContainer.style.position = 'relative';
+  }
 
   try {
     const { toPng } = await import('html-to-image');
@@ -106,7 +124,7 @@ export async function capturePosterCard(
       height: captureHeight,
     });
   } finally {
-    // Restore all mutated styles
+    // Restore all styles
     captureTarget.style.backgroundColor = savedBg;
     captureTarget.style.boxShadow = savedShadow;
     captureTarget.style.position = savedPosition;
@@ -115,6 +133,9 @@ export async function capturePosterCard(
     captureTarget.style.zIndex = savedZIndex;
     captureTarget.style.width = savedWidth;
 
+    if (mapContainer) {
+      mapContainer.style.display = savedMapContainerDisplay;
+    }
     if (webglCanvas) webglCanvas.style.display = '';
     placeholder?.remove();
     controls.forEach((o) => { o.style.display = ''; });

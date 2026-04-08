@@ -2,15 +2,22 @@
  * Captures the PosterCard as a PNG by compositing two layers:
  *
  * Layer 1 — Card UI (text, stats, avatars):
- *   dom-to-image-more captures captureTarget with the map container hidden.
- *   Imported dynamically to avoid SSR issues (dom-to-image-more references
- *   browser globals like Node at module evaluation time).
+ *   html-to-image captures captureTarget at pixelRatio:3 for sharp output.
+ *
+ *   LEFT-OFFSET FIX:
+ *   html-to-image uses getBoundingClientRect().left as SVG x-origin.
+ *   Fix: hide map container first (so MapLibre can't resize), then apply
+ *   position:fixed + left:0 to captureTarget so its left === 0.
+ *   Safe because map is already hidden — no WebGL resize event fires.
+ *
+ *   TITLE LINE-BREAK FIX:
+ *   Replace \n in h1 with block spans before capture so SVG renders the
+ *   same line break regardless of font metrics in foreignObject context.
  *
  * Layer 2 — Map snapshot:
- *   The pre-captured map PNG (mapDataUrl) is drawn directly onto the output
- *   canvas at the map container's position relative to the card, measured at
- *   runtime via getBoundingClientRect. Always accurate regardless of browser,
- *   viewport, or zoom level.
+ *   The pre-captured map PNG is drawn directly onto the output canvas at the
+ *   map container's position relative to the card, measured at runtime via
+ *   getBoundingClientRect.
  */
 export async function capturePosterCard(
   el: HTMLElement,
@@ -18,11 +25,7 @@ export async function capturePosterCard(
 ): Promise<string> {
   const PIXEL_RATIO = 3;
 
-  // Dynamic import so this module is never evaluated on the server.
-  // dom-to-image-more references browser globals (Node, window) at the
-  // top level of its bundle, causing "ReferenceError: Node is not defined"
-  // when Next.js tries to SSR any page that imports this file statically.
-  const domtoimage = (await import('dom-to-image-more')).default;
+  const { toPng } = await import('html-to-image');
 
   const webglCanvas = el.querySelector<HTMLCanvasElement>('.maplibregl-canvas');
   const mapContainer = el.querySelector<HTMLElement>('.maplibregl-map');
@@ -48,7 +51,8 @@ export async function capturePosterCard(
   const cardW = Math.round(cardRect.width);
   const cardH = Math.round(cardRect.height);
 
-  // Hide map container so dom-to-image-more captures card UI only
+  // Step 1: hide map container FIRST so MapLibre cannot receive resize events
+  // when we later change captureTarget's position
   const savedMapDisplay = mapContainer?.style.display ?? '';
   if (mapContainer) mapContainer.style.display = 'none';
 
@@ -57,20 +61,43 @@ export async function capturePosterCard(
   );
   controls.forEach((o) => { o.style.display = 'none'; });
 
+  // Step 2: fix captureTarget at (0,0) so getBoundingClientRect().left === 0
+  // Safe now because map is hidden and WebGL can't detect the layout change
   const savedBg = captureTarget.style.backgroundColor;
   const savedShadow = captureTarget.style.boxShadow;
+  const savedPosition = captureTarget.style.position;
+  const savedLeft = captureTarget.style.left;
+  const savedTop = captureTarget.style.top;
+  const savedZIndex = captureTarget.style.zIndex;
+  const savedWidth = captureTarget.style.width;
+
   captureTarget.style.backgroundColor = 'transparent';
   captureTarget.style.boxShadow = 'none';
+  captureTarget.style.position = 'fixed';
+  captureTarget.style.left = '0';
+  captureTarget.style.top = '0';
+  captureTarget.style.width = `${cardW}px`;
+  captureTarget.style.zIndex = '-1';
+
+  // Step 3: replace \n in h1 with block spans for consistent line breaks
+  const h1 = captureTarget.querySelector<HTMLElement>('h1');
+  const savedH1Html = h1?.innerHTML ?? null;
+  const savedH1WhiteSpace = h1?.style.whiteSpace ?? '';
+
+  if (h1 && h1.textContent?.includes('\n')) {
+    const lines = h1.textContent.split('\n');
+    h1.innerHTML = lines
+      .map((line) => `<span style="display:block">${line}</span>`)
+      .join('');
+    h1.style.whiteSpace = 'normal';
+  }
 
   try {
-    // Layer 1: capture card UI (no map)
-    const uiPng = await domtoimage.toPng(captureTarget, {
-      width: cardW * PIXEL_RATIO,
-      height: cardH * PIXEL_RATIO,
-      style: {
-        transform: `scale(${PIXEL_RATIO})`,
-        transformOrigin: 'top left',
-      },
+    // Layer 1: capture card UI with html-to-image at full pixel ratio
+    const uiPng = await toPng(captureTarget, {
+      pixelRatio: PIXEL_RATIO,
+      width: cardW,
+      height: cardH,
     });
 
     // Build output canvas
@@ -109,8 +136,22 @@ export async function capturePosterCard(
 
     return out.toDataURL('image/png');
   } finally {
+    // Restore h1
+    if (h1 && savedH1Html !== null) {
+      h1.innerHTML = savedH1Html;
+      h1.style.whiteSpace = savedH1WhiteSpace;
+    }
+
+    // Restore captureTarget styles
     captureTarget.style.backgroundColor = savedBg;
     captureTarget.style.boxShadow = savedShadow;
+    captureTarget.style.position = savedPosition;
+    captureTarget.style.left = savedLeft;
+    captureTarget.style.top = savedTop;
+    captureTarget.style.zIndex = savedZIndex;
+    captureTarget.style.width = savedWidth;
+
+    // Restore map
     if (mapContainer) mapContainer.style.display = savedMapDisplay;
     if (webglCanvas) webglCanvas.style.display = '';
     controls.forEach((o) => { o.style.display = ''; });

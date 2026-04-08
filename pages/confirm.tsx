@@ -98,7 +98,6 @@ export default function ConfirmPage() {
                   posterSnapshot={posterSnapshot}
                   width={640}
                   productColor={safeProduct.color}
-                  initialView="back"
                 />
               </div>
             </div>

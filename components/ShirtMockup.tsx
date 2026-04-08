@@ -8,14 +8,10 @@ type Props = {
   initialView?: 'front' | 'back';
 };
 
-const OVERLAY_TOP = '11.8%';
-const OVERLAY_CENTER = '50%';
-const OVERLAY_WIDTH = '46.5%';
-
 export default function ShirtMockup({
   config,
   posterSnapshot,
-  width = 420,
+  width,
   productColor,
 }: Props) {
   const color = productColor ?? config.shirtColor ?? 'white';
@@ -28,49 +24,42 @@ export default function ShirtMockup({
 
   if (!posterSnapshot) {
     return (
-      <div
-        style={{ width }}
-        className="flex items-center justify-center rounded-2xl bg-neutral-100 py-16 text-sm text-neutral-400"
-      >
+      <div className="flex w-full items-center justify-center rounded-2xl bg-neutral-100 py-16 text-sm text-neutral-400">
         No preview available
       </div>
     );
   }
 
   return (
-    <div style={{ width }} className="mx-auto flex flex-col gap-6">
+    <div
+      className="mx-auto flex w-full max-w-[340px] flex-col gap-6 lg:max-w-[580px]"
+      style={width ? { maxWidth: width } : undefined}
+    >
       {/* BACK */}
       <div className="flex flex-col gap-2">
-        <div style={{ position: 'relative', width: '100%' }}>
+        <div className="relative w-full">
           <img
             src={backSrc}
             alt="T-shirt back"
             draggable={false}
-            style={{
-              width: '100%',
-              height: 'auto',
-              display: 'block',
-              userSelect: 'none',
-            }}
+            className="block w-full select-none"
           />
 
           <img
             src={posterSnapshot}
             alt="Your design"
             draggable={false}
+            className="pointer-events-none absolute select-none"
             style={{
-              position: 'absolute',
-              top: OVERLAY_TOP,
-              left: OVERLAY_CENTER,
+              top: '14%',
+              left: '50%',
               transform: 'translateX(-50%)',
-              width: OVERLAY_WIDTH,
+              width: '42%',
               height: 'auto',
               display: 'block',
               objectFit: 'contain',
               background: 'transparent',
               opacity: 1,
-              userSelect: 'none',
-              pointerEvents: 'none',
             }}
           />
         </div>
@@ -83,12 +72,7 @@ export default function ShirtMockup({
           src={frontSrc}
           alt="T-shirt front"
           draggable={false}
-          style={{
-            width: '100%',
-            height: 'auto',
-            display: 'block',
-            userSelect: 'none',
-          }}
+          className="block w-full select-none"
         />
         <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Front</p>
       </div>

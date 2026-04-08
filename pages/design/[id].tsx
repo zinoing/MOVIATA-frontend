@@ -171,9 +171,21 @@ export default function DesignWorkspacePage() {
 
         if (!ignore) {
           setActivity(data);
+
+          // Restore saved config only when the activity AND the map style
+          // match the current session. If the user previously viewed this
+          // activity as "running" and now enters as "hiking" (or vice versa),
+          // the saved config would have the wrong mapStyle — so we discard it
+          // and build a fresh editor state from the current activityType.
+          const expectedMapStyle = type === 'hiking' ? 'contours' : 'default';
+          const canRestore =
+            savedConfig &&
+            savedConfig.activityId === id &&
+            savedConfig.mapStyle === expectedMapStyle;
+
           setEditor(
-            savedConfig && savedConfig.activityId === id
-              ? restoreEditorFromConfig(savedConfig)
+            canRestore
+              ? restoreEditorFromConfig(savedConfig!)
               : buildInitialEditorState(data, type),
           );
           setActivityFetchState('success');
@@ -468,6 +480,13 @@ export default function DesignWorkspacePage() {
     if (isGeneratingSnapshot) return;
     if (typeof id !== 'string' || !editor) return;
 
+    // Guard: map must be ready before capture.
+    // On slow mobile devices the WebGL idle event may not have fired yet.
+    if (!isMapReady && !mapSnapshotRef.current) {
+      alert('Map is still loading. Please wait a moment and try again.');
+      return;
+    }
+
     try {
       setIsGeneratingSnapshot(true);
 
@@ -480,12 +499,17 @@ export default function DesignWorkspacePage() {
 
       // Wait two animation frames so the WebGL canvas is fully committed
       // before capture — prevents blank map on mobile (slow GPU scheduling).
-      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
 
       let snapshot: string | null = null;
       const posterCard = document.getElementById('poster-card');
       if (posterCard) {
-        snapshot = await capturePosterCard(posterCard, mapSnapshotRef.current);
+        snapshot = await capturePosterCard(
+          posterCard,
+          mapSnapshotRef.current,
+        );
       }
 
       saveDraft({ config, posterSnapshot: snapshot });
@@ -540,9 +564,9 @@ export default function DesignWorkspacePage() {
             </div>
 
             <div className="mx-auto grid w-full max-w-[1440px] gap-4 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:px-8 xl:grid-cols-[minmax(0,1fr)_460px]">
-              <div className="lg:sticky lg:top-8 flex min-h-[50dvh] lg:min-h-[720px] self-start flex-col items-center justify-center lg:rounded-[20px] lg:border lg:border-neutral-200 bg-[#F2F2F7] py-6 lg:p-10">
+              <div className="lg:sticky lg:top-8 flex min-h-[50dvh] lg:min-h-[720px] self-start flex-col items-start lg:rounded-[20px] lg:border lg:border-neutral-200 bg-[#F2F2F7] py-6 lg:p-10">
                 {routeState.status === 'ready' && (
-                  <p className="mb-4 text-xs text-neutral-500 select-none">
+                  <p className="mb-4 text-xs text-neutral-500 select-none w-full text-center">
                     Scroll to zoom · Drag to move
                   </p>
                 )}

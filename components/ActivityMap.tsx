@@ -195,10 +195,11 @@ export default function ActivityMap({
       touchPitch: false,
       pitchWithRotate: false,
       interactive: true,
-      // @ts-expect-error preserveDrawingBuffer is valid but missing from MapLibre v5 typings
-      preserveDrawingBuffer: true,
+      canvasContextAttributes: {
+        preserveDrawingBuffer: true,
+      },
     });
-
+    console.log('[ActivityMap] map options preserveDrawingBuffer:', (map as any)._canvas?.preserveDrawingBuffer);
     mapRef.current = map;
 
     map.on('load', () => {
@@ -363,8 +364,17 @@ export default function ActivityMap({
     const emitAfterFrame = () => {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          if (onViewStateChange) onViewStateChange(readFixedMapViewState(map));
-          if (onMapCanvas) onMapCanvas(map.getCanvas());
+          if (onMapCanvas) {
+            const canvas = map.getCanvas();
+            console.log('[ActivityMap] canvas size:', canvas.width, canvas.height);
+            // 캔버스 픽셀 샘플링 - 비어있는지 확인
+            const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null;
+            // WebGL이라 2d context는 못 읽지만 dataUrl 길이로 확인
+            const dataUrl = canvas.toDataURL('image/png');
+            console.log('[ActivityMap] canvas dataUrl length:', dataUrl.length);
+            console.log('[ActivityMap] canvas dataUrl preview:', dataUrl.slice(0, 100));
+            onMapCanvas(canvas);
+          }
         });
       });
     };

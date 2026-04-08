@@ -143,8 +143,10 @@ export default function DesignWorkspacePage() {
   const [isGeneratingSnapshot, setIsGeneratingSnapshot] = useState(false);
   const [fixedMapViewState, setFixedMapViewState] =
     useState<FixedMapViewState | null>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
   // Stores the map pixels captured at idle time, while the WebGL context is live.
   const mapSnapshotRef = useRef<string | null>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const stored = sessionStorage.getItem('activityType');
@@ -431,7 +433,36 @@ export default function DesignWorkspacePage() {
 
   const handleMapCanvas = useCallback((canvas: HTMLCanvasElement) => {
     mapSnapshotRef.current = canvas.toDataURL('image/png');
+    setIsMapReady(true);
   }, []);
+
+  // Mobile zoom-out: scale the entire page to fit within the viewport width
+  // without reflowing or resizing individual elements.
+  useEffect(() => {
+    const el = pageRef.current;
+    if (!el) return;
+
+    function applyZoom() {
+      if (!el) return;
+      if (window.innerWidth >= 1024) {
+        el.style.zoom = '';
+        return;
+      }
+      el.style.zoom = '';
+      const contentWidth = document.documentElement.scrollWidth;
+      const vw = window.innerWidth;
+      if (contentWidth > vw) {
+        el.style.zoom = String(vw / contentWidth);
+      }
+    }
+
+    const timer = setTimeout(applyZoom, 50);
+    window.addEventListener('resize', applyZoom);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', applyZoom);
+    };
+  }, [routeState.status, editor]);
 
   const handleConfirm = async () => {
     if (isGeneratingSnapshot) return;
@@ -486,7 +517,7 @@ export default function DesignWorkspacePage() {
       {(routeState.status === 'ready' || routeState.status === 'not_found') &&
         activity &&
         editor && (
-          <div className="min-h-[100dvh] bg-white lg:py-8 lg:px-8">
+          <div ref={pageRef} className="min-h-[100dvh] bg-white lg:py-8 lg:px-8">
             {isGeneratingSnapshot && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
                 <div className="rounded-2xl bg-white px-6 py-4 shadow-lg">
@@ -516,7 +547,7 @@ export default function DesignWorkspacePage() {
                   </p>
                 )}
                 {routeState.status === 'ready' ? (
-                  <div id="poster-card" className="relative w-fit mx-auto">
+                  <div id="poster-card" className="relative w-[420px] max-w-full mx-auto overflow-hidden">
                     <PosterCard
                       coordinates={posterCoordinates}
                       title={editor.title}
@@ -558,6 +589,7 @@ export default function DesignWorkspacePage() {
                     : undefined
                 }
                 isAddingFriend={isAddingFriend}
+                isMapReady={isMapReady}
                 isGeneratingSnapshot={isGeneratingSnapshot}
                 onConfirm={handleConfirm}
                 activityType={activityType}

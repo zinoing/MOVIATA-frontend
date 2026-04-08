@@ -36,6 +36,7 @@ type DesignSettingsPanelProps = {
   myInstagramFetchStatus?: InstagramFetchStatus;
   myInstagramErrorMessage?: string;
   isAddingFriend?: boolean;
+  isMapReady?: boolean;
   isGeneratingSnapshot?: boolean;
   onConfirm: () => void;
   activityType?: 'running' | 'hiking' | null;
@@ -92,6 +93,7 @@ export default function DesignSettingsPanel({
   myInstagramFetchStatus = 'idle',
   myInstagramErrorMessage = '',
   isAddingFriend = false,
+  isMapReady = false,
   isGeneratingSnapshot = false,
   onConfirm,
   activityType = null,
@@ -548,10 +550,10 @@ export default function DesignSettingsPanel({
               <button
                 type="button"
                 onClick={onConfirm}
-                disabled={isGeneratingSnapshot}
+                disabled={!isMapReady || isGeneratingSnapshot}
                 className="w-full rounded-[14px] bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#FF5A1F] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isGeneratingSnapshot ? 'Preparing…' : 'Confirm'}
+                {isGeneratingSnapshot ? 'Preparing…' : !isMapReady ? 'Loading map…' : 'Confirm'}
               </button>
             </div>
           </div>

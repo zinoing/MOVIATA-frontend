@@ -226,23 +226,24 @@ export default function ConfirmPage() {
                 </p>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[420px] border-collapse text-sm">
+              {/* overflow-x-auto 제거, min-w 제거 → 모바일에서 가로 스크롤 없앰 */}
+              <div>
+                <table className="w-full border-collapse text-sm">
                   <thead>
                     <tr className="bg-white text-neutral-500">
                       <th className="border-b border-neutral-200 px-3 py-3 text-left font-medium">
                         Size
                       </th>
-                      <th className="border-b border-neutral-200 px-3 py-3 text-center font-medium">
+                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">
                         Length
                       </th>
-                      <th className="border-b border-neutral-200 px-3 py-3 text-center font-medium">
+                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">
                         Shoulder
                       </th>
-                      <th className="border-b border-neutral-200 px-3 py-3 text-center font-medium">
+                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">
                         Chest
                       </th>
-                      <th className="border-b border-neutral-200 px-3 py-3 text-center font-medium">
+                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">
                         Sleeve
                       </th>
                     </tr>
@@ -274,40 +275,16 @@ export default function ConfirmPage() {
                             </div>
                           </td>
 
-                          <td
-                            className={`border-b border-neutral-200 px-3 py-3 text-center ${
-                              isSelected
-                                ? 'font-semibold text-neutral-950'
-                                : 'text-neutral-600'
-                            }`}
-                          >
+                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isSelected ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
                             {guide.length}
                           </td>
-                          <td
-                            className={`border-b border-neutral-200 px-3 py-3 text-center ${
-                              isSelected
-                                ? 'font-semibold text-neutral-950'
-                                : 'text-neutral-600'
-                            }`}
-                          >
+                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isSelected ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
                             {guide.shoulder}
                           </td>
-                          <td
-                            className={`border-b border-neutral-200 px-3 py-3 text-center ${
-                              isSelected
-                                ? 'font-semibold text-neutral-950'
-                                : 'text-neutral-600'
-                            }`}
-                          >
+                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isSelected ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
                             {guide.chest}
                           </td>
-                          <td
-                            className={`border-b border-neutral-200 px-3 py-3 text-center ${
-                              isSelected
-                                ? 'font-semibold text-neutral-950'
-                                : 'text-neutral-600'
-                            }`}
-                          >
+                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isSelected ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
                             {guide.sleeve}
                           </td>
                         </tr>

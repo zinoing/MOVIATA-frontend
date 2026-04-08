@@ -14,31 +14,23 @@
  * (text, map, avatars) is rendered, making it compositable over any shirt color
  * without needing a blend mode.
  *
- * RESOLUTION-INDEPENDENCE:
- * We capture el.firstElementChild (the PosterCard root div) rather than el
- * (#poster-card wrapper) to avoid the viewport-relative left offset that
- * html-to-image bakes into the SVG foreignObject x-origin.
+ * LEFT-OFFSET FIX:
+ * html-to-image uses getBoundingClientRect().left as the SVG x-origin.
+ * The card is centered via mx-auto so its left offset varies by viewport
+ * (~256px on mobile, ~734px on wide desktop), shifting all content right.
  *
- * Width and height are derived from the card root's natural offsetWidth (always
- * 420px on desktop, may be smaller on narrow mobile). We intentionally do NOT
- * divide by zoomScale here — because we are capturing firstElementChild, which
- * is a direct child of #poster-card and is NOT affected by the page-level zoom
- * applied to the outer wrapper. The card root always renders at its true CSS
- * size regardless of ancestor zoom.
+ * Fix: temporarily set position:fixed + left:0 + top:0 on captureTarget
+ * AFTER the WebGL canvas has already been replaced with a static <img>
+ * placeholder. Since the live WebGL context is already hidden at this point,
+ * moving captureTarget in the stacking context does not cause context loss.
+ * After toPng completes, all styles are restored in the finally block.
  */
-
-/** Natural CSS width of PosterCard — must match w-[420px] in PosterCard.tsx */
-const POSTER_NATURAL_WIDTH = 420;
-
 export async function capturePosterCard(
   el: HTMLElement,
   mapDataUrl: string | null,
 ): Promise<string> {
   const webglCanvas = el.querySelector<HTMLCanvasElement>('.maplibregl-canvas');
 
-  // If no pre-snapshotted data URL, try to read the WebGL canvas directly at
-  // capture time. This is a fallback for mobile where the idle-event snapshot
-  // may not have been captured yet (e.g. slow tile load, context loss race).
   const effectiveMapDataUrl =
     mapDataUrl ??
     (webglCanvas
@@ -51,6 +43,9 @@ export async function capturePosterCard(
         })()
       : null);
 
+  // Replace WebGL canvas with a static <img> BEFORE any style changes.
+  // This must happen first so that when we later apply position:fixed to
+  // captureTarget, the WebGL context is already detached from rendering.
   let placeholder: HTMLImageElement | null = null;
   if (effectiveMapDataUrl && webglCanvas?.parentElement) {
     placeholder = document.createElement('img');
@@ -63,9 +58,6 @@ export async function capturePosterCard(
     webglCanvas.parentElement.insertBefore(placeholder, webglCanvas);
     webglCanvas.style.display = 'none';
 
-    // Wait for the placeholder image to fully decode before capture.
-    // Data URLs are technically sync but browsers still schedule the paint
-    // asynchronously — html-to-image would see a blank image otherwise.
     await new Promise<void>((resolve) => {
       if (placeholder!.complete && placeholder!.naturalWidth > 0) { resolve(); return; }
       placeholder!.onload = () => resolve();
@@ -78,40 +70,50 @@ export async function capturePosterCard(
   );
   controls.forEach((o) => { o.style.display = 'none'; });
 
-  // Capture the PosterCard root div (firstElementChild of #poster-card) rather
-  // than #poster-card itself. This avoids the viewport-relative left offset
-  // that html-to-image uses as the SVG x-origin, which would shift content
-  // right and clip the right edge when the card is centered in a wide grid.
   const cardRoot = el.firstElementChild as HTMLElement | null;
   const captureTarget = cardRoot ?? el;
 
+  // Save all styles we are about to mutate
   const savedBg = captureTarget.style.backgroundColor;
   const savedShadow = captureTarget.style.boxShadow;
+  const savedPosition = captureTarget.style.position;
+  const savedLeft = captureTarget.style.left;
+  const savedTop = captureTarget.style.top;
+  const savedZIndex = captureTarget.style.zIndex;
+  const savedWidth = captureTarget.style.width;
+
+  const captureWidth = captureTarget.offsetWidth;
+  const captureHeight = captureTarget.offsetHeight;
+
+  // Apply styles for capture
   captureTarget.style.backgroundColor = 'transparent';
   captureTarget.style.boxShadow = 'none';
+  // Fix at (0,0) so getBoundingClientRect().left === 0 for html-to-image.
+  // Safe to do here because the WebGL canvas is already replaced with a
+  // static <img> — no live GL context will be disrupted.
+  captureTarget.style.position = 'fixed';
+  captureTarget.style.left = '0';
+  captureTarget.style.top = '0';
+  captureTarget.style.width = `${captureWidth}px`;
+  captureTarget.style.zIndex = '-1';
 
   try {
     const { toPng } = await import('html-to-image');
 
-    // Use the element's actual rendered width (capped at POSTER_NATURAL_WIDTH)
-    // as the capture width. On desktop this is always 420px. On narrow mobile
-    // viewports it may be smaller due to max-w-full — we use the actual value
-    // so the capture matches what the user sees.
-    //
-    // We do NOT apply zoomScale here because captureTarget is firstElementChild,
-    // which sits inside #poster-card (not the zoomed page wrapper), so it always
-    // renders at its true CSS size independent of ancestor zoom.
-    const captureWidth = Math.min(captureTarget.offsetWidth, POSTER_NATURAL_WIDTH);
-    const captureHeight = captureTarget.offsetHeight;
-
     return await toPng(captureTarget, {
-      pixelRatio: 3, // Higher pixel ratio for sharper print quality
+      pixelRatio: 3,
       width: captureWidth,
       height: captureHeight,
     });
   } finally {
+    // Restore all mutated styles
     captureTarget.style.backgroundColor = savedBg;
     captureTarget.style.boxShadow = savedShadow;
+    captureTarget.style.position = savedPosition;
+    captureTarget.style.left = savedLeft;
+    captureTarget.style.top = savedTop;
+    captureTarget.style.zIndex = savedZIndex;
+    captureTarget.style.width = savedWidth;
 
     if (webglCanvas) webglCanvas.style.display = '';
     placeholder?.remove();

@@ -3,9 +3,8 @@
  *
  * Layer 1 — Card UI (text, stats, avatars):
  *   dom-to-image-more captures captureTarget with the map container hidden.
- *   Unlike html-to-image, dom-to-image-more does not use
- *   getBoundingClientRect().left as an SVG x-origin, so centered elements
- *   render correctly regardless of their viewport position.
+ *   Imported dynamically to avoid SSR issues (dom-to-image-more references
+ *   browser globals like Node at module evaluation time).
  *
  * Layer 2 — Map snapshot:
  *   The pre-captured map PNG (mapDataUrl) is drawn directly onto the output
@@ -13,13 +12,17 @@
  *   runtime via getBoundingClientRect. Always accurate regardless of browser,
  *   viewport, or zoom level.
  */
-import domtoimage from 'dom-to-image-more';
-
 export async function capturePosterCard(
   el: HTMLElement,
   mapDataUrl: string | null,
 ): Promise<string> {
   const PIXEL_RATIO = 3;
+
+  // Dynamic import so this module is never evaluated on the server.
+  // dom-to-image-more references browser globals (Node, window) at the
+  // top level of its bundle, causing "ReferenceError: Node is not defined"
+  // when Next.js tries to SSR any page that imports this file statically.
+  const domtoimage = (await import('dom-to-image-more')).default;
 
   const webglCanvas = el.querySelector<HTMLCanvasElement>('.maplibregl-canvas');
   const mapContainer = el.querySelector<HTMLElement>('.maplibregl-map');

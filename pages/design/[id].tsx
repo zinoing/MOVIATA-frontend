@@ -505,13 +505,22 @@ export default function DesignWorkspacePage() {
 
       let snapshot: string | null = null;
       const posterCard = document.getElementById('poster-card');
+      const cardRoot = posterCard?.firstElementChild as HTMLElement | null;
+      alert(
+        `snapshot: ${mapSnapshotRef.current?.length}\n` +
+        `posterCard w: ${posterCard?.offsetWidth} h: ${posterCard?.offsetHeight}\n` +
+        `cardRoot w: ${cardRoot?.offsetWidth} h: ${cardRoot?.offsetHeight}\n` +
+        `cardRoot left: ${cardRoot?.getBoundingClientRect().left}\n` +
+        `cardRoot tag: ${cardRoot?.tagName} class: ${cardRoot?.className.slice(0, 60)}`
+      );
+      
       if (posterCard) {
         snapshot = await capturePosterCard(
           posterCard,
           mapSnapshotRef.current,
         );
       }
-
+      
       saveDraft({ config, posterSnapshot: snapshot });
       await router.push('/confirm');
     } catch (e) {

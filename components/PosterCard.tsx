@@ -76,7 +76,7 @@ export default function PosterCard({
 
   const wrapperClass = compact
     ? `w-full aspect-[3/5] rounded-[24px] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.10)] ${cardClass}`
-    : `w-[420px] max-w-full mx-auto rounded-[32px] px-6 pt-6 pb-8 shadow-xl ${cardClass}`;
+    : `w-[420px] max-w-full mx-auto rounded-[32px] overflow-hidden px-6 pt-6 pb-8 shadow-[0_8px_40px_rgba(0,0,0,0.12)] ${cardClass}`;
 
   const titleClass = compact
     ? 'text-[1.3rem] font-bold leading-[1.08] tracking-[-0.03em] uppercase'

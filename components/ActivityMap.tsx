@@ -5,6 +5,7 @@ import maplibregl, {
   Map as MapLibreMap,
   Marker,
 } from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol } from 'pmtiles';
 import { assertBasemapSource } from '../lib/map';
 import {

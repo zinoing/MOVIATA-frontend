@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import type { DesignConfig } from '../lib/poster/types';
+import { applyDisplacementMap } from '../lib/applyDisplacementMap';
 
 type Props = {
   config: Readonly<DesignConfig>;
@@ -15,12 +17,43 @@ export default function ShirtMockup({
   productColor,
 }: Props) {
   const color = productColor ?? config.shirtColor ?? 'white';
+  const [warpedDesign, setWarpedDesign] = useState<string | null>(null);
+  const [isWarping, setIsWarping] = useState(false);
 
   const backSrc =
-    color === 'black' ? '/resources/black-tshirt-back.png' : '/resources/white-tshirt-back.png';
+    color === 'black'
+      ? '/resources/black-tshirt-back.png'
+      : '/resources/white-tshirt-back.png';
 
   const frontSrc =
-    color === 'black' ? '/resources/black-tshirt-front.png' : '/resources/white-tshirt-front.png';
+    color === 'black'
+      ? '/resources/black-tshirt-front.png'
+      : '/resources/white-tshirt-front.png';
+
+  useEffect(() => {
+    if (!posterSnapshot) {
+      setWarpedDesign(null);
+      return;
+    }
+
+    setIsWarping(true);
+
+    const isWhite = color === 'white';
+
+    applyDisplacementMap(
+      posterSnapshot,
+      '/resources/tshirt-back-displacement-map.png',
+      15,
+      2,
+      isWhite
+    )
+      .then(setWarpedDesign)
+      .catch((err) => {
+        console.error('Displacement map 적용 실패:', err);
+        setWarpedDesign(null); // fallback: 원본 사용
+      })
+      .finally(() => setIsWarping(false));
+  }, [posterSnapshot, color]);
 
   if (!posterSnapshot) {
     return (
@@ -29,6 +62,8 @@ export default function ShirtMockup({
       </div>
     );
   }
+
+  const displayDesign = warpedDesign ?? posterSnapshot;
 
   return (
     <div
@@ -45,25 +80,44 @@ export default function ShirtMockup({
             className="block w-full select-none"
           />
 
-          <img
-            src={posterSnapshot}
-            alt="Your design"
-            draggable={false}
-            className="pointer-events-none absolute select-none"
-            style={{
-              top: '14%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '42%',
-              height: 'auto',
-              display: 'block',
-              objectFit: 'contain',
-              background: 'transparent',
-              opacity: 1,
-            }}
-          />
+          {isWarping ? (
+            // 변위맵 처리 중 로딩 표시
+            <div
+              className="pointer-events-none absolute flex items-center justify-center"
+              style={{
+                top: '14%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '42%',
+                aspectRatio: '1',
+              }}
+            >
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600" />
+            </div>
+          ) : (
+            <img
+              src={displayDesign}
+              alt="Your design"
+              draggable={false}
+              className="pointer-events-none absolute select-none"
+              style={{
+                top: '14%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '42%',
+                height: 'auto',
+                display: 'block',
+                objectFit: 'contain',
+                background: 'transparent',
+                opacity: color === 'black' ? 0.92 : 1,
+                mixBlendMode: color === 'black' ? 'screen' : 'multiply',
+              }}
+            />
+          )}
         </div>
-        <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Back</p>
+        <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
+          Back
+        </p>
       </div>
 
       {/* FRONT */}
@@ -74,7 +128,9 @@ export default function ShirtMockup({
           draggable={false}
           className="block w-full select-none"
         />
-        <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Front</p>
+        <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
+          Front
+        </p>
       </div>
     </div>
   );

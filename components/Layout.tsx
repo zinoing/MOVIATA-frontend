@@ -1,6 +1,8 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import React, { PropsWithChildren, useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface LayoutProps {
   title?: string;
@@ -9,6 +11,8 @@ interface LayoutProps {
 export default function Layout({ title, children }: PropsWithChildren<LayoutProps>) {
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const router = useRouter();
+  const t = useTranslations('layout');
 
   useEffect(() => {
     function handleScroll() {
@@ -20,6 +24,12 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  function switchLocale(locale: string) {
+    void router.push(router.asPath, router.asPath, { locale });
+  }
+
+  const currentLocale = router.locale ?? 'ko';
 
   return (
     <>
@@ -45,6 +55,44 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
             >
               MOVIATA
             </Link>
+
+            <div className="absolute right-6 flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => switchLocale('en')}
+                className={`rounded-md px-2 py-1 text-xs font-medium transition ${
+                  currentLocale === 'en'
+                    ? 'text-neutral-950'
+                    : 'text-neutral-400 hover:text-neutral-700'
+                }`}
+              >
+                {t('langEn')}
+              </button>
+              <span className="text-neutral-300 text-xs">|</span>
+              <button
+                type="button"
+                onClick={() => switchLocale('ko')}
+                className={`rounded-md px-2 py-1 text-xs font-medium transition ${
+                  currentLocale === 'ko'
+                    ? 'text-neutral-950'
+                    : 'text-neutral-400 hover:text-neutral-700'
+                }`}
+              >
+                {t('langKo')}
+              </button>
+              <span className="text-neutral-300 text-xs">|</span>
+              <button
+                type="button"
+                onClick={() => switchLocale('ja')}
+                className={`rounded-md px-2 py-1 text-xs font-medium transition ${
+                  currentLocale === 'ja'
+                    ? 'text-neutral-950'
+                    : 'text-neutral-400 hover:text-neutral-700'
+                }`}
+              >
+                {t('langJa')}
+              </button>
+            </div>
           </div>
         </header>
 

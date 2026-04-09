@@ -67,7 +67,6 @@
 * [X] 파싱된 좌표를 MapLibre GeoJSON 레이어로 렌더링 — `pages/design/gpx.tsx` + 기존 `ActivityMap` 재사용
 * [X] 경로에 맞게 지도 자동 Fit (fitBounds) — `ActivityMap` 내장
 * [X] 경로 통계 표시 (거리, 시간, 날짜) — `DesignSettingsPanel` 재사용
-* [ ] 지역명 자동 추출 (Reverse Geocoding)
 
 ### 2-4. 디자인 생성
 
@@ -80,28 +79,33 @@
 
 ### 3-1. i18n 구조 설계
 
-* [ ] i18n 라이브러리 선택 및 설치
-  * 권장: `next-intl` (Next.js 14 Pages Router 호환)
-* [ ] `locales/` 폴더 구조 설계
+* [X] i18n 라이브러리 선택 및 설치
+  * `next-intl` v3 (Next.js 14 Pages Router 호환) 설치 완료
+* [X] `locales/` 폴더 구조 설계
   ```
-  locales/├── ko.json   # 한국어└── ja.json   # 일본어
+  locales/
+  ├── ko.json   # 한국어
+  └── ja.json   # 일본어
   ```
-* [ ] 언어 감지 로직 (브라우저 설정 기반)
-* [ ] URL 기반 언어 전환 (`/ko/`, `/ja/`) 또는 쿠키 기반 결정
+* [X] 언어 감지 로직 — Next.js 내장 i18n 라우팅 (`next.config.js`) 기반
+* [X] URL 기반 언어 전환 (`/ko/`, `/ja/`) — `next.config.js` i18n + 헤더 스위처
 
 ### 3-2. 번역 텍스트 작업
 
-* [ ] 전체 UI 텍스트 인벤토리 정리
-* [ ] `locales/ko.json` 한국어 번역 완성
-* [ ] `locales/ja.json` 일본어 번역 완성
+* [X] 전체 UI 텍스트 인벤토리 정리
+* [X] `locales/ko.json` 한국어 번역 완성
+* [X] `locales/ja.json` 일본어 번역 완성
   * 일본어 번역은 전문 번역 또는 검토 필요
-* [ ] 날짜/숫자 포맷 로케일별 처리
+* [X] 날짜/숫자 포맷 — `timeZone: "Asia/Seoul"` 설정 완료
 
 ### 3-3. 컴포넌트 적용
 
-* [ ] 하드코딩된 문자열을 모두 번역 키로 교체
-* [ ] 언어 전환 UI 컴포넌트 추가 (헤더 or 설정)
-* [ ] RTL 레이아웃 불필요 확인 (한국어/일본어는 LTR)
+* [X] 하드코딩된 문자열을 모두 번역 키로 교체
+  * `pages/index.tsx`, `activity-type.tsx`, `start.tsx`, `confirm.tsx`
+  * `pages/strava/activities.tsx`, `pages/design/gpx.tsx`
+  * `components/DesignSettingsPanel.tsx`
+* [X] 언어 전환 UI 컴포넌트 추가 — `components/Layout.tsx` 헤더 우측
+* [X] RTL 레이아웃 불필요 확인 (한국어/일본어는 LTR)
 
 ---
 

@@ -1,10 +1,13 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
+import { useTranslations } from 'next-intl';
 import Layout from '../components/Layout';
 import { API_BASE_URL } from '../lib/api';
 
 export default function SourceSelectionPage() {
   const router = useRouter();
+  const t = useTranslations('start');
+  const tCommon = useTranslations('common');
   const [isStravaLoading, setIsStravaLoading] = useState(false);
   const [isGpxLoading, setIsGpxLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -19,11 +22,11 @@ export default function SourceSelectionPage() {
     if (!file) return;
 
     if (!file.name.toLowerCase().endsWith('.gpx')) {
-      setMessage('.gpx 파일만 업로드할 수 있습니다.');
+      setMessage(t('errors.invalidFile'));
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      setMessage('파일 크기는 10MB 이하여야 합니다.');
+      setMessage(t('errors.fileSize'));
       return;
     }
 
@@ -38,7 +41,7 @@ export default function SourceSelectionPage() {
       await router.push('/design/gpx');
     } catch (err) {
       setMessage(
-        err instanceof Error ? err.message : 'GPX 파일을 파싱하는 데 실패했습니다.',
+        err instanceof Error ? err.message : t('errors.parseFailed'),
       );
       setIsGpxLoading(false);
     }
@@ -69,7 +72,7 @@ export default function SourceSelectionPage() {
       setMessage(
         error instanceof Error
           ? error.message
-          : 'An error occurred while starting Strava authentication.'
+          : t('errors.stravaAuthFailed')
       );
       setIsStravaLoading(false);
     }
@@ -81,10 +84,10 @@ export default function SourceSelectionPage() {
         <div className="flex flex-1 flex-col items-center justify-center">
         <div className="w-full max-w-3xl text-center mb-12">
           <h1 className="text-4xl font-black tracking-[-0.02em] text-neutral-950 sm:text-5xl">
-            CONNECT YOUR DATA
+            {t('title')}
           </h1>
           <p className="mt-4 text-sm leading-7 text-neutral-500 sm:text-base">
-            Import your movement and turn it into a wearable design.
+            {t('subtitle')}
           </p>
         </div>
 
@@ -93,13 +96,13 @@ export default function SourceSelectionPage() {
           <div className="flex flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)]">
             <div className="flex flex-1 flex-col px-5 py-6">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#FF5A1F]">
-                Strava
+                {t('strava.label')}
               </p>
               <h2 className="mt-3 text-lg font-black tracking-[0.02em] text-neutral-950">
-                CONNECT STRAVA
+                {t('strava.title')}
               </h2>
               <p className="mt-2 flex-1 text-xs leading-5 text-neutral-500">
-                Sync your recent activities instantly from your Strava account.
+                {t('strava.description')}
               </p>
               <div className="mt-5">
                 <button
@@ -108,7 +111,7 @@ export default function SourceSelectionPage() {
                   disabled={isStravaLoading}
                   className="w-full rounded-[14px] bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#FF5A1F] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {isStravaLoading ? 'Connecting...' : 'SELECT'}
+                  {isStravaLoading ? tCommon('connecting') : tCommon('select')}
                 </button>
               </div>
             </div>
@@ -118,13 +121,13 @@ export default function SourceSelectionPage() {
           <div className="flex flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] opacity-50">
             <div className="flex flex-1 flex-col px-5 py-6">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">
-                Garmin
+                {t('garmin.label')}
               </p>
               <h2 className="mt-3 text-lg font-black tracking-[0.02em] text-neutral-950">
-                CONNECT GARMIN
+                {t('garmin.title')}
               </h2>
               <p className="mt-2 flex-1 text-xs leading-5 text-neutral-500">
-                Import activities from Garmin Connect.
+                {t('garmin.description')}
               </p>
               <div className="mt-5">
                 <button
@@ -132,7 +135,7 @@ export default function SourceSelectionPage() {
                   disabled
                   className="w-full cursor-not-allowed rounded-full bg-neutral-100 py-2.5 text-sm font-semibold text-neutral-400"
                 >
-                  COMING SOON
+                  {tCommon('comingSoon')}
                 </button>
               </div>
             </div>
@@ -142,13 +145,13 @@ export default function SourceSelectionPage() {
           <div className="flex flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)]">
             <div className="flex flex-1 flex-col px-5 py-6">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                File
+                {t('gpx.label')}
               </p>
               <h2 className="mt-3 text-lg font-black tracking-[0.02em] text-neutral-950">
-                UPLOAD GPX
+                {t('gpx.title')}
               </h2>
               <p className="mt-2 flex-1 text-xs leading-5 text-neutral-500">
-                Upload your route manually as a GPX file.
+                {t('gpx.description')}
               </p>
               <div className="mt-5">
                 <input
@@ -164,7 +167,7 @@ export default function SourceSelectionPage() {
                   disabled={isGpxLoading}
                   className="w-full rounded-[14px] bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#FF5A1F] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {isGpxLoading ? 'Loading…' : 'SELECT'}
+                  {isGpxLoading ? tCommon('loading') : tCommon('select')}
                 </button>
               </div>
             </div>

@@ -1,0 +1,271 @@
+{
+  "common": {
+    "select": "SELECT",
+    "comingSoon": "COMING SOON",
+    "connecting": "Connecting...",
+    "loading": "Loading…",
+    "back": "← Back",
+    "redirecting": "Redirecting…",
+    "remove": "Remove",
+    "load": "Load",
+    "loadingEllipsis": "Loading..."
+  },
+  "home": {
+    "hero": {
+      "title1": "Turn Your Movement",
+      "title2": "Into Something",
+      "title3": "You Can Wear"
+    },
+    "heroSubtitle": "Transform your activity into a minimal poster-inspired shirt design — built from your route, your record, and your moment.",
+    "steps": {
+      "step1": {
+        "title": "Import Activity",
+        "description": "Connect your run and bring your movement data into MOVIATA."
+      },
+      "step2": {
+        "title": "Build the Design",
+        "description": "Turn route, date, and distance into a clean visual composition."
+      },
+      "step3": {
+        "title": "Wear Your Record",
+        "description": "Preview the piece and make your movement part of your style."
+      }
+    },
+    "cta": {
+      "button": "Start Your Design",
+      "tagline": "From your stride to your style."
+    }
+  },
+  "activityType": {
+    "title": "CHOOSE YOUR MOVEMENT",
+    "subtitle": "Define your path. Select the rhythm that matches your energy today.",
+    "activities": {
+      "running": {
+        "description": "Track your runs and improve your pace with precision GPS and split analytics."
+      },
+      "hiking": {
+        "description": "Explore trails and capture your altitude with offline maps and terrain mapping."
+      },
+      "climbing": {
+        "description": "Vertical problem-solving. Coming to the Moviata Studio soon."
+      }
+    }
+  },
+  "start": {
+    "title": "CONNECT YOUR DATA",
+    "subtitle": "Import your movement and turn it into a wearable design.",
+    "strava": {
+      "label": "Strava",
+      "title": "CONNECT STRAVA",
+      "description": "Sync your recent activities instantly from your Strava account."
+    },
+    "garmin": {
+      "label": "Garmin",
+      "title": "CONNECT GARMIN",
+      "description": "Import activities from Garmin Connect."
+    },
+    "gpx": {
+      "label": "File",
+      "title": "UPLOAD GPX",
+      "description": "Upload your route manually as a GPX file."
+    },
+    "errors": {
+      "invalidFile": "Only .gpx files can be uploaded.",
+      "fileSize": "File size must be 10MB or less.",
+      "parseFailed": "Failed to parse the GPX file.",
+      "stravaAuthFailed": "An error occurred while starting Strava authentication."
+    }
+  },
+  "design": {
+    "loadingGpx": "Loading GPX data…",
+    "failedToLoad": "Failed to load GPX data.",
+    "workspace": "Design workspace",
+    "back": "← Back",
+    "generatingPoster": "Generating poster...",
+    "scrollHint": "Scroll to zoom · Drag to move",
+    "noRouteData": "No route data to display.",
+    "failedToGenerate": "Failed to generate design:"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Edit the preview on the left in real time.",
+    "instagram": {
+      "title": "Instagram",
+      "description": "Add your account and optionally one friend.",
+      "myId": "My Instagram ID",
+      "placeholder": "@wearthemovement",
+      "load": "Load",
+      "loading": "Loading...",
+      "friend": "Friend",
+      "addedCount": "{count}/1 added",
+      "addFriend": "Add Friend",
+      "friendAdded": "Friend added",
+      "addedFriend": "Added Friend",
+      "remove": "Remove"
+    },
+    "shirtColor": {
+      "title": "T-shirt Color",
+      "white": "white",
+      "black": "black"
+    },
+    "map": {
+      "title": "Map",
+      "description": "Show or hide the background map."
+    },
+    "contours": {
+      "title": "Contours",
+      "description": "Show contour lines for terrain-based map styling."
+    },
+    "routePoints": {
+      "title": "Start / End Points",
+      "description": "Show minimal route markers on the map."
+    },
+    "routeColor": {
+      "title": "Route Color",
+      "description": "Choose the route highlight color.",
+      "red": "Red",
+      "orange": "Orange"
+    },
+    "activity": {
+      "name": "Activity Name",
+      "namePlaceholder": "E.G. CYCLING TOUR",
+      "date": "Activity Date",
+      "datePlaceholder": "E.g. 3 NOVEMBER 2024",
+      "location": "Location",
+      "locationPlaceholder": "Where did this happen?"
+    },
+    "units": {
+      "title": "Units"
+    },
+    "distance": {
+      "title": "Distance",
+      "placeholder": "Enter Distance"
+    },
+    "time": {
+      "title": "Time"
+    },
+    "confirm": {
+      "preparing": "Preparing…",
+      "loadingMap": "Loading map…",
+      "confirm": "Confirm"
+    }
+  },
+  "confirm": {
+    "title": "Confirm Your Order",
+    "preview": "Preview",
+    "backToDesign": "← Back to design",
+    "productInfo": "Product Information",
+    "productDescription": {
+      "title": "Product Description",
+      "text": "This shirt transforms your movement into a minimal visual record. Each design is generated from your real activity data, including your route, distance, and date.",
+      "bullet1": "Premium 100% polyester fabric",
+      "bullet2": "Lightweight and breathable feel",
+      "bullet3": "High-resolution custom print",
+      "bullet4": "Designed for everyday wear"
+    },
+    "refund": {
+      "title": "Refund & Exchange",
+      "text1": "Each item is made to order based on your custom activity design, so refunds or exchanges are not available for change of mind or incorrect size selection.",
+      "text2": "If your item arrives damaged or defective, please contact us within 7 days of delivery with photos. After review, we will provide a replacement or refund."
+    },
+    "moviata": "MOVIATA",
+    "heading": "Get your movement on a shirt",
+    "subtitle": "A minimal wearable record of your route, distance, and day.",
+    "activityDetails": "Activity Details",
+    "labels": {
+      "activity": "Activity",
+      "date": "Date",
+      "distance": "Distance",
+      "duration": "Duration",
+      "location": "Location"
+    },
+    "product": "Product",
+    "size": {
+      "label": "Size",
+      "selected": "Selected: {size}"
+    },
+    "sizeGuide": {
+      "title": "Size Guide",
+      "size": "Size",
+      "length": "Length",
+      "shoulder": "Shoulder",
+      "chest": "Chest",
+      "sleeve": "Sleeve",
+      "note": "Measurements may vary by 1–2 cm depending on production."
+    },
+    "total": "Total",
+    "delivery": "Estimated delivery",
+    "deliveryDays": "5–10 business days",
+    "buyNow": "Buy now",
+    "redirecting": "Redirecting…"
+  },
+  "activities": {
+    "title": "Recent Activities",
+    "header": {
+      "label": "MOVIATA × Strava",
+      "heading": "Pick a movement you want to keep.",
+      "description": "Your latest Strava activities are ready. Pick one activity and move directly into the design workspace.",
+      "disconnect": "Disconnect Strava",
+      "disconnecting": "Disconnecting..."
+    },
+    "stats": {
+      "totalActivities": "Total Activities",
+      "totalDistance": "Total Distance",
+      "totalMovingTime": "Total Moving Time"
+    },
+    "loading": {
+      "label": "Loading your activities...",
+      "heading": "Fetching the latest data from Strava"
+    },
+    "notConnected": {
+      "label": "Connection required",
+      "heading": "Connect your Strava account first",
+      "description": "Once your account is connected, your recent activities will appear here automatically.",
+      "button": "Connect Strava"
+    },
+    "empty": {
+      "label": "No activities found",
+      "heading": "Your activity list is currently empty",
+      "description": "Record a new activity in Strava and come back here to turn it into a poster or apparel design."
+    },
+    "error": {
+      "label": "Error",
+      "heading": "Something went wrong while loading activities",
+      "fallback": "Please try again in a moment."
+    },
+    "list": {
+      "label": "Activity Library",
+      "heading": "Recent activities"
+    },
+    "card": {
+      "activity": "Activity",
+      "distance": "Distance",
+      "movingTime": "Moving Time",
+      "untitled": "Untitled activity",
+      "design": "Design this",
+      "unavailable": "Unavailable",
+      "looksGood": "Looks good? Design this activity.",
+      "cantDesign": "This activity can't be designed.",
+      "noRouteData": "No route data available",
+      "routeMissing": "Route data is missing for this activity.",
+      "zeroDistance": "Distance is zero — activity cannot be designed.",
+      "previewLabel": "Design preview · guide only",
+      "viewPreview": "View preview",
+      "hidePreview": "Hide preview",
+      "mobilePreviewGuide": "Preview — guide only"
+    },
+    "routeHints": {
+      "short": "Short route · Subtle visual impact",
+      "vertical": "Vertical flow · Works well on A3",
+      "wide": "Wide spread · Strong horizontal layout",
+      "long": "Long route · High density, bold print",
+      "clean": "Clean route · Good for A3",
+      "noDesign": "No route data · Can't be designed"
+    }
+  },
+  "layout": {
+    "langEn": "EN",
+    "langKo": "한국어",
+    "langJa": "日本語"
+  }
+}

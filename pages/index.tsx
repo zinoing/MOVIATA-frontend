@@ -1,7 +1,10 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Layout from '../components/Layout';
 
 export default function HomePage() {
+  const t = useTranslations('home');
+
   return (
     <Layout title="MOVIATA">
       <section className="relative overflow-hidden bg-white">
@@ -15,16 +18,15 @@ export default function HomePage() {
               <div className="relative flex min-h-[940px] flex-col items-center">
                 <div className="relative z-20 mx-auto max-w-4xl text-center">
                   <h1 className="text-4xl font-black tracking-[-0.02em] md:tracking-[-0.04em] lg:tracking-[-0.06em] text-neutral-950 md:text-6xl lg:text-7xl">
-                    Turn Your Movement{" "}
+                    {t('hero.title1')}{" "}
                     <br className="hidden sm:block" />
-                    Into Something{" "} 
+                    {t('hero.title2')}{" "}
                     <br className="hidden sm:block" />
-                    You Can Wear
+                    {t('hero.title3')}
                   </h1>
 
                   <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-neutral-500 md:text-lg md:leading-8">
-                    Transform your activity into a minimal poster-inspired shirt
-                    design — built from your route, your record, and your moment.
+                    {t('heroSubtitle')}
                   </p>
                 </div>
 
@@ -46,10 +48,10 @@ export default function HomePage() {
                       01
                     </p>
                     <h3 className="mt-3 text-lg font-semibold tracking-[-0.03em] text-neutral-950">
-                      Import Activity
+                      {t('steps.step1.title')}
                     </h3>
                     <p className="mt-2 text-sm leading-6 text-neutral-500">
-                      Connect your run and bring your movement data into MOVIATA.
+                      {t('steps.step1.description')}
                     </p>
                   </div>
 
@@ -58,10 +60,10 @@ export default function HomePage() {
                       02
                     </p>
                     <h3 className="mt-3 text-lg font-semibold tracking-[-0.03em] text-neutral-950">
-                      Build the Design
+                      {t('steps.step2.title')}
                     </h3>
                     <p className="mt-2 text-sm leading-6 text-neutral-500">
-                      Turn route, date, and distance into a clean visual composition.
+                      {t('steps.step2.description')}
                     </p>
                   </div>
 
@@ -70,10 +72,10 @@ export default function HomePage() {
                       03
                     </p>
                     <h3 className="mt-3 text-lg font-semibold tracking-[-0.03em] text-neutral-950">
-                      Wear Your Record
+                      {t('steps.step3.title')}
                     </h3>
                     <p className="mt-2 text-sm leading-6 text-neutral-500">
-                      Preview the piece and make your movement part of your style.
+                      {t('steps.step3.description')}
                     </p>
                   </div>
                 </div>
@@ -85,11 +87,11 @@ export default function HomePage() {
                 href="/activity-type"
                 className="inline-flex min-w-[220px] items-center justify-center rounded-[14px] bg-neutral-950 px-8 py-4 text-base font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.20)] transition hover:-translate-y-0.5 hover:bg-[#FF5A1F]"
               >
-                Start Your Design
+                {t('cta.button')}
               </Link>
 
               <p className="mt-5 text-sm italic tracking-[0.02em] text-neutral-400 md:text-base">
-                From your stride to your style.
+                {t('cta.tagline')}
               </p>
             </div>
           </main>

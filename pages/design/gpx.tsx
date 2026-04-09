@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
 import PosterCard from '../../components/PosterCard';
 import DesignSettingsPanel, {
@@ -53,6 +54,7 @@ export default function GpxDesignPage() {
   const router = useRouter();
   const instagram = useInstagramProfile();
   const { saveDraft } = useDesignConfig();
+  const t = useTranslations('design');
 
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [gpxData, setGpxData] = useState<GpxData | null>(null);
@@ -231,6 +233,7 @@ export default function GpxDesignPage() {
     if (isGeneratingSnapshot || !editor || !gpxData) return;
     try {
       setIsGeneratingSnapshot(true);
+      await new Promise<void>((resolve) => setTimeout(resolve, 300));
       const config = buildDesignConfig('gpx', editor, coordinates, fixedMapViewState);
       await new Promise<void>((resolve) =>
         requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
@@ -245,23 +248,23 @@ export default function GpxDesignPage() {
       await router.push('/confirm');
     } catch (e) {
       console.error('[confirm] failed:', e);
-      alert(e instanceof Error ? `Failed to generate design: ${e.message}` : 'Failed to generate design.');
+      alert(e instanceof Error ? `${t('failedToGenerate')} ${e.message}` : t('failedToGenerate'));
     } finally {
       setIsGeneratingSnapshot(false);
     }
   };
 
   return (
-    <Layout title="GPX 디자인 워크스페이스">
+    <Layout title={t('workspace')}>
       {loadState === 'loading' && (
         <div className="flex min-h-screen items-center justify-center px-4">
-          <p className="text-sm text-neutral-600">Loading GPX data…</p>
+          <p className="text-sm text-neutral-600">{t('loadingGpx')}</p>
         </div>
       )}
 
       {loadState === 'error' && (
         <div className="flex min-h-screen items-center justify-center px-4">
-          <p className="text-sm text-red-600">Failed to load GPX data.</p>
+          <p className="text-sm text-red-600">{t('failedToLoad')}</p>
         </div>
       )}
 
@@ -270,20 +273,20 @@ export default function GpxDesignPage() {
           {isGeneratingSnapshot && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
               <div className="rounded-2xl bg-white px-6 py-4 shadow-lg">
-                Generating poster...
+                {t('generatingPoster')}
               </div>
             </div>
           )}
 
           <div className="mx-auto w-full max-w-[1440px] px-4 py-4 lg:pb-6 lg:pt-0">
-            <p className="text-sm text-neutral-500">Design workspace</p>
+            <p className="text-sm text-neutral-500">{t('workspace')}</p>
             <div className="mt-2">
               <button
                 type="button"
                 onClick={() => router.push('/start')}
                 className="text-sm text-neutral-500 transition hover:text-neutral-900"
               >
-                ← Back
+                {t('back')}
               </button>
             </div>
           </div>
@@ -292,7 +295,7 @@ export default function GpxDesignPage() {
             <div className="lg:sticky lg:top-8 flex min-h-[50dvh] lg:min-h-[720px] self-start flex-col items-center justify-center lg:rounded-[20px] lg:border lg:border-neutral-200 bg-[#F2F2F7] py-6 lg:p-10">
               {loadState === 'ready' && (
                 <p className="mb-4 text-xs text-neutral-500 select-none">
-                  Scroll to zoom · Drag to move
+                  {t('scrollHint')}
                 </p>
               )}
               {loadState === 'ready' ? (
@@ -319,7 +322,7 @@ export default function GpxDesignPage() {
                 </div>
               ) : (
                 <div className="flex w-[450px] max-w-full items-center justify-center rounded-[16px] bg-white p-10 text-sm text-neutral-500 shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
-                  표시할 경로 데이터가 없습니다.
+                  {t('noRouteData')}
                 </div>
               )}
             </div>

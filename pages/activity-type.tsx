@@ -1,34 +1,37 @@
 import { useRouter } from 'next/router';
+import { useTranslations } from 'next-intl';
 import Layout from '../components/Layout';
 
 type ActivityType = 'running' | 'hiking';
 
-const activities = [
-  {
-    type: 'running' as ActivityType,
-    label: 'RUNNING',
-    description: 'Track your runs and improve your pace with precision GPS and split analytics.',
-    image: '/activity-type/running.jpg',
-    available: true,
-  },
-  {
-    type: 'hiking' as ActivityType,
-    label: 'HIKING',
-    description: 'Explore trails and capture your altitude with offline maps and terrain mapping.',
-    image: '/activity-type/mountain.jpg',
-    available: true,
-  },
-  {
-    type: null,
-    label: 'CLIMBING',
-    description: 'Vertical problem-solving. Coming to the Moviata Studio soon.',
-    image: '/activity-type/climbing.jpg',
-    available: false,
-  },
-];
-
 export default function ActivityTypePage() {
   const router = useRouter();
+  const t = useTranslations('activityType');
+  const tCommon = useTranslations('common');
+
+  const activities = [
+    {
+      type: 'running' as ActivityType,
+      label: 'RUNNING',
+      description: t('activities.running.description'),
+      image: '/activity-type/running.jpg',
+      available: true,
+    },
+    {
+      type: 'hiking' as ActivityType,
+      label: 'HIKING',
+      description: t('activities.hiking.description'),
+      image: '/activity-type/mountain.jpg',
+      available: true,
+    },
+    {
+      type: null,
+      label: 'CLIMBING',
+      description: t('activities.climbing.description'),
+      image: '/activity-type/climbing.jpg',
+      available: false,
+    },
+  ];
 
   function handleSelect(type: ActivityType) {
     sessionStorage.setItem('activityType', type);
@@ -40,10 +43,10 @@ export default function ActivityTypePage() {
       <div className="min-h-screen bg-white px-4 py-16 flex flex-col items-center justify-center">
         <div className="w-full max-w-3xl text-center mb-12">
           <h1 className="text-4xl font-black tracking-[-0.02em] text-neutral-950 sm:text-5xl">
-            CHOOSE YOUR MOVEMENT
+            {t('title')}
           </h1>
           <p className="mt-4 text-sm leading-7 text-neutral-500 sm:text-base">
-            Define your path. Select the rhythm that matches your energy today.
+            {t('subtitle')}
           </p>
         </div>
 
@@ -79,7 +82,7 @@ export default function ActivityTypePage() {
                       onClick={() => handleSelect(activity.type!)}
                       className="w-full rounded-[14px] bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#FF5A1F]"
                     >
-                      SELECT
+                      {tCommon('select')}
                     </button>
                   ) : (
                     <button
@@ -87,7 +90,7 @@ export default function ActivityTypePage() {
                       disabled
                       className="w-full cursor-not-allowed rounded-full bg-neutral-100 py-3 text-sm font-bold tracking-[0.08em] text-neutral-400"
                     >
-                      COMING SOON
+                      {tCommon('comingSoon')}
                     </button>
                   )}
                 </div>

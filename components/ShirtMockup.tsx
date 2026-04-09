@@ -17,10 +17,10 @@ export default function ShirtMockup({
   const color = productColor ?? config.shirtColor ?? 'white';
 
   const backSrc =
-    color === 'black' ? 'resources/black-tshirt-back.png' : 'resources/white-tshirt-back.png';
+    color === 'black' ? '/resources/black-tshirt-back.png' : '/resources/white-tshirt-back.png';
 
   const frontSrc =
-    color === 'black' ? 'resources/black-tshirt-front.png' : 'resources/white-tshirt-front.png';
+    color === 'black' ? '/resources/black-tshirt-front.png' : '/resources/white-tshirt-front.png';
 
   if (!posterSnapshot) {
     return (

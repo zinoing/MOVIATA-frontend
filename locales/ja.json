@@ -1,0 +1,266 @@
+{
+  "common": {
+    "select": "SELECT",
+    "comingSoon": "近日公開",
+    "connecting": "接続中...",
+    "loading": "読み込み中…",
+    "back": "← 戻る",
+    "redirecting": "リダイレクト中…",
+    "remove": "削除",
+    "load": "読み込む",
+    "loadingEllipsis": "読み込み中..."
+  },
+  "home": {
+    "hero": {
+      "title1": "あなたの動きを",
+      "title2": "着られるものに",
+      "title3": "変えよう"
+    },
+    "heroSubtitle": "あなたのアクティビティを、ミニマルなポスターインスパイアのシャツデザインに変換しましょう — ルート、記録、その瞬間から生まれます。",
+    "steps": {
+      "step1": {
+        "title": "アクティビティをインポート",
+        "description": "ランをつなげて、あなたの動きのデータをMOVIATAに取り込みましょう。"
+      },
+      "step2": {
+        "title": "デザインを作る",
+        "description": "ルート、日付、距離をクリーンなビジュアル構成に変換します。"
+      },
+      "step3": {
+        "title": "記録を着る",
+        "description": "作品をプレビューして、あなたの動きをスタイルの一部にしましょう。"
+      }
+    },
+    "cta": {
+      "button": "デザインを始める",
+      "tagline": "あなたの一歩から、スタイルへ。"
+    }
+  },
+  "activityType": {
+    "title": "ムーブメントを選ぼう",
+    "subtitle": "あなたのパスを定義しましょう。今日のエネルギーに合ったリズムを選んでください。",
+    "activities": {
+      "running": {
+        "description": "精密なGPSとスプリット分析でランを追跡し、ペースを向上させましょう。"
+      },
+      "hiking": {
+        "description": "オフラインマップと地形マッピングでトレイルを探索し、高度を記録しましょう。"
+      },
+      "climbing": {
+        "description": "垂直の問題解決。Moviata Studioにもうすぐ登場します。"
+      }
+    }
+  },
+  "start": {
+    "title": "データをつなごう",
+    "subtitle": "動きをインポートして、着られるデザインに変えましょう。",
+    "strava": {
+      "label": "Strava",
+      "title": "STRAVA連携",
+      "description": "Stravaアカウントから最新のアクティビティを即座に同期します。"
+    },
+    "garmin": {
+      "label": "Garmin",
+      "title": "GARMIN連携",
+      "description": "Garmin Connectからアクティビティをインポートします。"
+    },
+    "gpx": {
+      "label": "ファイル",
+      "title": "GPXをアップロード",
+      "description": "GPXファイルとしてルートを手動でアップロードします。"
+    },
+    "errors": {
+      "invalidFile": ".gpxファイルのみアップロードできます。",
+      "fileSize": "ファイルサイズは10MB以下にしてください。",
+      "parseFailed": "GPXファイルの解析に失敗しました。",
+      "stravaAuthFailed": "Strava認証の開始中にエラーが発生しました。"
+    }
+  },
+  "design": {
+    "loadingGpx": "GPXデータを読み込み中…",
+    "failedToLoad": "GPXデータの読み込みに失敗しました。",
+    "workspace": "デザインワークスペース",
+    "back": "← 戻る",
+    "generatingPoster": "ポスターを生成中...",
+    "scrollHint": "スクロールでズーム · ドラッグで移動",
+    "noRouteData": "表示するルートデータがありません。",
+    "failedToGenerate": "デザインの生成に失敗しました:"
+  },
+  "settings": {
+    "title": "設定",
+    "subtitle": "左のプレビューをリアルタイムで編集できます。",
+    "instagram": {
+      "title": "インスタグラム",
+      "description": "アカウントと任意で友達を1人追加できます。",
+      "myId": "自分のインスタグラムID",
+      "placeholder": "@wearthemovement",
+      "load": "読み込む",
+      "loading": "読み込み中...",
+      "friend": "友達",
+      "addedCount": "{count}/1 追加済み",
+      "addFriend": "友達を追加",
+      "friendAdded": "友達追加済み",
+      "addedFriend": "追加した友達",
+      "remove": "削除"
+    },
+    "shirtColor": {
+      "title": "Tシャツカラー",
+      "white": "ホワイト",
+      "black": "ブラック"
+    },
+    "map": {
+      "title": "マップ",
+      "description": "背景マップを表示または非表示にします。"
+    },
+    "contours": {
+      "title": "等高線",
+      "description": "地形ベースのマップスタイリングのために等高線を表示します。"
+    },
+    "routePoints": {
+      "title": "スタート / エンドポイント",
+      "description": "地図にミニマルなルートマーカーを表示します。"
+    },
+    "routeColor": {
+      "title": "ルートカラー",
+      "description": "ルートのハイライトカラーを選択してください。",
+      "red": "赤",
+      "orange": "オレンジ"
+    },
+    "activity": {
+      "name": "アクティビティ名",
+      "namePlaceholder": "例：サイクリングツアー",
+      "date": "アクティビティ日付",
+      "datePlaceholder": "例：2024年11月3日",
+      "location": "場所",
+      "locationPlaceholder": "どこで行いましたか？"
+    },
+    "units": {
+      "title": "単位"
+    },
+    "distance": {
+      "title": "距離",
+      "placeholder": "距離を入力"
+    },
+    "time": {
+      "title": "タイム"
+    },
+    "confirm": {
+      "preparing": "準備中…",
+      "loadingMap": "マップ読み込み中…",
+      "confirm": "確認"
+    }
+  },
+  "confirm": {
+    "title": "注文を確認",
+    "preview": "プレビュー",
+    "backToDesign": "← デザインに戻る",
+    "productInfo": "製品情報",
+    "productDescription": {
+      "title": "製品説明",
+      "text": "このシャツはあなたの動きをミニマルなビジュアル記録に変換します。各デザインは実際のアクティビティデータ（ルート、距離、日付）から生成されます。",
+      "bullet1": "プレミアム100%ポリエステル生地",
+      "bullet2": "軽量で通気性の高い素材",
+      "bullet3": "高解像度カスタムプリント",
+      "bullet4": "日常使いにも適したデザイン"
+    },
+    "refund": {
+      "title": "返品・交換",
+      "text1": "各商品はカスタムアクティビティデザインに基づいて受注生産されるため、気が変わった場合やサイズ選択ミスによる返品・交換はお受けできません。",
+      "text2": "商品が破損または不良品の状態で届いた場合は、お届けから7日以内に写真を添えてご連絡ください。確認後、交換または返金対応いたします。"
+    },
+    "moviata": "MOVIATA",
+    "heading": "あなたの動きをシャツに",
+    "subtitle": "ルート、距離、日付を刻んだミニマルな着用記録。",
+    "activityDetails": "アクティビティの詳細",
+    "labels": {
+      "activity": "アクティビティ",
+      "date": "日付",
+      "distance": "距離",
+      "duration": "所要時間",
+      "location": "場所"
+    },
+    "product": "製品",
+    "size": {
+      "label": "サイズ",
+      "selected": "選択中: {size}"
+    },
+    "sizeGuide": {
+      "title": "サイズガイド",
+      "size": "サイズ",
+      "length": "着丈",
+      "shoulder": "肩幅",
+      "chest": "胸囲",
+      "sleeve": "袖丈",
+      "note": "生産により1〜2cmの誤差が生じる場合があります。"
+    },
+    "total": "合計",
+    "delivery": "お届け予定",
+    "deliveryDays": "営業日5〜10日",
+    "buyNow": "今すぐ購入",
+    "redirecting": "リダイレクト中…"
+  },
+  "activities": {
+    "title": "最近のアクティビティ",
+    "header": {
+      "label": "MOVIATA × Strava",
+      "heading": "残しておきたい動きを選ぼう。",
+      "description": "最新のStravaアクティビティが準備できています。1つ選んでデザインワークスペースに進みましょう。",
+      "disconnect": "Stravaを切断",
+      "disconnecting": "切断中..."
+    },
+    "stats": {
+      "totalActivities": "総アクティビティ数",
+      "totalDistance": "総距離",
+      "totalMovingTime": "総移動時間"
+    },
+    "loading": {
+      "label": "アクティビティを読み込み中...",
+      "heading": "Stravaから最新データを取得中"
+    },
+    "notConnected": {
+      "label": "接続が必要",
+      "heading": "まずStravaアカウントを接続してください",
+      "description": "アカウントが接続されると、最新のアクティビティが自動的に表示されます。",
+      "button": "Stravaを接続"
+    },
+    "empty": {
+      "label": "アクティビティなし",
+      "heading": "アクティビティリストは現在空です",
+      "description": "Stravaで新しいアクティビティを記録して、ここでポスターまたはアパレルデザインに変えましょう。"
+    },
+    "error": {
+      "label": "エラー",
+      "heading": "アクティビティの読み込み中に問題が発生しました",
+      "fallback": "しばらく後にもう一度お試しください。"
+    },
+    "list": {
+      "label": "アクティビティライブラリ",
+      "heading": "最近のアクティビティ"
+    },
+    "card": {
+      "activity": "アクティビティ",
+      "distance": "距離",
+      "movingTime": "移動時間",
+      "untitled": "無題のアクティビティ",
+      "design": "デザインする",
+      "unavailable": "利用不可",
+      "looksGood": "いいですね？このアクティビティをデザインしましょう。",
+      "cantDesign": "このアクティビティはデザインできません。",
+      "noRouteData": "ルートデータなし",
+      "routeMissing": "このアクティビティのルートデータがありません。",
+      "zeroDistance": "距離がゼロ — デザインできません。",
+      "previewLabel": "デザインプレビュー · 参考用",
+      "viewPreview": "プレビューを見る",
+      "hidePreview": "プレビューを隠す",
+      "mobilePreviewGuide": "プレビュー — 参考用"
+    },
+    "routeHints": {
+      "noDesign": "ルートデータなし · デザイン不可"
+    }
+  },
+  "layout": {
+    "langEn": "EN",
+    "langKo": "한국어",
+    "langJa": "日本語"
+  }
+}

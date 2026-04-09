@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
 import { apiFetch, API_BASE_URL } from '../../lib/api';
 import {
@@ -108,7 +109,7 @@ function buildSvgPath(points: Point[]): string {
     .join(' ');
 }
 
-function getRouteHint(distanceM: number, points: Point[]): string {
+function getRouteHintKey(distanceM: number, points: Point[]): string {
   if (points.length < 2) return '';
 
   const xs = points.map((p) => p.x);
@@ -118,15 +119,14 @@ function getRouteHint(distanceM: number, points: Point[]): string {
   const aspectRatio = spanY > 0 ? spanX / spanY : 1;
   const km = distanceM / 1000;
 
-  if (km < 3)            return 'Short route · Subtle visual impact';
-  if (aspectRatio < 0.5) return 'Vertical flow · Works well on A3';
-  if (aspectRatio > 2)   return 'Wide spread · Strong horizontal layout';
-  if (km > 15)           return 'Long route · High density, bold print';
-  return 'Clean route · Good for A3';
+  if (km < 3)            return 'short';
+  if (aspectRatio < 0.5) return 'vertical';
+  if (aspectRatio > 2)   return 'wide';
+  if (km > 15)           return 'long';
+  return 'clean';
 }
 
 // ─── Desktop: RoutePreview ────────────────────────────────────────────────────
-// Always visible in the right panel of desktop cards.
 
 function RoutePreview({
   polyline,
@@ -135,6 +135,8 @@ function RoutePreview({
   polyline?: string | null;
   distanceM?: number;
 }) {
+  const t = useTranslations('activities');
+
   if (!polyline) return null;
 
   try {
@@ -143,7 +145,8 @@ function RoutePreview({
     const pathData = buildSvgPath(normalizedPoints);
     if (!pathData) return null;
 
-    const hint = getRouteHint(distanceM, normalizedPoints);
+    const hintKey = getRouteHintKey(distanceM, normalizedPoints);
+    const hint = hintKey ? t(`routeHints.${hintKey}`) : '';
 
     return (
       <div className="flex h-full flex-col">
@@ -178,8 +181,6 @@ function RoutePreview({
 }
 
 // ─── Mobile: MobileActivityCard ───────────────────────────────────────────────
-// Compact card shown only on screens < sm (640px).
-// Preview is hidden by default and expands on demand via "View preview".
 
 function MobileRouteSketch({
   polyline,
@@ -188,17 +189,20 @@ function MobileRouteSketch({
   polyline: string;
   distanceM?: number;
 }) {
-  const { pathData, hint } = useMemo(() => {
+  const t = useTranslations('activities');
+  const { pathData, hintKey } = useMemo(() => {
     try {
       const coords = decodePolyline(polyline);
       const pts = normalizeRouteToSvgPoints(coords);
-      return { pathData: buildSvgPath(pts), hint: getRouteHint(distanceM, pts) };
+      return { pathData: buildSvgPath(pts), hintKey: getRouteHintKey(distanceM, pts) };
     } catch {
-      return { pathData: '', hint: '' };
+      return { pathData: '', hintKey: '' };
     }
   }, [polyline, distanceM]);
 
   if (!pathData) return null;
+
+  const hint = hintKey ? t(`routeHints.${hintKey}`) : '';
 
   return (
     <div className="flex flex-col items-center py-5">
@@ -214,13 +218,14 @@ function MobileRouteSketch({
           />
         </svg>
       </div>
-      <p className="mt-2 text-[10px] italic text-neutral-400">Preview — guide only</p>
+      <p className="mt-2 text-[10px] italic text-neutral-400">{t('card.mobilePreviewGuide')}</p>
       {hint && <p className="mt-1 text-[11px] text-neutral-500">{hint}</p>}
     </div>
   );
 }
 
 function MobileActivityCard({ activity }: { activity: ActivityWithMap }) {
+  const t = useTranslations('activities');
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const hasRoute    = Boolean(activity.map?.summary_polyline);
@@ -228,16 +233,17 @@ function MobileActivityCard({ activity }: { activity: ActivityWithMap }) {
   const canDesign   = hasRoute && hasDistance;
 
   const hint = useMemo(() => {
-    if (!canDesign) return "No route data · Can't be designed";
+    if (!canDesign) return t('routeHints.noDesign');
     if (!activity.map?.summary_polyline) return '';
     try {
       const coords = decodePolyline(activity.map.summary_polyline);
       const pts = normalizeRouteToSvgPoints(coords);
-      return getRouteHint(activity.distance || 0, pts);
+      const key = getRouteHintKey(activity.distance || 0, pts);
+      return key ? t(`routeHints.${key}`) : '';
     } catch {
       return '';
     }
-  }, [canDesign, activity]);
+  }, [canDesign, activity, t]);
 
   return (
     <div
@@ -250,7 +256,7 @@ function MobileActivityCard({ activity }: { activity: ActivityWithMap }) {
         {/* Text block */}
         <div className="min-w-0 flex-1">
           <p className="truncate text-[15px] font-semibold tracking-tight text-neutral-900">
-            {activity.name || 'Untitled activity'}
+            {activity.name || t('card.untitled')}
           </p>
           <p className="mt-0.5 text-[12px] text-neutral-400">
             {formatDateTime(activity.start_date_local)}
@@ -280,11 +286,11 @@ function MobileActivityCard({ activity }: { activity: ActivityWithMap }) {
               href={`/design/${activity.id}`}
               className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-4 py-2 text-[12px] font-semibold text-white transition hover:bg-[#FF5A1F] active:scale-95"
             >
-              Design this
+              {t('card.design')}
             </Link>
           ) : (
             <span className="inline-flex items-center justify-center rounded-full bg-neutral-100 px-4 py-2 text-[12px] font-semibold text-neutral-400">
-              Unavailable
+              {t('card.unavailable')}
             </span>
           )}
 
@@ -294,7 +300,7 @@ function MobileActivityCard({ activity }: { activity: ActivityWithMap }) {
               onClick={() => setPreviewOpen((v) => !v)}
               className="text-[11px] text-neutral-400 underline-offset-2 transition hover:text-neutral-600 hover:underline"
             >
-              {previewOpen ? 'Hide preview' : 'View preview'}
+              {previewOpen ? t('card.hidePreview') : t('card.viewPreview')}
             </button>
           )}
         </div>
@@ -317,6 +323,7 @@ function MobileActivityCard({ activity }: { activity: ActivityWithMap }) {
 
 export default function ActivitiesPage() {
   const router = useRouter();
+  const t = useTranslations('activities');
 
   const [activities, setActivities] = useState<ActivityWithMap[]>([]);
   const [pageState, setPageState] = useState<PageState>('loading');
@@ -391,7 +398,7 @@ export default function ActivitiesPage() {
     pageState === 'ready' || pageState === 'empty';
 
   return (
-    <Layout title="Recent Activities">
+    <Layout title={t('title')}>
       <div className="min-h-screen bg-white px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl">
 
@@ -400,14 +407,13 @@ export default function ActivitiesPage() {
             <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.5fr_0.5fr] lg:px-10 lg:py-10">
               <div className="flex flex-col justify-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-neutral-900">
-                  MOVIATA × Strava
+                  {t('header.label')}
                 </p>
                 <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] text-neutral-950 sm:text-4xl lg:text-5xl">
-                  Pick a movement you want to keep.
+                  {t('header.heading')}
                 </h1>
                 <p className="mt-4 max-w-2xl text-sm leading-6 text-neutral-900 sm:text-base">
-                  Your latest Strava activities are ready. Pick one activity and
-                  move directly into the design workspace.
+                  {t('header.description')}
                 </p>
                 <div className="mt-6 flex flex-wrap items-center gap-3">
                   {showDisconnectButton && (
@@ -417,7 +423,7 @@ export default function ActivitiesPage() {
                       disabled={isDisconnecting}
                       className="inline-flex items-center justify-center rounded-full border border-neutral-300 bg-white px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-900 hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {isDisconnecting ? 'Disconnecting...' : 'Disconnect Strava'}
+                      {isDisconnecting ? t('header.disconnecting') : t('header.disconnect')}
                     </button>
                   )}
                 </div>
@@ -426,7 +432,7 @@ export default function ActivitiesPage() {
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 max-w-[260px] ml-auto">
                 <div className="rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white p-5">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
-                    Total Activities
+                    {t('stats.totalActivities')}
                   </p>
                   <p className="mt-3 text-3xl font-semibold text-neutral-900">
                     {activities.length}
@@ -434,7 +440,7 @@ export default function ActivitiesPage() {
                 </div>
                 <div className="rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white p-5">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
-                    Total Distance
+                    {t('stats.totalDistance')}
                   </p>
                   <p className="mt-3 text-3xl font-semibold text-neutral-900">
                     {formatDistanceKm(totalDistance)}
@@ -442,7 +448,7 @@ export default function ActivitiesPage() {
                 </div>
                 <div className="rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white p-5 sm:col-span-2 lg:col-span-1">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
-                    Total Moving Time
+                    {t('stats.totalMovingTime')}
                   </p>
                   <p className="mt-3 text-3xl font-semibold text-neutral-900">
                     {formatMinutes(totalMovingTime)}
@@ -456,10 +462,10 @@ export default function ActivitiesPage() {
           {pageState === 'loading' && (
             <section className="rounded-[20px] bg-white px-6 py-12 text-center shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium text-neutral-500">
-                Loading your activities...
+                {t('loading.label')}
               </p>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
-                Fetching the latest data from Strava
+                {t('loading.heading')}
               </h2>
             </section>
           )}
@@ -467,20 +473,20 @@ export default function ActivitiesPage() {
           {pageState === 'notConnected' && (
             <section className="rounded-[20px] bg-white px-6 py-12 text-center shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
-                Connection required
+                {t('notConnected.label')}
               </p>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
-                Connect your Strava account first
+                {t('notConnected.heading')}
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-neutral-600">
-                Once your account is connected, your recent activities will appear here automatically.
+                {t('notConnected.description')}
               </p>
               <div className="mt-6 flex justify-center">
                 <Link
                   href="/start"
                   className="inline-flex items-center justify-center rounded-[14px] bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#FF5A1F]"
                 >
-                  Connect Strava
+                  {t('notConnected.button')}
                 </Link>
               </div>
             </section>
@@ -489,13 +495,13 @@ export default function ActivitiesPage() {
           {pageState === 'empty' && (
             <section className="rounded-[20px] bg-white px-6 py-12 text-center shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
-                No activities found
+                {t('empty.label')}
               </p>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
-                Your activity list is currently empty
+                {t('empty.heading')}
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-neutral-600">
-                Record a new activity in Strava and come back here to turn it into a poster or apparel design.
+                {t('empty.description')}
               </p>
             </section>
           )}
@@ -503,13 +509,13 @@ export default function ActivitiesPage() {
           {pageState === 'error' && (
             <section className="rounded-[20px] bg-white px-6 py-12 text-center shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-red-500">
-                Error
+                {t('error.label')}
               </p>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
-                Something went wrong while loading activities
+                {t('error.heading')}
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-neutral-600">
-                {errorMessage || 'Please try again in a moment.'}
+                {errorMessage || t('error.fallback')}
               </p>
             </section>
           )}
@@ -518,10 +524,10 @@ export default function ActivitiesPage() {
             <section>
               <div className="mb-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">
-                  Activity Library
+                  {t('list.label')}
                 </p>
                 <h2 className="mt-2 text-2xl font-black tracking-[-0.03em] text-neutral-950">
-                  Recent activities
+                  {t('list.heading')}
                 </h2>
               </div>
 
@@ -532,7 +538,7 @@ export default function ActivitiesPage() {
                 ))}
               </div>
 
-              {/* ── Desktop list · ≥ sm (640px) — original layout unchanged ── */}
+              {/* ── Desktop list · ≥ sm (640px) ── */}
               <div className="hidden sm:grid gap-4">
                 {activities.map((activity) => {
                   const hasRoute    = Boolean(activity.map?.summary_polyline);
@@ -545,10 +551,10 @@ export default function ActivitiesPage() {
                       <div className="flex flex-col justify-between px-6 py-6 sm:px-8 sm:py-8">
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                            Activity
+                            {t('card.activity')}
                           </p>
                           <h3 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
-                            {activity.name || 'Untitled activity'}
+                            {activity.name || t('card.untitled')}
                           </h3>
                           <p className="mt-3 text-sm text-neutral-500">
                             {formatDateTime(activity.start_date_local)}
@@ -558,7 +564,7 @@ export default function ActivitiesPage() {
                         <div className="mt-5 grid grid-cols-2 gap-2">
                           <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
                             <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
-                              Distance
+                              {t('card.distance')}
                             </p>
                             <p className="mt-1.5 text-base font-semibold text-neutral-900">
                               {formatDistanceKm(activity.distance)}
@@ -566,7 +572,7 @@ export default function ActivitiesPage() {
                           </div>
                           <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
                             <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
-                              Moving Time
+                              {t('card.movingTime')}
                             </p>
                             <p className="mt-1.5 text-base font-semibold text-neutral-900">
                               {formatMinutes(activity.moving_time)}
@@ -577,11 +583,11 @@ export default function ActivitiesPage() {
                         <div className="mt-5 flex items-center justify-between gap-4">
                           {canDesign ? (
                             <p className="text-sm text-neutral-400">
-                              Looks good? Design this activity.
+                              {t('card.looksGood')}
                             </p>
                           ) : (
                             <p className="text-sm text-neutral-400">
-                              This activity can&apos;t be designed.
+                              {t('card.cantDesign')}
                             </p>
                           )}
                           <div
@@ -591,7 +597,7 @@ export default function ActivitiesPage() {
                                 : 'cursor-default bg-neutral-100 text-neutral-400'
                             }`}
                           >
-                            {canDesign ? 'Design this' : 'Unavailable'}
+                            {canDesign ? t('card.design') : t('card.unavailable')}
                           </div>
                         </div>
                       </div>
@@ -601,7 +607,7 @@ export default function ActivitiesPage() {
                         {canDesign ? (
                           <div className="flex h-full flex-col px-6 py-6">
                             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-400">
-                              Design preview · guide only
+                              {t('card.previewLabel')}
                             </p>
                             <div className="mt-4 flex flex-1 items-center justify-center">
                               <RoutePreview
@@ -618,12 +624,12 @@ export default function ActivitiesPage() {
                               </svg>
                             </div>
                             <p className="mt-3 text-sm font-medium text-neutral-600">
-                              No route data available
+                              {t('card.noRouteData')}
                             </p>
                             <p className="mt-1 text-xs leading-5 text-neutral-400">
                               {!hasRoute
-                                ? 'Route data is missing for this activity.'
-                                : 'Distance is zero — activity cannot be designed.'}
+                                ? t('card.routeMissing')
+                                : t('card.zeroDistance')}
                             </p>
                           </div>
                         )}

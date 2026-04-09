@@ -477,27 +477,11 @@ export default function DesignWorkspacePage() {
   }, [routeState.status, editor]);
 
   const handleConfirm = async () => {
-    const posterCard = document.getElementById('poster-card');
-    const cardRoot = posterCard?.firstElementChild as HTMLElement;
-    const mapContainer = posterCard?.querySelector('.maplibregl-map') as HTMLElement;
-    const cardRect = cardRoot?.getBoundingClientRect();
-    const mapRect = mapContainer?.getBoundingClientRect();
-
-    alert(
-      `cardRoot: x=${cardRect?.x.toFixed(1)} y=${cardRect?.y.toFixed(1)} w=${cardRect?.width} h=${cardRect?.height}\n` +
-      `mapContainer: x=${mapRect?.x.toFixed(1)} y=${mapRect?.y.toFixed(1)} w=${mapRect?.width} h=${mapRect?.height}\n` +
-      `map relative to card: x=${((mapRect?.x ?? 0) - (cardRect?.x ?? 0)).toFixed(1)} y=${((mapRect?.y ?? 0) - (cardRect?.y ?? 0)).toFixed(1)}`
-    );
-    
     if (isGeneratingSnapshot) return;
     if (typeof id !== 'string' || !editor) return;
 
     // Guard: map must be ready before capture.
-    // On slow mobile devices the WebGL idle event may not have fired yet.
-    if (!isMapReady && !mapSnapshotRef.current) {
-      alert('Map is still loading. Please wait a moment and try again.');
-      return;
-    }
+    if (!isMapReady && !mapSnapshotRef.current) return;
 
     try {
       setIsGeneratingSnapshot(true);
@@ -517,14 +501,6 @@ export default function DesignWorkspacePage() {
 
       let snapshot: string | null = null;
       const posterCard = document.getElementById('poster-card');
-      const cardRoot = posterCard?.firstElementChild as HTMLElement | null;
-      alert(
-        `snapshot: ${mapSnapshotRef.current?.length}\n` +
-        `posterCard w: ${posterCard?.offsetWidth} h: ${posterCard?.offsetHeight}\n` +
-        `cardRoot w: ${cardRoot?.offsetWidth} h: ${cardRoot?.offsetHeight}\n` +
-        `cardRoot left: ${cardRoot?.getBoundingClientRect().left}\n` +
-        `cardRoot tag: ${cardRoot?.tagName} class: ${cardRoot?.className.slice(0, 60)}`
-      );
 
       if (posterCard) {
         snapshot = await capturePosterCard(

@@ -1,4 +1,5 @@
 import type { ChangeEvent, ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import type { ProfileUser } from '../types/profile';
 
 type Units = 'km' | 'miles';
@@ -98,6 +99,8 @@ export default function DesignSettingsPanel({
   onConfirm,
   activityType = null,
 }: DesignSettingsPanelProps) {
+  const t = useTranslations('settings');
+
   const handleInput =
     (key: 'title' | 'date' | 'location' | 'distance' | 'time' | 'myInstagramId') =>
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -120,10 +123,10 @@ export default function DesignSettingsPanel({
     <aside className="w-full rounded-[20px] border border-neutral-200 bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.08)] lg:sticky lg:top-6">
       <div className="mb-6">
         <h2 className="text-[26px] font-semibold tracking-[-0.02em] text-neutral-950">
-          Settings
+          {t('title')}
         </h2>
         <p className="mt-2 text-sm text-neutral-500">
-          Edit the preview on the left in real time.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -132,10 +135,10 @@ export default function DesignSettingsPanel({
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-semibold text-neutral-900">
-                Instagram
+                {t('instagram.title')}
               </h3>
               <p className="mt-1 text-xs text-neutral-500">
-                Add your account and optionally one friend.
+                {t('instagram.description')}
               </p>
             </div>
 
@@ -166,14 +169,14 @@ export default function DesignSettingsPanel({
           {value.instagramEnabled && (
             <div className="space-y-4">
               <div>
-                <FieldLabel>My Instagram ID</FieldLabel>
+                <FieldLabel>{t('instagram.myId')}</FieldLabel>
 
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={value.myInstagramId}
                     onChange={handleInput('myInstagramId')}
-                    placeholder="@wearthemovement"
+                    placeholder={t('instagram.placeholder')}
                     className="flex-1 rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500"
                     disabled={isGeneratingSnapshot}
                   />
@@ -184,7 +187,7 @@ export default function DesignSettingsPanel({
                     disabled={!canLoadMyInstagram}
                     className="rounded-xl border border-neutral-300 px-4 py-2.5 text-sm font-medium transition hover:border-neutral-400 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {myInstagramFetchStatus === 'loading' ? 'Loading...' : 'Load'}
+                    {myInstagramFetchStatus === 'loading' ? t('instagram.loading') : t('instagram.load')}
                   </button>
                 </div>
 
@@ -199,9 +202,9 @@ export default function DesignSettingsPanel({
 
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <FieldLabel>Friend</FieldLabel>
+                  <FieldLabel>{t('instagram.friend')}</FieldLabel>
                   <span className="text-xs text-neutral-400">
-                    {addedFriends.length}/1 added
+                    {t('instagram.addedCount', { count: addedFriends.length })}
                   </span>
                 </div>
 
@@ -216,16 +219,16 @@ export default function DesignSettingsPanel({
                   }`}
                 >
                   {isAddingFriend
-                    ? 'Loading...'
+                    ? t('instagram.loading')
                     : addedFriends.length > 0
-                      ? 'Friend added'
-                      : 'Add Friend'}
+                      ? t('instagram.friendAdded')
+                      : t('instagram.addFriend')}
                 </button>
               </div>
 
               {addedFriends.length > 0 && (
                 <div>
-                  <FieldLabel>Added Friend</FieldLabel>
+                  <FieldLabel>{t('instagram.addedFriend')}</FieldLabel>
                   <div className="space-y-2">
                     {addedFriends.map((friend) => (
                       <div
@@ -258,7 +261,7 @@ export default function DesignSettingsPanel({
                           disabled={isGeneratingSnapshot}
                           className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          Remove
+                          {t('instagram.remove')}
                         </button>
                       </div>
                     ))}
@@ -270,7 +273,7 @@ export default function DesignSettingsPanel({
         </section>
 
         <section className="rounded-2xl border border-neutral-200 p-4">
-          <FieldLabel>T-shirt Color</FieldLabel>
+          <FieldLabel>{t('shirtColor.title')}</FieldLabel>
 
           <div className="grid grid-cols-2 gap-3">
             {(['white', 'black'] as const).map((shirtColor) => {
@@ -287,7 +290,7 @@ export default function DesignSettingsPanel({
                       : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500'
                   } disabled:cursor-not-allowed disabled:opacity-50`}
                 >
-                  {shirtColor}
+                  {shirtColor === 'white' ? t('shirtColor.white') : t('shirtColor.black')}
                 </button>
               );
             })}
@@ -298,9 +301,9 @@ export default function DesignSettingsPanel({
           <div className="rounded-[16px] border border-neutral-200 p-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-neutral-900">Map</p>
+                <p className="text-sm font-medium text-neutral-900">{t('map.title')}</p>
                 <p className="mt-1 text-xs text-neutral-500">
-                  Show or hide the background map.
+                  {t('map.description')}
                 </p>
               </div>
 
@@ -332,9 +335,9 @@ export default function DesignSettingsPanel({
           <div className="rounded-[16px] border border-neutral-200 p-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-neutral-900">Contours</p>
+                <p className="text-sm font-medium text-neutral-900">{t('contours.title')}</p>
                 <p className="mt-1 text-xs text-neutral-500">
-                  Show contour lines for terrain-based map styling.
+                  {t('contours.description')}
                 </p>
               </div>
 
@@ -345,7 +348,6 @@ export default function DesignSettingsPanel({
                   onChange({
                     ...value,
                     showContours: turningOn,
-                    // Contours OFF → route only (no basemap). Contours ON → keep showMap as-is.
                     showMap: turningOn ? value.showMap : false,
                   });
                 }}
@@ -369,10 +371,10 @@ export default function DesignSettingsPanel({
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-neutral-900">
-                Start / End Points
+                {t('routePoints.title')}
               </p>
               <p className="mt-1 text-xs text-neutral-500">
-                Show minimal route markers on the map.
+                {t('routePoints.description')}
               </p>
             </div>
 
@@ -399,9 +401,9 @@ export default function DesignSettingsPanel({
         </div>
 
         <div className="rounded-[16px] border border-neutral-200 p-4">
-          <p className="text-sm font-medium text-neutral-900">Route Color</p>
+          <p className="text-sm font-medium text-neutral-900">{t('routeColor.title')}</p>
           <p className="mt-1 text-xs text-neutral-500">
-            Choose the route highlight color.
+            {t('routeColor.description')}
           </p>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
@@ -420,7 +422,7 @@ export default function DesignSettingsPanel({
                   : 'border-neutral-300 bg-white text-neutral-900'
               } disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              Red
+              {t('routeColor.red')}
             </button>
 
             <button
@@ -438,7 +440,7 @@ export default function DesignSettingsPanel({
                   : 'border-neutral-300 bg-white text-neutral-900'
               } disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              Orange
+              {t('routeColor.orange')}
             </button>
           </div>
         </div>
@@ -446,7 +448,7 @@ export default function DesignSettingsPanel({
         <section className="rounded-2xl border border-neutral-200 p-4">
           <div className="space-y-4">
             <div>
-              <FieldLabel required>Activity Name</FieldLabel>
+              <FieldLabel required>{t('activity.name')}</FieldLabel>
               <textarea
                 value={value.title}
                 onChange={(e) =>
@@ -457,7 +459,7 @@ export default function DesignSettingsPanel({
                     normalizePosterTitle(e.target.value),
                   )
                 }
-                placeholder="E.G. CYCLING TOUR"
+                placeholder={t('activity.namePlaceholder')}
                 maxLength={60}
                 rows={2}
                 disabled={isGeneratingSnapshot}
@@ -466,12 +468,12 @@ export default function DesignSettingsPanel({
             </div>
 
             <div>
-              <FieldLabel required>Activity Date</FieldLabel>
+              <FieldLabel required>{t('activity.date')}</FieldLabel>
               <input
                 type="text"
                 value={value.date}
                 onChange={handleInput('date')}
-                placeholder="E.g. 3 NOVEMBER 2024"
+                placeholder={t('activity.datePlaceholder')}
                 maxLength={20}
                 disabled={isGeneratingSnapshot}
                 className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -479,12 +481,12 @@ export default function DesignSettingsPanel({
             </div>
 
             <div>
-              <FieldLabel>Location</FieldLabel>
+              <FieldLabel>{t('activity.location')}</FieldLabel>
               <input
                 type="text"
                 value={value.location}
                 onChange={handleInput('location')}
-                placeholder="Where did this happen?"
+                placeholder={t('activity.locationPlaceholder')}
                 maxLength={30}
                 disabled={isGeneratingSnapshot}
                 className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -496,7 +498,7 @@ export default function DesignSettingsPanel({
         <section className="rounded-2xl border border-neutral-200 p-4">
           <div className="space-y-4">
             <div>
-              <FieldLabel required>Units</FieldLabel>
+              <FieldLabel required>{t('units.title')}</FieldLabel>
               <div className="grid grid-cols-2 gap-3">
                 {([
                   { label: 'KM', value: 'km' },
@@ -523,19 +525,19 @@ export default function DesignSettingsPanel({
             </div>
 
             <div>
-              <FieldLabel>Distance</FieldLabel>
+              <FieldLabel>{t('distance.title')}</FieldLabel>
               <input
                 type="text"
                 value={value.distance}
                 onChange={handleInput('distance')}
-                placeholder="Enter Distance"
+                placeholder={t('distance.placeholder')}
                 disabled={isGeneratingSnapshot}
                 className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
 
             <div>
-              <FieldLabel required>Time</FieldLabel>
+              <FieldLabel required>{t('time.title')}</FieldLabel>
               <input
                 type="text"
                 value={value.time}
@@ -553,7 +555,11 @@ export default function DesignSettingsPanel({
                 disabled={!isMapReady || isGeneratingSnapshot}
                 className="w-full rounded-[14px] bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#FF5A1F] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isGeneratingSnapshot ? 'Preparing…' : !isMapReady ? 'Loading map…' : 'Confirm'}
+                {isGeneratingSnapshot
+                  ? t('confirm.preparing')
+                  : !isMapReady
+                    ? t('confirm.loadingMap')
+                    : t('confirm.confirm')}
               </button>
             </div>
           </div>

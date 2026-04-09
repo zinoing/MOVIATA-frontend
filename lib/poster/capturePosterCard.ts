@@ -22,6 +22,7 @@
 export async function capturePosterCard(
   el: HTMLElement,
   mapDataUrl: string | null,
+  zoomScale: number = 1,
 ): Promise<string> {
   const PIXEL_RATIO = 3;
 

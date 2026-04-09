@@ -3,7 +3,6 @@ import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import maplibregl, {
   LngLatBoundsLike,
   Map as MapLibreMap,
-  Marker,
 } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol } from 'pmtiles';
@@ -85,26 +84,6 @@ function getRouteColorValue(routeColor: RouteColor) {
   return routeColor === 'orange' ? '#F97316' : '#CF291D';
 }
 
-function createEndPinElement(color: string) {
-  const wrapper = document.createElement('div');
-  wrapper.style.width = '26px';
-  wrapper.style.height = '26px';
-  wrapper.style.display = 'flex';
-  wrapper.style.alignItems = 'center';
-  wrapper.style.justifyContent = 'center';
-
-  wrapper.innerHTML = `
-    <svg width="26" height="26" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M32 4C21.5 4 13 12.5 13 23c0 14.4 15.6 31.8 18 34.4a1.4 1.4 0 0 0 2 0C35.4 54.8 51 37.4 51 23 51 12.5 42.5 4 32 4Z"
-        fill="${color}"
-      />
-      <circle cx="32" cy="23" r="11" fill="white" />
-    </svg>
-  `;
-
-  return wrapper;
-}
 
 export default function ActivityMap({
   coordinates,
@@ -119,8 +98,6 @@ export default function ActivityMap({
 }: ActivityMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
-  const endMarkerRef = useRef<Marker | null>(null);
-
   const routeFeature = useMemo<Feature<LineString>>(
     () => ({
       type: 'Feature',
@@ -152,6 +129,16 @@ export default function ActivityMap({
           },
           properties: {
             pointType: 'start',
+          },
+        },
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: coordinates[coordinates.length - 1],
+          },
+          properties: {
+            pointType: 'end',
           },
         },
       ],
@@ -264,17 +251,32 @@ export default function ActivityMap({
         },
       });
 
-      if (showRoutePoints) {
-        const endMarker = new maplibregl.Marker({
-          element: createEndPinElement(routeMainColor),
-          anchor: 'bottom',
-          offset: [0, -6],
-        })
-          .setLngLat(coordinates[coordinates.length - 1])
-          .addTo(map);
-
-        endMarkerRef.current = endMarker;
-      }
+      const endPinSvg = `<svg width="26" height="26" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 4C21.5 4 13 12.5 13 23c0 14.4 15.6 31.8 18 34.4a1.4 1.4 0 0 0 2 0C35.4 54.8 51 37.4 51 23 51 12.5 42.5 4 32 4Z" fill="${routeMainColor}"/>
+        <circle cx="32" cy="23" r="11" fill="white"/>
+      </svg>`;
+      const endPinUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(endPinSvg)}`;
+      const pinImg = new Image(26, 26);
+      pinImg.onload = () => {
+        if (!map.hasImage('end-pin')) map.addImage('end-pin', pinImg);
+        if (!map.getLayer('route-end-point')) {
+          map.addLayer({
+            id: 'route-end-point',
+            type: 'symbol',
+            source: 'route-points',
+            filter: ['==', ['get', 'pointType'], 'end'],
+            layout: {
+              'icon-image': 'end-pin',
+              'icon-anchor': 'bottom',
+              'icon-offset': [0, -6],
+              'icon-allow-overlap': true,
+              'icon-ignore-placement': true,
+              visibility: showRoutePoints ? 'visible' : 'none',
+            },
+          });
+        }
+      };
+      pinImg.src = endPinUrl;
 
       if (map.getLayer('background')) {
         map.setPaintProperty(
@@ -304,7 +306,8 @@ export default function ActivityMap({
         const isRouteLayer =
           id === 'route-outline' ||
           id === 'route-main' ||
-          id === 'route-start-point';
+          id === 'route-start-point' ||
+          id === 'route-end-point';
         const isBackgroundLayer = id === 'background';
 
         if (isRouteLayer || isBackgroundLayer) continue;
@@ -337,8 +340,6 @@ export default function ActivityMap({
     });
 
     return () => {
-      endMarkerRef.current?.remove();
-      endMarkerRef.current = null;
       map.remove();
       mapRef.current = null;
     };

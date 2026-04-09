@@ -1,11 +1,51 @@
-import { useState } from 'react';
-
+import { useRef, useState } from 'react';
+import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import { API_BASE_URL } from '../lib/api';
 
 export default function SourceSelectionPage() {
+  const router = useRouter();
   const [isStravaLoading, setIsStravaLoading] = useState(false);
+  const [isGpxLoading, setIsGpxLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const gpxInputRef = useRef<HTMLInputElement>(null);
+
+  function handleGpxClick() {
+    gpxInputRef.current?.click();
+  }
+
+  async function handleGpxFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.gpx')) {
+      setMessage('.gpx 파일만 업로드할 수 있습니다.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setMessage('파일 크기는 10MB 이하여야 합니다.');
+      return;
+    }
+
+    setIsGpxLoading(true);
+    setMessage(null);
+
+    try {
+      const text = await file.text();
+      const { parseGpx } = await import('../lib/gpxParser');
+      const gpxData = parseGpx(text);
+      sessionStorage.setItem('gpxData', JSON.stringify(gpxData));
+      await router.push('/design/gpx');
+    } catch (err) {
+      setMessage(
+        err instanceof Error ? err.message : 'GPX 파일을 파싱하는 데 실패했습니다.',
+      );
+      setIsGpxLoading(false);
+    }
+
+    // Reset input so the same file can be re-selected
+    if (gpxInputRef.current) gpxInputRef.current.value = '';
+  }
 
   async function handleConnectStrava() {
     if (isStravaLoading) return;
@@ -99,7 +139,7 @@ export default function SourceSelectionPage() {
           </div>
 
           {/* GPX */}
-          <div className="flex flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] opacity-50">
+          <div className="flex flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)]">
             <div className="flex flex-1 flex-col px-5 py-6">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
                 File
@@ -111,12 +151,20 @@ export default function SourceSelectionPage() {
                 Upload your route manually as a GPX file.
               </p>
               <div className="mt-5">
+                <input
+                  ref={gpxInputRef}
+                  type="file"
+                  accept=".gpx"
+                  className="hidden"
+                  onChange={handleGpxFile}
+                />
                 <button
                   type="button"
-                  disabled
-                  className="w-full cursor-not-allowed rounded-full bg-neutral-100 py-2.5 text-sm font-semibold text-neutral-400"
+                  onClick={handleGpxClick}
+                  disabled={isGpxLoading}
+                  className="w-full rounded-[14px] bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#FF5A1F] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  COMING SOON
+                  {isGpxLoading ? 'Loading…' : 'SELECT'}
                 </button>
               </div>
             </div>

@@ -48,33 +48,31 @@
 
 ### 2-1. 파일 업로드 UI
 
-* [ ] `components/GpxUploader.tsx` 컴포넌트 작성
-  * 드래그 앤 드롭 지원
-  * 파일 형식 검증 (`.gpx` only)
-  * 파일 크기 제한 처리 (예: 10MB)
-* [ ] 업로드 상태 UI (로딩, 에러, 성공)
+* [X] 파일 형식 검증 (`.gpx` only) — `pages/start.tsx`
+* [X] 파일 크기 제한 처리 (10MB) — `pages/start.tsx`
+* [X] 업로드 상태 UI (로딩, 에러) — `pages/start.tsx`
+* [ ] `components/GpxUploader.tsx` 분리 (드래그 앤 드롭 지원)
 
 ### 2-2. GPX 파싱
 
-* [ ] `lib/gpxParser.ts` 작성
-  * GPX XML 파싱 (DOMParser 또는 `fast-xml-parser` 라이브러리 검토)
-  * `trkpt` 좌표 배열 추출 (lat, lon, ele, time)
+* [X] `lib/gpxParser.ts` 작성
+  * DOMParser 기반 GPX XML 파싱
+  * `trkpt` 좌표 배열 추출 (lat, lon → [lon, lat] MapLibre 순서)
   * 거리 계산 (Haversine formula)
-  * 소요 시간 계산
-* [ ] `types/gpx.ts` 타입 정의
+  * 소요 시간 계산 (첫/마지막 `<time>` 차이)
+* [X] `types/gpx.ts` 타입 정의 (`GpxData`)
 
 ### 2-3. 지도 렌더링
 
-* [ ] 파싱된 좌표를 MapLibre GeoJSON 레이어로 렌더링
-  * 경로 라인: `#111111` @ 80% opacity
-  * 시작점 / 종료점 마커: `#FF5A1F`
-* [ ] 경로에 맞게 지도 자동 Fit (fitBounds)
-* [ ] 경로 통계 표시 (거리, 시간, 날짜, 지역명)
+* [X] 파싱된 좌표를 MapLibre GeoJSON 레이어로 렌더링 — `pages/design/gpx.tsx` + 기존 `ActivityMap` 재사용
+* [X] 경로에 맞게 지도 자동 Fit (fitBounds) — `ActivityMap` 내장
+* [X] 경로 통계 표시 (거리, 시간, 날짜) — `DesignSettingsPanel` 재사용
+* [ ] 지역명 자동 추출 (Reverse Geocoding)
 
 ### 2-4. 디자인 생성
 
-* [ ] 지도 영역을 이미지로 캡처 (`dom-to-image-more` 활용)
-* [ ] 캡처 이미지를 티셔츠 목업 합성 파이프라인에 전달
+* [X] 캡처 이미지를 티셔츠 목업 합성 파이프라인에 전달 — `pages/design/gpx.tsx` → `/confirm`
+* [ ] 드래그 앤 드롭 업로드 지원
 
 ---
 

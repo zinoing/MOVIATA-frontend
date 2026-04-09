@@ -8,6 +8,11 @@ interface LayoutProps {
   title?: string;
 }
 
+const sharedHeaderStyle = {
+  backdropFilter: 'blur(20px) saturate(180%)',
+  backgroundColor: 'rgba(255,255,255,0.72)',
+};
+
 export default function Layout({ title, children }: PropsWithChildren<LayoutProps>) {
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -29,7 +34,41 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
     void router.push(router.asPath, router.asPath, { locale });
   }
 
-  const currentLocale = router.locale ?? 'ko';
+  const currentLocale = router.locale ?? 'en';
+
+  const langButtons = (
+    <>
+      <button
+        type="button"
+        onClick={() => switchLocale('en')}
+        className={`rounded-md px-2 py-1 text-xs font-medium transition ${
+          currentLocale === 'en' ? 'text-neutral-950' : 'text-neutral-400 hover:text-neutral-700'
+        }`}
+      >
+        {t('langEn')}
+      </button>
+      <span className="text-neutral-300 text-xs">|</span>
+      <button
+        type="button"
+        onClick={() => switchLocale('ko')}
+        className={`rounded-md px-2 py-1 text-xs font-medium transition ${
+          currentLocale === 'ko' ? 'text-neutral-950' : 'text-neutral-400 hover:text-neutral-700'
+        }`}
+      >
+        {t('langKo')}
+      </button>
+      <span className="text-neutral-300 text-xs">|</span>
+      <button
+        type="button"
+        onClick={() => switchLocale('ja')}
+        className={`rounded-md px-2 py-1 text-xs font-medium transition ${
+          currentLocale === 'ja' ? 'text-neutral-950' : 'text-neutral-400 hover:text-neutral-700'
+        }`}
+      >
+        {t('langJa')}
+      </button>
+    </>
+  );
 
   return (
     <>
@@ -39,14 +78,26 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
       </Head>
 
       <main className="min-h-screen w-full bg-white">
+        {/* ── 모바일 전용: 언어 스위처 고정 bar (항상 표시) ── */}
+        <div
+          className="fixed left-0 top-0 z-50 flex h-8 w-full items-center justify-end gap-1 border-b border-black/[0.06] px-4 sm:hidden"
+          style={sharedHeaderStyle}
+        >
+          {langButtons}
+        </div>
+
+        {/* ── 로고 헤더 ──
+            모바일: top-0에서 시작하되 visible 시 translate-y-8(32px)로 언어 bar 아래 위치
+                   hidden 시 -translate-y-full로 완전히 뷰포트 위로 숨김
+            데스크탑: 기존과 동일 (top-0, translate-y-0 / -translate-y-full)
+        ── */}
         <header
-          className={`fixed left-0 top-0 z-50 w-full border-b border-black/[0.08] transition-transform duration-[300ms] ease-[cubic-bezier(0.4,0,0.2,1)] ${
-            visible ? 'translate-y-0' : '-translate-y-full'
+          className={`fixed left-0 top-0 z-40 w-full border-b border-black/[0.08] transition-transform duration-[300ms] ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            visible
+              ? 'translate-y-8 sm:translate-y-0'
+              : '-translate-y-full'
           }`}
-          style={{
-            backdropFilter: 'blur(20px) saturate(180%)',
-            backgroundColor: 'rgba(255,255,255,0.72)',
-          }}
+          style={sharedHeaderStyle}
         >
           <div className="relative flex h-11 items-center justify-center px-6">
             <Link
@@ -56,47 +107,16 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
               MOVIATA
             </Link>
 
-            <div className="absolute right-6 flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => switchLocale('en')}
-                className={`rounded-md px-2 py-1 text-xs font-medium transition ${
-                  currentLocale === 'en'
-                    ? 'text-neutral-950'
-                    : 'text-neutral-400 hover:text-neutral-700'
-                }`}
-              >
-                {t('langEn')}
-              </button>
-              <span className="text-neutral-300 text-xs">|</span>
-              <button
-                type="button"
-                onClick={() => switchLocale('ko')}
-                className={`rounded-md px-2 py-1 text-xs font-medium transition ${
-                  currentLocale === 'ko'
-                    ? 'text-neutral-950'
-                    : 'text-neutral-400 hover:text-neutral-700'
-                }`}
-              >
-                {t('langKo')}
-              </button>
-              <span className="text-neutral-300 text-xs">|</span>
-              <button
-                type="button"
-                onClick={() => switchLocale('ja')}
-                className={`rounded-md px-2 py-1 text-xs font-medium transition ${
-                  currentLocale === 'ja'
-                    ? 'text-neutral-950'
-                    : 'text-neutral-400 hover:text-neutral-700'
-                }`}
-              >
-                {t('langJa')}
-              </button>
+            {/* 데스크탑 전용: 언어 스위처 */}
+            <div className="absolute right-6 hidden items-center gap-1 sm:flex">
+              {langButtons}
             </div>
           </div>
         </header>
 
-        <div className="pt-11">
+        {/* 모바일: 언어 bar(32px) + 로고 bar(44px) = 76px 패딩
+            데스크탑: 로고 bar(44px) = 44px 패딩 */}
+        <div className="pt-[76px] sm:pt-11">
           {children}
         </div>
       </main>

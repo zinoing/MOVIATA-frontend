@@ -19,18 +19,6 @@ import type { GpxData } from '../../types/gpx';
 
 type LoadState = 'loading' | 'ready' | 'error' | 'not_found';
 
-function formatDistanceMiles(distanceMeters: number) {
-  return `${(distanceMeters / 1609.344).toFixed(2)}`;
-}
-
-function convertDistanceValue(value: string, to: 'km' | 'miles') {
-  const numeric = parseFloat(value.replace(/[^\d.]/g, ''));
-  if (Number.isNaN(numeric)) return value;
-  return to === 'miles'
-    ? `${(numeric * 0.621371).toFixed(2)}`
-    : `${(numeric / 0.621371).toFixed(2)}`;
-}
-
 function buildEditorFromGpx(gpx: GpxData): DesignEditorState {
   return {
     instagramEnabled: false,
@@ -42,9 +30,8 @@ function buildEditorFromGpx(gpx: GpxData): DesignEditorState {
     title: gpx.name || 'Untitled Route',
     date: gpx.date,
     location: '',
-    units: 'km',
-    elevationUnits: 'm',
     distance: formatDistanceKm(gpx.distanceMeters),
+    elevation: '',
     time: formatMinutes(gpx.movingTimeSeconds),
     myInstagramId: '',
     selectedUsers: [],
@@ -169,20 +156,11 @@ export default function GpxDesignPage() {
     [gpxData],
   );
 
-  const previewDistance = useMemo(() => {
-    if (!gpxData || !editor) return '-';
-    if (editor.units === 'miles') return formatDistanceMiles(gpxData.distanceMeters);
-    return editor.distance;
-  }, [gpxData, editor]);
-
   const handleEditorChange = useCallback(
     (next: DesignEditorState) => {
       setEditor((prev) => {
         if (!prev) return next;
-        const unitsChanged = prev.units !== next.units;
-        let updated = unitsChanged
-          ? { ...next, distance: convertDistanceValue(prev.distance, next.units) }
-          : next;
+        let updated = next;
         if (!updated.instagramEnabled) {
           instagram.removeInstagramProfile();
           return { ...updated, myInstagramId: '', selectedUsers: updated.selectedUsers.filter((u) => !u.isPrimary) };
@@ -306,9 +284,9 @@ export default function GpxDesignPage() {
                     title={editor.title}
                     date={editor.date}
                     location={editor.location}
-                    distance={previewDistance}
+                    distance={editor.distance}
+                    elevation={editor.elevation}
                     duration={editor.time}
-                    units={editor.units}
                     shirtColor={editor.shirtColor}
                     routeColor={editor.routeColor}
                     showMap={editor.showMap}

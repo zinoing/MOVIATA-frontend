@@ -21,8 +21,8 @@ export function buildDesignConfig(
     date: editor.date,
     location: editor.location?.trim() || '',
     distance: editor.distance,
+    elevation: editor.elevation,
     duration: editor.time,
-    units: editor.units,
 
     shirtColor: editor.shirtColor,
 

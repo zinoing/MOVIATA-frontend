@@ -40,14 +40,11 @@
     "title": "ムーブメントを選ぼう",
     "subtitle": "あなたのパスを定義しましょう。今日のエネルギーに合ったリズムを選んでください。",
     "activities": {
-      "running": {
-        "description": "精密なGPSとスプリット分析でランを追跡し、ペースを向上させましょう。"
+      "path": {
+        "description": "精密なGPSであなたのルートをシャツにプリント。動きの軌跡がそのまま着られるマップになります。"
       },
-      "hiking": {
-        "description": "オフラインマップと地形マッピングでトレイルを探索し、高度を記録しましょう。"
-      },
-      "climbing": {
-        "description": "垂直の問題解決。Moviata Studioにもうすぐ登場します。"
+      "motion": {
+        "description": "撮影した映像を編集してビジュアライズ。ビデオがシャツ上のグラフィックデザインに仕上がります。"
       }
     }
   },
@@ -240,6 +237,7 @@
     "card": {
       "activity": "アクティビティ",
       "distance": "距離",
+      "elevGain": "最高標高",
       "movingTime": "移動時間",
       "untitled": "無題のアクティビティ",
       "design": "デザインする",

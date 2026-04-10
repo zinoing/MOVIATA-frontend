@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../components/Layout';
 
-type ActivityType = 'running' | 'hiking';
+type ActivityType = 'path' | 'motion';
 
 export default function ActivityTypePage() {
   const router = useRouter();
@@ -11,24 +11,17 @@ export default function ActivityTypePage() {
 
   const activities = [
     {
-      type: 'running' as ActivityType,
-      label: 'RUNNING',
-      description: t('activities.running.description'),
-      image: '/activity-type/running.jpg',
-      available: true,
-    },
-    {
-      type: 'hiking' as ActivityType,
-      label: 'HIKING',
-      description: t('activities.hiking.description'),
-      image: '/activity-type/mountain.jpg',
+      type: 'path' as ActivityType,
+      label: 'PATH',
+      description: t('activities.path.description'),
+      image: '/activity-type/path.jpg',
       available: true,
     },
     {
       type: null,
-      label: 'CLIMBING',
-      description: t('activities.climbing.description'),
-      image: '/activity-type/climbing.jpg',
+      label: 'MOTION',
+      description: t('activities.motion.description'),
+      image: '/activity-type/motion.jpg',
       available: false,
     },
   ];
@@ -50,17 +43,15 @@ export default function ActivityTypePage() {
           </p>
         </div>
 
-        <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-3">
+        <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-2">
           {activities.map((activity) => (
             <div
               key={activity.label}
-              className={`relative flex flex-col overflow-hidden rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition ${
-                activity.available ? 'hover:-translate-y-1 hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)]' : 'opacity-50'
-              }`}
+              className="relative flex flex-col overflow-hidden rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition hover:-translate-y-1 hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)]"
             >
               {/* Image area */}
               <div
-                className="relative h-48 w-full bg-cover bg-center"
+                className="relative h-48 w-full bg-cover bg-center bg-neutral-100"
                 style={{ backgroundImage: `url(${activity.image})` }}
               >
                 <div className="absolute inset-0 bg-black/30" />
@@ -79,7 +70,7 @@ export default function ActivityTypePage() {
                   {activity.available ? (
                     <button
                       type="button"
-                      onClick={() => handleSelect(activity.type!)}
+                      onClick={() => activity.type && handleSelect(activity.type)}
                       className="w-full rounded-[14px] bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#FF5A1F]"
                     >
                       {tCommon('select')}
@@ -88,7 +79,7 @@ export default function ActivityTypePage() {
                     <button
                       type="button"
                       disabled
-                      className="w-full cursor-not-allowed rounded-full bg-neutral-100 py-3 text-sm font-bold tracking-[0.08em] text-neutral-400"
+                      className="w-full cursor-not-allowed rounded-[14px] bg-neutral-100 px-5 py-2.5 text-sm font-semibold text-neutral-400"
                     >
                       {tCommon('comingSoon')}
                     </button>

@@ -12,6 +12,7 @@ type Props = {
   location: string;
   distance: string;
   duration: string;
+  elevation?: string;
   shirtColor: 'white' | 'black';
   routeColor: RouteColor;
   showMap: boolean;
@@ -33,6 +34,7 @@ export default function PosterCard({
   location,
   distance,
   duration,
+  elevation,
   shirtColor,
   routeColor,
   showMap,
@@ -49,6 +51,14 @@ export default function PosterCard({
   const isDark = shirtColor === 'black';
   const hasLocation = Boolean(location?.trim());
   const hasDate = Boolean(date?.trim());
+  const distanceValue = distance?.replace(/\s*[a-zA-Z]+$/, '') || '-';
+
+  function formatWithCommas(value?: string) {
+    if (!value || value === '-') return '-';
+    const [integer, decimal] = value.split('.');
+    const formatted = integer!.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return decimal !== undefined ? `${formatted}.${decimal}` : formatted;
+  }
 
   const instagramUsers = useMemo(() => {
     if (!instagramEnabled) return [];
@@ -83,22 +93,20 @@ export default function PosterCard({
     : 'text-[2.35rem] font-bold leading-[1.02] tracking-[-0.045em] uppercase';
 
   const locationClass = compact
-    ? `text-[11px] font-medium tracking-[0.14em] ${secondaryTextClass}`
-    : `text-[11px] font-medium tracking-[0.18em] ${secondaryTextClass}`;
+    ? `text-[12px] font-medium tracking-[0.14em] ${secondaryTextClass}`
+    : `text-[12px] font-medium tracking-[0.18em] ${secondaryTextClass}`;
 
   const dateClass = compact
-    ? `text-[11px] font-medium tracking-[0.12em] uppercase ${secondaryTextClass}`
-    : `text-[11px] font-medium tracking-[0.16em] uppercase ${secondaryTextClass}`;
+    ? `text-[12px] font-medium tracking-[0.12em] uppercase ${secondaryTextClass}`
+    : `text-[12px] font-medium tracking-[0.16em] uppercase ${secondaryTextClass}`;
 
   const statLabelClass = compact
-    ? `text-[9px] font-medium uppercase tracking-[0.22em] ${tertiaryTextClass}`
-    : `text-[10px] font-medium uppercase tracking-[0.24em] ${tertiaryTextClass}`;
+    ? `mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em] ${tertiaryTextClass}`
+    : `mt-1 text-[10px] font-medium uppercase tracking-[0.24em] ${tertiaryTextClass}`;
 
   const statValueClass = compact
     ? `mt-1 text-[15px] font-bold tracking-[-0.02em] ${primaryTextClass}`
     : `mt-1.5 text-[1.45rem] font-bold leading-none tracking-[-0.03em] ${primaryTextClass}`;
-
-  const statDividerClass = isDark ? 'bg-neutral-600' : 'bg-neutral-300';
 
   const contentWidthClass = compact
     ? 'mx-auto w-full max-w-[260px]'
@@ -200,23 +208,44 @@ export default function PosterCard({
       </div>
 
       <div className={compact ? 'mt-3' : 'mt-5'}>
-        <div className={contentWidthClass}>
-          <div className="flex items-center justify-between">
-            <div className="min-w-0 flex-1">
-              <p className={statLabelClass}>Distance</p>
-              <p className={statValueClass}>{distance || '-'}</p>
-            </div>
+        {(() => {
+          const hasDistance = Boolean(distanceValue && distanceValue !== '-');
+          const hasElevation = Boolean(elevation && elevation !== '-');
+          const hasDuration = Boolean(duration && duration !== '-');
 
-            <div
-              className={`mx-4 h-7 shrink-0 w-[2px] ${statDividerClass} opacity-70 rounded-full`}
-            />
+          const stats = [
+            hasDistance && (
+              <div key="distance" className="min-w-0 flex-1 text-center">
+                <p className={statValueClass}>{formatWithCommas(distanceValue)}</p>
+                <p className={statLabelClass}>KM</p>
+              </div>
+            ),
+            hasElevation && (
+              <div key="elevation" className="min-w-0 flex-1 text-center">
+                <p className={statValueClass}>{formatWithCommas(elevation)}m</p>
+                <p className={statLabelClass}>MAX ELEV</p>
+              </div>
+            ),
+            hasDuration && (
+              <div key="duration" className="min-w-0 flex-1 text-center">
+                <p className={statValueClass}>{duration}</p>
+                <p className={statLabelClass}>TIME</p>
+              </div>
+            ),
+          ].filter(Boolean);
 
-            <div className="min-w-0 flex-1 text-right">
-              <p className={statLabelClass}>Time</p>
-              <p className={statValueClass}>{duration || '-'}</p>
+          const count = stats.length;
+          const justifyClass =
+            count === 1 ? 'justify-center' :
+            count === 2 ? 'justify-around' :
+            'justify-between';
+
+          return (
+            <div className={`flex items-center ${justifyClass}`}>
+              {stats}
             </div>
-          </div>
-        </div>
+          );
+        })()}
       </div>
     </div>
   );

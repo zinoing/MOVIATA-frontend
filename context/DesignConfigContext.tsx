@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { DesignConfig } from '../lib/poster/types';
 
-const STORAGE_KEY = 'wtm-confirm-draft-v4';
+const STORAGE_KEY = 'wtm-confirm-draft-v5';
 
 type DraftState = {
   config: Readonly<DesignConfig> | null;

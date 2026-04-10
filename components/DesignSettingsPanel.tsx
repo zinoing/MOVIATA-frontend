@@ -2,7 +2,6 @@ import type { ChangeEvent, ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import type { ProfileUser } from '../types/profile';
 
-type Units = 'km' | 'miles';
 type ShirtColor = 'white' | 'black';
 type InstagramFetchStatus =
   | 'idle'
@@ -17,8 +16,8 @@ export type DesignEditorState = {
   title: string;
   date: string;
   location: string;
-  units: Units;
   distance: string;
+  elevation: string;
   time: string;
   myInstagramId: string;
   selectedUsers: ProfileUser[];
@@ -40,7 +39,7 @@ type DesignSettingsPanelProps = {
   isMapReady?: boolean;
   isGeneratingSnapshot?: boolean;
   onConfirm: () => void;
-  activityType?: 'running' | 'hiking' | null;
+  activityType: 'path' | 'motion' | null;
 };
 
 function updateField<K extends keyof DesignEditorState>(
@@ -97,12 +96,11 @@ export default function DesignSettingsPanel({
   isMapReady = false,
   isGeneratingSnapshot = false,
   onConfirm,
-  activityType = null,
 }: DesignSettingsPanelProps) {
   const t = useTranslations('settings');
 
   const handleInput =
-    (key: 'title' | 'date' | 'location' | 'distance' | 'time' | 'myInstagramId') =>
+    (key: 'title' | 'date' | 'location' | 'distance' | 'elevation' | 'time' | 'myInstagramId') =>
     (e: ChangeEvent<HTMLInputElement>) => {
       updateField(value, onChange, key, e.target.value);
     };
@@ -297,75 +295,70 @@ export default function DesignSettingsPanel({
           </div>
         </section>
 
-        {activityType !== 'hiking' && (
-          <div className="rounded-[16px] border border-neutral-200 p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-neutral-900">{t('map.title')}</p>
-                <p className="mt-1 text-xs text-neutral-500">
-                  {t('map.description')}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  onChange({
-                    ...value,
-                    showMap: !value.showMap,
-                    showContours: !value.showMap ? false : value.showContours,
-                  })
-                }
-                disabled={isGeneratingSnapshot}
-                className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-                  value.showMap ? 'bg-neutral-900' : 'bg-neutral-200'
-                } disabled:cursor-not-allowed disabled:opacity-50`}
-              >
-                <span
-                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
-                    value.showMap ? 'left-6' : 'left-1'
-                  }`}
-                />
-              </button>
+        <div className="rounded-[16px] border border-neutral-200 p-4 space-y-4">
+          {/* Map toggle */}
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-neutral-900">{t('map.title')}</p>
+              <p className="mt-1 text-xs text-neutral-500">
+                {t('map.description')}
+              </p>
             </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                onChange({
+                  ...value,
+                  showMap: !value.showMap,
+                  showContours: value.showMap ? false : value.showContours,
+                })
+              }
+              disabled={isGeneratingSnapshot}
+              className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+                value.showMap ? 'bg-neutral-900' : 'bg-neutral-200'
+              } disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <span
+                className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+                  value.showMap ? 'left-6' : 'left-1'
+                }`}
+              />
+            </button>
           </div>
-        )}
 
-        {activityType !== 'running' && (
-          <div className="rounded-[16px] border border-neutral-200 p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-neutral-900">{t('contours.title')}</p>
-                <p className="mt-1 text-xs text-neutral-500">
-                  {t('contours.description')}
-                </p>
-              </div>
+          {/* Divider */}
+          <div className="h-px bg-neutral-100" />
 
-              <button
-                type="button"
-                onClick={() => {
-                  const turningOn = !value.showContours;
-                  onChange({
-                    ...value,
-                    showContours: turningOn,
-                    showMap: turningOn ? value.showMap : false,
-                  });
-                }}
-                className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-                  value.showContours ? 'bg-neutral-900' : 'bg-neutral-200'
-                } disabled:cursor-not-allowed disabled:opacity-50`}
-                aria-pressed={value.showContours}
-                disabled={isGeneratingSnapshot}
-              >
-                <span
-                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
-                    value.showContours ? 'left-6' : 'left-1'
-                  }`}
-                />
-              </button>
+          {/* Contours toggle — disabled when Map is off */}
+          <div className={`flex items-center justify-between gap-4 transition ${!value.showMap ? 'opacity-40' : ''}`}>
+            <div>
+              <p className="text-sm font-medium text-neutral-900">{t('contours.title')}</p>
+              <p className="mt-1 text-xs text-neutral-500">
+                {t('contours.description')}
+              </p>
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!value.showMap) return;
+                onChange({ ...value, showContours: !value.showContours });
+              }}
+              disabled={isGeneratingSnapshot || !value.showMap}
+              className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+                value.showContours && value.showMap ? 'bg-neutral-900' : 'bg-neutral-200'
+              } disabled:cursor-not-allowed`}
+              aria-pressed={value.showContours}
+            >
+              <span
+                className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+                  value.showContours && value.showMap ? 'left-6' : 'left-1'
+                }`}
+              />
+            </button>
           </div>
-        )}
+        </div>
 
         <div className="rounded-[16px] border border-neutral-200 p-4">
           <div className="flex items-center justify-between gap-4">
@@ -498,39 +491,24 @@ export default function DesignSettingsPanel({
         <section className="rounded-2xl border border-neutral-200 p-4">
           <div className="space-y-4">
             <div>
-              <FieldLabel required>{t('units.title')}</FieldLabel>
-              <div className="grid grid-cols-2 gap-3">
-                {([
-                  { label: 'KM', value: 'km' },
-                  { label: 'MILES', value: 'miles' },
-                ] as const).map((option) => {
-                  const selected = value.units === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => updateField(value, onChange, 'units', option.value)}
-                      disabled={isGeneratingSnapshot}
-                      className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
-                        selected
-                          ? 'border-neutral-900 bg-neutral-900 text-white'
-                          : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500'
-                      } disabled:cursor-not-allowed disabled:opacity-50`}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
               <FieldLabel>{t('distance.title')}</FieldLabel>
               <input
                 type="text"
                 value={value.distance}
                 onChange={handleInput('distance')}
                 placeholder={t('distance.placeholder')}
+                disabled={isGeneratingSnapshot}
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+
+            <div>
+              <FieldLabel>Max Elev (m)</FieldLabel>
+              <input
+                type="text"
+                value={value.elevation}
+                onChange={handleInput('elevation')}
+                placeholder="e.g. 295"
                 disabled={isGeneratingSnapshot}
                 className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
               />

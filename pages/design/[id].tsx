@@ -48,9 +48,9 @@ function formatPosterDate(value?: string) {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 }
 
-function formatDistanceMiles(distanceMeters?: number) {
-  if (!distanceMeters) return '-';
-  return `${(distanceMeters / 1609.344).toFixed(2)} mi`;
+function formatElevation(meters?: number) {
+  if (meters == null) return '';
+  return `${Math.round(meters)}`;
 }
 
 function restoreEditorFromConfig(config: import('../../lib/poster/types').DesignConfig): DesignEditorState {
@@ -60,8 +60,8 @@ function restoreEditorFromConfig(config: import('../../lib/poster/types').Design
     title: config.title,
     date: config.date,
     location: config.location,
-    units: config.units,
     distance: config.distance,
+    elevation: config.elevation ?? '',
     time: config.duration,
     myInstagramId: config.myInstagramId,
     selectedUsers: config.selectedUsers,
@@ -72,34 +72,23 @@ function restoreEditorFromConfig(config: import('../../lib/poster/types').Design
   };
 }
 
-function buildInitialEditorState(activity: ActivityResponse, activityType: 'running' | 'hiking' | null): DesignEditorState {
+function buildInitialEditorState(activity: ActivityResponse, activityType: 'path' | 'motion' | null): DesignEditorState {
   return {
     instagramEnabled: false,
     shirtColor: 'white',
     routeColor: 'red',
     showMap: true,
     showRoutePoints: false,
-    showContours: activityType === 'hiking',
+    showContours: activityType === 'motion',
     title: activity.name || 'Untitled Activity',
     date: formatPosterDate(activity.start_date_local),
     location: '',
-    units: 'km',
     distance: formatDistanceKm(activity.distance),
+    elevation: formatElevation(activity.elev_high),
     time: formatMinutes(activity.moving_time),
     myInstagramId: '',
     selectedUsers: [],
   };
-}
-
-function convertDistanceValue(value: string, to: 'km' | 'miles') {
-  const numeric = parseFloat(value.replace(/[^\d.]/g, ''));
-  if (Number.isNaN(numeric)) return value;
-
-  if (to === 'miles') {
-    return `${(numeric * 0.621371).toFixed(2)} mi`;
-  }
-
-  return `${(numeric / 0.621371).toFixed(2)} km`;
 }
 
 function getRouteState(
@@ -134,7 +123,7 @@ export default function DesignWorkspacePage() {
 
   const [activity, setActivity] = useState<ActivityResponse | null>(null);
   const [editor, setEditor] = useState<DesignEditorState | null>(null);
-  const [activityType, setActivityType] = useState<'running' | 'hiking' | null>(null);
+  const [activityType, setActivityType] = useState<'path' | 'motion' | null>(null);
   const [activityFetchState, setActivityFetchState] =
     useState<ActivityFetchState>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -150,7 +139,7 @@ export default function DesignWorkspacePage() {
 
   useEffect(() => {
     const stored = sessionStorage.getItem('activityType');
-    if (stored === 'running' || stored === 'hiking') {
+    if (stored === 'path' || stored === 'motion') {
       setActivityType(stored);
     }
   }, []);
@@ -167,17 +156,17 @@ export default function DesignWorkspacePage() {
 
         const data = await apiFetch<ActivityResponse>(`/activities/${id}`);
         const stored = sessionStorage.getItem('activityType');
-        const type = stored === 'running' || stored === 'hiking' ? stored : null;
+        const type = stored === 'path' || stored === 'motion' ? stored : null;
 
         if (!ignore) {
           setActivity(data);
 
           // Restore saved config only when the activity AND the map style
           // match the current session. If the user previously viewed this
-          // activity as "running" and now enters as "hiking" (or vice versa),
+          // activity as "path" and now enters as "motion" (or vice versa),
           // the saved config would have the wrong mapStyle — so we discard it
           // and build a fresh editor state from the current activityType.
-          const expectedMapStyle = type === 'hiking' ? 'contours' : 'default';
+          const expectedMapStyle = type === 'motion' ? 'contours' : 'default';
           const canRestore =
             savedConfig &&
             savedConfig.activityId === id &&
@@ -232,15 +221,7 @@ export default function DesignWorkspacePage() {
   const posterCoordinates =
     routeState.status === 'ready' ? routeState.coordinates : [];
 
-  const previewDistance = useMemo(() => {
-    if (!activity || !editor) return '-';
-
-    if (editor.units === 'miles') {
-      return formatDistanceMiles(activity.distance);
-    }
-
-    return editor.distance;
-  }, [activity, editor]);
+  const previewDistance = editor?.distance ?? '-';
 
   const handleOpenFriendPicker = useCallback(() => {
     if (isAddingFriend) return;
@@ -300,31 +281,21 @@ export default function DesignWorkspacePage() {
       setEditor((prev) => {
         if (!prev) return next;
 
-        const unitsChanged = prev.units !== next.units;
-        let updated = next;
-
-        if (unitsChanged) {
-          updated = {
-            ...next,
-            distance: convertDistanceValue(prev.distance, next.units),
-          };
-        }
-
-        if (!updated.instagramEnabled) {
+        if (!next.instagramEnabled) {
           instagram.removeInstagramProfile();
 
           return {
-            ...updated,
+            ...next,
             myInstagramId: '',
-            selectedUsers: updated.selectedUsers.filter(
+            selectedUsers: next.selectedUsers.filter(
               (user) => !user.isPrimary,
             ),
           };
         }
 
         return {
-          ...updated,
-          selectedUsers: dedupeProfileUsers(updated.selectedUsers),
+          ...next,
+          selectedUsers: dedupeProfileUsers(next.selectedUsers),
         };
       });
     },
@@ -576,6 +547,7 @@ export default function DesignWorkspacePage() {
                       location={editor.location}
                       distance={previewDistance}
                       duration={editor.time}
+                      elevation={editor.elevation}
                       shirtColor={editor.shirtColor}
                       routeColor={editor.routeColor}
                       showMap={editor.showMap}

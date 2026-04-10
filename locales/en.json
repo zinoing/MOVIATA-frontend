@@ -40,14 +40,11 @@
     "title": "CHOOSE YOUR MOVEMENT",
     "subtitle": "Define your path. Select the rhythm that matches your energy today.",
     "activities": {
-      "running": {
-        "description": "Track your runs and improve your pace with precision GPS and split analytics."
+      "path": {
+        "description": "Print your exact route on a shirt. Precision GPS data turned into a wearable map of your movement."
       },
-      "hiking": {
-        "description": "Explore trails and capture your altitude with offline maps and terrain mapping."
-      },
-      "climbing": {
-        "description": "Vertical problem-solving. Coming to the Moviata Studio soon."
+      "motion": {
+        "description": "Edit and visualize your footage. Turn video into a graphic design printed on your shirt."
       }
     }
   },
@@ -240,6 +237,7 @@
     "card": {
       "activity": "Activity",
       "distance": "Distance",
+      "elevGain": "Max Elev",
       "movingTime": "Moving Time",
       "untitled": "Untitled activity",
       "design": "Design this",

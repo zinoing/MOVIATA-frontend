@@ -14,6 +14,7 @@ import {
 type PageState = 'loading' | 'ready' | 'notConnected' | 'empty' | 'error';
 
 type ActivityWithMap = ActivitySummary & {
+  total_elevation_gain?: number;
   map?: {
     summary_polyline?: string | null;
   } | null;
@@ -265,6 +266,14 @@ function MobileActivityCard({ activity }: { activity: ActivityWithMap }) {
             <span className="text-[12px] font-medium text-neutral-700">
               {formatDistanceKm(activity.distance)}
             </span>
+            {activity.total_elevation_gain != null && activity.total_elevation_gain > 0 && (
+              <>
+                <span className="text-neutral-300">·</span>
+                <span className="text-[12px] text-neutral-500">
+                  {Math.round(activity.total_elevation_gain)}m
+                </span>
+              </>
+            )}
             <span className="text-neutral-300">·</span>
             <span className="text-[12px] text-neutral-500">
               {formatMinutes(activity.moving_time)}
@@ -561,7 +570,7 @@ export default function ActivitiesPage() {
                           </p>
                         </div>
 
-                        <div className="mt-5 grid grid-cols-2 gap-2">
+                        <div className={`mt-5 grid gap-2 ${activity.total_elevation_gain != null && activity.total_elevation_gain > 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
                           <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
                             <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
                               {t('card.distance')}
@@ -570,6 +579,16 @@ export default function ActivitiesPage() {
                               {formatDistanceKm(activity.distance)}
                             </p>
                           </div>
+                          {activity.total_elevation_gain != null && activity.total_elevation_gain > 0 && (
+                            <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
+                              <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
+                                {t('card.elevGain')}
+                              </p>
+                              <p className="mt-1.5 text-base font-semibold text-neutral-900">
+                                {Math.round(activity.total_elevation_gain)}m
+                              </p>
+                            </div>
+                          )}
                           <div className="rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white px-3 py-3">
                             <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500">
                               {t('card.movingTime')}

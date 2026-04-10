@@ -20,15 +20,15 @@ import type { GpxData } from '../../types/gpx';
 type LoadState = 'loading' | 'ready' | 'error' | 'not_found';
 
 function formatDistanceMiles(distanceMeters: number) {
-  return `${(distanceMeters / 1609.344).toFixed(2)} mi`;
+  return `${(distanceMeters / 1609.344).toFixed(2)}`;
 }
 
 function convertDistanceValue(value: string, to: 'km' | 'miles') {
   const numeric = parseFloat(value.replace(/[^\d.]/g, ''));
   if (Number.isNaN(numeric)) return value;
   return to === 'miles'
-    ? `${(numeric * 0.621371).toFixed(2)} mi`
-    : `${(numeric / 0.621371).toFixed(2)} km`;
+    ? `${(numeric * 0.621371).toFixed(2)}`
+    : `${(numeric / 0.621371).toFixed(2)}`;
 }
 
 function buildEditorFromGpx(gpx: GpxData): DesignEditorState {
@@ -43,6 +43,7 @@ function buildEditorFromGpx(gpx: GpxData): DesignEditorState {
     date: gpx.date,
     location: '',
     units: 'km',
+    elevationUnits: 'm',
     distance: formatDistanceKm(gpx.distanceMeters),
     time: formatMinutes(gpx.movingTimeSeconds),
     myInstagramId: '',
@@ -307,6 +308,7 @@ export default function GpxDesignPage() {
                     location={editor.location}
                     distance={previewDistance}
                     duration={editor.time}
+                    units={editor.units}
                     shirtColor={editor.shirtColor}
                     routeColor={editor.routeColor}
                     showMap={editor.showMap}

@@ -76,8 +76,8 @@ export type DesignConfig = {
   date: string;
   location: string;
   distance: string;
+  elevation?: string;
   duration: string;
-  units: 'km' | 'miles';
 
   shirtColor: 'white' | 'black';
 

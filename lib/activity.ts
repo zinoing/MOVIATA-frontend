@@ -9,7 +9,7 @@ export type ActivitySummary = {
 export type ActivityDetail = ActivitySummary & {
   description?: string;
   elapsed_time?: number;
-  total_elevation_gain?: number;
+  elev_high?: number;
   type?: string;
 };
 
@@ -18,9 +18,11 @@ export function formatDateTime(value: string) {
 }
 
 export function formatDistanceKm(distanceMeters: number) {
-  return `${(distanceMeters / 1000).toFixed(2)} km`;
+  return `${(distanceMeters / 1000).toFixed(2)}`;
 }
 
 export function formatMinutes(seconds: number) {
-  return `${Math.round(seconds / 60)}분`;
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}'`;
 }

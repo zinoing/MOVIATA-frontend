@@ -40,14 +40,11 @@
     "title": "움직임을 선택하세요",
     "subtitle": "당신의 길을 정하세요. 오늘의 에너지와 맞는 리듬을 선택하세요.",
     "activities": {
-      "running": {
-        "description": "정밀한 GPS와 스플릿 분석으로 런닝을 추적하고 페이스를 향상시키세요."
+      "path": {
+        "description": "당신의 경로를 정밀한 GPS로 티셔츠에 담으세요. 움직임의 궤적이 그대로 옷이 됩니다."
       },
-      "hiking": {
-        "description": "오프라인 지도와 지형 매핑으로 트레일을 탐험하고 고도를 기록하세요."
-      },
-      "climbing": {
-        "description": "수직적인 문제 해결. 곧 Moviata Studio에서 만나볼 수 있습니다."
+      "motion": {
+        "description": "촬영한 영상을 편집하고 시각화하세요. 비디오가 티셔츠 위의 그래픽 디자인으로 완성됩니다."
       }
     }
   },
@@ -240,6 +237,7 @@
     "card": {
       "activity": "활동",
       "distance": "거리",
+      "elevGain": "최고 고도",
       "movingTime": "이동 시간",
       "untitled": "제목 없는 활동",
       "design": "이 경로로 디자인",

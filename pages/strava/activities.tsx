@@ -262,22 +262,33 @@ function MobileActivityCard({ activity }: { activity: ActivityWithMap }) {
           <p className="mt-0.5 text-[12px] text-neutral-400">
             {formatDateTime(activity.start_date_local)}
           </p>
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-[12px] font-medium text-neutral-700">
-              {formatDistanceKm(activity.distance)}
-            </span>
+          <div className="mt-2 flex items-center gap-4">
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-[0.12em] text-neutral-400">
+                {t('card.distance')}
+              </span>
+              <span className="text-[12px] font-medium text-neutral-700">
+                {formatDistanceKm(activity.distance)}
+              </span>
+            </div>
             {activity.total_elevation_gain != null && activity.total_elevation_gain > 0 && (
-              <>
-                <span className="text-neutral-300">·</span>
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-[0.12em] text-neutral-400">
+                  {t('card.elevGain')}
+                </span>
                 <span className="text-[12px] text-neutral-500">
                   {Math.round(activity.total_elevation_gain)}m
                 </span>
-              </>
+              </div>
             )}
-            <span className="text-neutral-300">·</span>
-            <span className="text-[12px] text-neutral-500">
-              {formatMinutes(activity.moving_time)}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-[0.12em] text-neutral-400">
+                {t('card.movingTime')}
+              </span>
+              <span className="text-[12px] text-neutral-500">
+                {formatMinutes(activity.moving_time)}
+              </span>
+            </div>
           </div>
           <p
             className={`mt-1.5 text-[11px] leading-snug ${

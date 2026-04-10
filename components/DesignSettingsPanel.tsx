@@ -38,7 +38,9 @@ type DesignSettingsPanelProps = {
   isAddingFriend?: boolean;
   isMapReady?: boolean;
   isGeneratingSnapshot?: boolean;
+  isDownloading?: boolean;
   onConfirm: () => void;
+  onDownload: () => void;
   activityType: 'path' | 'motion' | null;
 };
 
@@ -95,7 +97,9 @@ export default function DesignSettingsPanel({
   isAddingFriend = false,
   isMapReady = false,
   isGeneratingSnapshot = false,
+  isDownloading = false,
   onConfirm,
+  onDownload,
 }: DesignSettingsPanelProps) {
   const t = useTranslations('settings');
 
@@ -526,11 +530,11 @@ export default function DesignSettingsPanel({
               />
             </div>
 
-            <div className="mt-6">
+            <div className="mt-6 space-y-3">
               <button
                 type="button"
                 onClick={onConfirm}
-                disabled={!isMapReady || isGeneratingSnapshot}
+                disabled={!isMapReady || isGeneratingSnapshot || isDownloading}
                 className="w-full rounded-[14px] bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#FF5A1F] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isGeneratingSnapshot
@@ -538,6 +542,15 @@ export default function DesignSettingsPanel({
                   : !isMapReady
                     ? t('confirm.loadingMap')
                     : t('confirm.confirm')}
+              </button>
+
+              <button
+                type="button"
+                onClick={onDownload}
+                disabled={!isMapReady || isGeneratingSnapshot || isDownloading}
+                className="w-full rounded-[14px] border border-neutral-300 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 transition hover:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isDownloading ? t('confirm.downloading') : t('confirm.download')}
               </button>
             </div>
           </div>

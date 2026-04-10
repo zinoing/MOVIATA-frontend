@@ -144,7 +144,9 @@
     "confirm": {
       "preparing": "Preparing…",
       "loadingMap": "Loading map…",
-      "confirm": "Confirm"
+      "confirm": "Confirm",
+      "download": "Save PNG",
+      "downloading": "Saving…"
     }
   },
   "confirm": {

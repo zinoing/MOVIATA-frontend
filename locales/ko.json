@@ -144,7 +144,9 @@
     "confirm": {
       "preparing": "준비 중…",
       "loadingMap": "지도 로딩 중…",
-      "confirm": "확인"
+      "confirm": "확인",
+      "download": "PNG 저장",
+      "downloading": "저장 중…"
     }
   },
   "confirm": {

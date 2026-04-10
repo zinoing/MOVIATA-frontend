@@ -144,7 +144,9 @@
     "confirm": {
       "preparing": "準備中…",
       "loadingMap": "マップ読み込み中…",
-      "confirm": "確認"
+      "confirm": "確認",
+      "download": "PNG保存",
+      "downloading": "保存中…"
     }
   },
   "confirm": {

@@ -4,12 +4,14 @@ export type ActivitySummary = {
   distance: number;
   moving_time: number;
   start_date_local: string;
+  total_elevation_gain?: number;
 };
 
 export type ActivityDetail = ActivitySummary & {
   description?: string;
   elapsed_time?: number;
   elev_high?: number;
+  total_elevation_gain?: number;
   type?: string;
 };
 

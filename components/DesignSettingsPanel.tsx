@@ -507,7 +507,7 @@ export default function DesignSettingsPanel({
             </div>
 
             <div>
-              <FieldLabel>Max Elev (m)</FieldLabel>
+              <FieldLabel>Elev Gain (m)</FieldLabel>
               <input
                 type="text"
                 value={value.elevation}

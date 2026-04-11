@@ -223,7 +223,7 @@ export default function PosterCard({
             hasElevation && (
               <div key="elevation" className="min-w-0 flex-1 text-center">
                 <p className={statValueClass}>{formatWithCommas(elevation)}m</p>
-                <p className={statLabelClass}>MAX ELEV</p>
+                <p className={statLabelClass}>ELEV GAIN</p>
               </div>
             ),
             hasDuration && (

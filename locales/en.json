@@ -239,7 +239,7 @@
     "card": {
       "activity": "Activity",
       "distance": "Distance",
-      "elevGain": "Max Elev",
+      "elevGain": "Elev Gain",
       "movingTime": "Moving Time",
       "untitled": "Untitled activity",
       "design": "Design this",

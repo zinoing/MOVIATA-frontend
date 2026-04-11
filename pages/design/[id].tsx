@@ -84,7 +84,7 @@ function buildInitialEditorState(activity: ActivityResponse, activityType: 'path
     date: formatPosterDate(activity.start_date_local),
     location: '',
     distance: formatDistanceKm(activity.distance),
-    elevation: formatElevation(activity.elev_high),
+    elevation: formatElevation(activity.total_elevation_gain),
     time: formatMinutes(activity.moving_time),
     myInstagramId: '',
     selectedUsers: [],

@@ -98,7 +98,7 @@ export async function capturePosterCard(
   try {
     // Layer 1: capture card UI with html-to-image at full pixel ratio
     const uiPng = await toPng(captureTarget, {
-      pixelRatio: PIXEL_RATIO,
+      pixelRatio: PIXEL_RATIO,  
       width: cardW,
       height: cardH,
     });
@@ -139,12 +139,6 @@ export async function capturePosterCard(
 
     return out.toDataURL('image/png');
   } finally {
-    // Restore h1
-    if (h1 && savedH1Html !== null) {
-      h1.innerHTML = savedH1Html;
-      h1.style.whiteSpace = savedH1WhiteSpace;
-    }
-
     // Restore captureTarget styles
     captureTarget.style.backgroundColor = savedBg;
     captureTarget.style.boxShadow = savedShadow;

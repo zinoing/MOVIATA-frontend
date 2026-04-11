@@ -146,15 +146,13 @@ export default function PosterCard({
       >
         <h1
           className={`${titleClass} ${primaryTextClass} text-center`}
-          style={{
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            whiteSpace: 'pre-line',
-          }}
+          style={{ whiteSpace: 'normal' }}
         >
-          {title || 'Untitled Route'}
+          {(title || 'Untitled Route').split('\n').map((line, i) => (
+            <span key={i} style={{ display: 'block' }}>
+              {line}
+            </span>
+          ))}
         </h1>
 
         {(hasLocation || hasDate) && (

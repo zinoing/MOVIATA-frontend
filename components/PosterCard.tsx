@@ -80,29 +80,29 @@ export default function PosterCard({
     ? 'bg-[#090b10] text-white'
     : 'bg-white text-neutral-900';
 
-  const primaryTextClass = isDark ? 'text-white' : 'text-neutral-900';
-  const secondaryTextClass = isDark ? 'text-neutral-400' : 'text-neutral-700';
-  const tertiaryTextClass = isDark ? 'text-neutral-500' : 'text-neutral-500';
+  const primaryTextClass = isDark ? 'text-[#EDE8DC]' : 'text-[#1A1A1A]';
+  const secondaryTextClass = isDark ? 'text-[#EDE8DC] font-medium' : 'text-[#1A1A1A] font-bold';
+  const tertiaryTextClass = isDark ? 'text-[#EDE8DC] font-medium' : 'text-[#1A1A1A] font-semibold';
 
   const wrapperClass = compact
     ? `w-full aspect-[3/5] rounded-[24px] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.10)] ${cardClass}`
     : `w-[420px] max-w-full mx-auto rounded-[32px] overflow-hidden px-6 pt-6 pb-8 shadow-[0_8px_40px_rgba(0,0,0,0.12)] ${cardClass}`;
 
   const titleClass = compact
-    ? 'text-[1.3rem] font-bold leading-[1.08] tracking-[-0.03em] uppercase'
-    : 'text-[2.35rem] font-bold leading-[1.02] tracking-[-0.045em] uppercase';
+    ? 'font-serif text-[1.3rem] font-bold leading-[1.08] tracking-[-0.01em] uppercase'
+    : 'font-serif text-[2.35rem] font-bold leading-[1.02] tracking-[-0.02em] uppercase';
 
   const locationClass = compact
-    ? `text-[13px] font-medium tracking-[0.14em] ${secondaryTextClass}`
-    : `text-[13px] font-medium tracking-[0.18em] ${secondaryTextClass}`;
+    ? `font-serif text-[13px] tracking-[0.14em] ${secondaryTextClass}`
+    : `font-serif text-[13px] tracking-[0.18em] ${secondaryTextClass}`;
 
   const dateClass = compact
-    ? `text-[13px] font-medium tracking-[0.12em] uppercase ${secondaryTextClass}`
-    : `text-[13px] font-medium tracking-[0.16em] uppercase ${secondaryTextClass}`;
+    ? `font-serif text-[13px] tracking-[0.12em] uppercase ${secondaryTextClass}`
+    : `font-serif text-[13px] tracking-[0.16em] uppercase ${secondaryTextClass}`;
 
   const statLabelClass = compact
-    ? `mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em] ${tertiaryTextClass}`
-    : `mt-1 text-[10px] font-medium uppercase tracking-[0.24em] ${tertiaryTextClass}`;
+    ? `font-serif mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em] ${tertiaryTextClass}`
+    : `font-serif mt-1 text-[10px] font-medium uppercase tracking-[0.24em] ${tertiaryTextClass}`;
 
   const statValueClass = compact
     ? `mt-1 text-[15px] font-bold tracking-[-0.02em] ${primaryTextClass}`
@@ -159,7 +159,7 @@ export default function PosterCard({
 
         {(hasLocation || hasDate) && (
           hasLocation ? (
-            <div className={`${compact ? 'mt-3' : 'mt-4'} ${contentWidthClass}`}>
+            <div className={`${compact ? 'mt-3' : 'mt-7'} ${contentWidthClass}`}>
               <div className="flex items-center justify-between gap-6">
                 <span className={`${locationClass} text-left`}>{location}</span>
                 {hasDate ? (
@@ -168,7 +168,7 @@ export default function PosterCard({
               </div>
             </div>
           ) : (
-            <div className={compact ? 'mt-3' : 'mt-4'}>
+            <div className={compact ? 'mt-3' : 'mt-7'}>
               {hasDate ? (
                 <span className={dateClass}>{date}</span>
               ) : null}
@@ -207,7 +207,7 @@ export default function PosterCard({
         </div>
       </div>
 
-      <div className={compact ? 'mt-3' : 'mt-5'}>
+      <div className={compact ? 'mt-3' : 'mt-8'}>
         {(() => {
           const hasDistance = Boolean(distanceValue && distanceValue !== '-');
           const hasElevation = Boolean(elevation && elevation !== '-');

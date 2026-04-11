@@ -9,6 +9,7 @@ module.exports = {
       fontFamily: {
         gulfs: ['"Gulfs Display"', 'sans-serif'],
         gulfsCondensed: ['"Gulfs Display Condensed"', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'Georgia', 'serif'],
       },
     },
   },

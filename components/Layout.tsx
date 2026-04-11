@@ -3,10 +3,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React, { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Playfair_Display } from 'next/font/google';
 
 interface LayoutProps {
   title?: string;
 }
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+});
 
 const sharedHeaderStyle = {
   backdropFilter: 'blur(20px) saturate(180%)',

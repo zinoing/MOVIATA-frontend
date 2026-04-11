@@ -157,18 +157,18 @@ export default function ActivityMap({
     const backgroundColor = showContours
       ? 'rgba(0,0,0,0)'
       : isDark
-        ? '#A9A6A6'
+        ? '#4b4a4a'
         : '#ffffff';
 
     const roadColor = showContours
       ? isDark
         ? '#2f2f2f'
-        : '#d3d2d2'
+        : '#bdbdbd'
       : isDark
         ? '#000000'
-        : '#d3d2d2';
+        : '#bdbdbd';
 
-    const waterColor = showContours ? 'rgba(0,0,0,0)' : '#d0d0d0';
+    const waterColor = showContours ? 'rgba(0,0,0,0)' : '#bdbdbd';
 
     const routeMainColor = getRouteColorValue(routeColor);
 
@@ -201,22 +201,6 @@ export default function ActivityMap({
         data: pointFeatures,
       });
 
-      if (isDark && !showContours) {
-        map.addLayer({
-          id: 'route-outline',
-          type: 'line',
-          source: 'route',
-          layout: {
-            'line-cap': 'round',
-            'line-join': 'round',
-          },
-          paint: {
-            'line-color': '#ffffff',
-            'line-width': 9,
-            'line-opacity': 0.98,
-          },
-        });
-      }
 
       map.addLayer({
         id: 'route-main',
@@ -244,18 +228,27 @@ export default function ActivityMap({
         paint: {
           'circle-radius': 6.5,
           'circle-color': routeMainColor,
-          'circle-stroke-color': '#ffffff',
+          'circle-stroke-color': '#EDE8DC',
           'circle-stroke-width': 2.2,
           'circle-opacity': 1,
         },
       });
 
-      const endPinSvg = `<svg width="26" height="26" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-        <path d="M32 4C21.5 4 13 12.5 13 23c0 14.4 15.6 31.8 18 34.4a1.4 1.4 0 0 0 2 0C35.4 54.8 51 37.4 51 23 51 12.5 42.5 4 32 4Z" fill="${routeMainColor}"/>
-        <circle cx="32" cy="23" r="11" fill="white"/>
+      const endPinSvg = `<svg width="27" height="16" viewBox="0 0 30 18" xmlns="http://www.w3.org/2000/svg">
+        <!-- Row 0: color at col 0, 2, 4 -->
+        <rect x="0"  y="0" width="6" height="6" fill="${routeMainColor}"/>
+        <rect x="12" y="0" width="6" height="6" fill="${routeMainColor}"/>
+        <rect x="24" y="0" width="6" height="6" fill="${routeMainColor}"/>
+        <!-- Row 1: color at col 1, 3 -->
+        <rect x="6"  y="6" width="6" height="6" fill="${routeMainColor}"/>
+        <rect x="18" y="6" width="6" height="6" fill="${routeMainColor}"/>
+        <!-- Row 2: color at col 0, 2, 4 -->
+        <rect x="0"  y="12" width="6" height="6" fill="${routeMainColor}"/>
+        <rect x="12" y="12" width="6" height="6" fill="${routeMainColor}"/>
+        <rect x="24" y="12" width="6" height="6" fill="${routeMainColor}"/>
       </svg>`;
       const endPinUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(endPinSvg)}`;
-      const pinImg = new Image(26, 26);
+      const pinImg = new Image(27, 16);
       pinImg.onload = () => {
         if (!map.hasImage('end-pin')) map.addImage('end-pin', pinImg);
         if (!map.getLayer('route-end-point')) {
@@ -267,7 +260,7 @@ export default function ActivityMap({
             layout: {
               'icon-image': 'end-pin',
               'icon-anchor': 'bottom',
-              'icon-offset': [0, -6],
+              'icon-offset': [6, -8],
               'icon-allow-overlap': true,
               'icon-ignore-placement': true,
               visibility: showRoutePoints ? 'visible' : 'none',
@@ -303,7 +296,6 @@ export default function ActivityMap({
       for (const layer of map.getStyle().layers ?? []) {
         const { id, type } = layer;
         const isRouteLayer =
-          id === 'route-outline' ||
           id === 'route-main' ||
           id === 'route-start-point' ||
           id === 'route-end-point';

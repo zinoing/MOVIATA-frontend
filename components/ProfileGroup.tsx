@@ -84,7 +84,7 @@ export default function ProfileGroup({
   const outerGap = compact ? 8 : 10;
 
   const primaryColor = isDark ? '#ffffff' : '#111111';
-  const friendColor = isDark ? '#9ca3af' : '#6b7280';
+  const friendColor = isDark ? '#EDE8DC' : '#1A1A1A';
 
   return (
     <div
@@ -153,18 +153,14 @@ export default function ProfileGroup({
           >
             <span
               style={{
-                fontSize: compact ? 8 : 10,
+                fontSize: friendFontSize - 3,
                 fontWeight: 700,
-                // Match the row height exactly so the glyph doesn't shift
                 lineHeight: `${friendSize}px`,
                 color: friendColor,
-                // Prevent the glyph from adding extra ascender/descender space
-                display: 'inline-flex',
-                alignItems: 'center',
-                height: friendSize,
+                whiteSpace: 'nowrap',
               }}
             >
-              +
+              WITH
             </span>
 
             <CircleAvatar user={taggedUser} size={friendSize} isDark={isDark} />

@@ -157,22 +157,6 @@ export default function ConfirmPage() {
 
           <div className="mt-8 border-t border-neutral-200 pt-6">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
-              {t('activityDetails')}
-            </p>
-
-            <div className="mt-5 space-y-4 text-sm">
-              <DetailRow label={t('labels.activity')} value={config.title} />
-              <DetailRow label={t('labels.date')} value={config.date} />
-              <DetailRow label={t('labels.distance')} value={config.distance} />
-              <DetailRow label={t('labels.duration')} value={config.duration} />
-              {config.location ? (
-                <DetailRow label={t('labels.location')} value={config.location} />
-              ) : null}
-            </div>
-          </div>
-
-          <div className="mt-8 border-t border-neutral-200 pt-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
               {t('product')}
             </p>
 
@@ -338,16 +322,6 @@ export default function ConfirmPage() {
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <span className="text-neutral-400">{label}</span>
-      <span className="max-w-[210px] text-right font-medium text-neutral-900">
-        {value}
-      </span>
-    </div>
-  );
-}
 
 function Bullet({ children }: { children: React.ReactNode }) {
   return <p className="text-sm leading-6 text-neutral-600">• {children}</p>;

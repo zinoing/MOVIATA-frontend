@@ -85,10 +85,10 @@ export default function ShirtMockup({
             <div
               className="pointer-events-none absolute flex items-center justify-center"
               style={{
-                top: '20%',
+                top: '13%',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                width: '42%',
+                width: '46%',
                 aspectRatio: '1',
               }}
             >
@@ -101,10 +101,10 @@ export default function ShirtMockup({
               draggable={false}
               className="pointer-events-none absolute select-none"
               style={{
-                top: '20%',
+                top: '13%',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                width: '42%',
+                width: '46%',
                 height: 'auto',
                 display: 'block',
                 objectFit: 'contain',

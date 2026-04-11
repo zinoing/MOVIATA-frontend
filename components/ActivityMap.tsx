@@ -157,7 +157,7 @@ export default function ActivityMap({
     const backgroundColor = showContours
       ? 'rgba(0,0,0,0)'
       : isDark
-        ? '#d0d0d0'
+        ? '#A9A6A6'
         : '#ffffff';
 
     const roadColor = showContours

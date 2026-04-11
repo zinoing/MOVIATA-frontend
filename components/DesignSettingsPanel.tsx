@@ -415,7 +415,7 @@ export default function DesignSettingsPanel({
               disabled={isGeneratingSnapshot}
               className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
                 value.routeColor === 'red'
-                  ? 'border-neutral-900 bg-neutral-900 text-white'
+                  ? 'border-[#CF291D] bg-[#CF291D] text-white'
                   : 'border-neutral-300 bg-white text-neutral-900'
               } disabled:cursor-not-allowed disabled:opacity-50`}
             >
@@ -433,7 +433,7 @@ export default function DesignSettingsPanel({
               disabled={isGeneratingSnapshot}
               className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
                 value.routeColor === 'orange'
-                  ? 'border-neutral-900 bg-neutral-900 text-white'
+                  ? 'border-[#F97316] bg-[#F97316] text-white'
                   : 'border-neutral-300 bg-white text-neutral-900'
               } disabled:cursor-not-allowed disabled:opacity-50`}
             >

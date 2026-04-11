@@ -93,6 +93,8 @@ export async function capturePosterCard(
     h1.style.whiteSpace = 'normal';
   }
 
+  await document.fonts.ready;
+
   try {
     // Layer 1: capture card UI with html-to-image at full pixel ratio
     const uiPng = await toPng(captureTarget, {

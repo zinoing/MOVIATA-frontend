@@ -154,6 +154,7 @@ export default function ProfileGroup({
             <span
               style={{
                 fontSize: compact ? 8 : 10,
+                fontWeight: 700,
                 // Match the row height exactly so the glyph doesn't shift
                 lineHeight: `${friendSize}px`,
                 color: friendColor,
@@ -163,7 +164,7 @@ export default function ProfileGroup({
                 height: friendSize,
               }}
             >
-              ↻
+              +
             </span>
 
             <CircleAvatar user={taggedUser} size={friendSize} isDark={isDark} />

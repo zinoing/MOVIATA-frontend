@@ -234,7 +234,10 @@ export default function ActivityMap({
         },
       });
 
-      const endPinSvg = `<svg width="27" height="16" viewBox="0 0 30 18" xmlns="http://www.w3.org/2000/svg">
+      const dpr = window.devicePixelRatio || 1;
+      const pinW = Math.round(27 * dpr);
+      const pinH = Math.round(16 * dpr);
+      const endPinSvg = `<svg width="${pinW}" height="${pinH}" viewBox="0 0 30 18" xmlns="http://www.w3.org/2000/svg">
         <!-- Row 0: color at col 0, 2, 4 -->
         <rect x="0"  y="0" width="6" height="6" fill="${routeMainColor}"/>
         <rect x="12" y="0" width="6" height="6" fill="${routeMainColor}"/>
@@ -248,9 +251,9 @@ export default function ActivityMap({
         <rect x="24" y="12" width="6" height="6" fill="${routeMainColor}"/>
       </svg>`;
       const endPinUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(endPinSvg)}`;
-      const pinImg = new Image(27, 16);
+      const pinImg = new Image(pinW, pinH);
       pinImg.onload = () => {
-        if (!map.hasImage('end-pin')) map.addImage('end-pin', pinImg);
+        if (!map.hasImage('end-pin')) map.addImage('end-pin', pinImg, { pixelRatio: dpr });
         if (!map.getLayer('route-end-point')) {
           map.addLayer({
             id: 'route-end-point',

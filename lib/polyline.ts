@@ -86,6 +86,62 @@ export function getPrimaryRoute(coords: LngLat[]): LngLat[] {
   )[0];
 }
 
+/**
+ * Moving-average smoothing to reduce GPS noise.
+ * Replaces each point with the average of its neighbors within `radius`.
+ * Endpoints are preserved exactly.
+ */
+function movingAverage(coords: LngLat[], radius = 5): LngLat[] {
+  if (coords.length < 3) return coords;
+  const result: LngLat[] = [coords[0]];
+  for (let i = 1; i < coords.length - 1; i++) {
+    const lo = Math.max(0, i - radius);
+    const hi = Math.min(coords.length - 1, i + radius);
+    let sumX = 0, sumY = 0;
+    for (let j = lo; j <= hi; j++) {
+      sumX += coords[j][0];
+      sumY += coords[j][1];
+    }
+    const count = hi - lo + 1;
+    result.push([sumX / count, sumY / count]);
+  }
+  result.push(coords[coords.length - 1]);
+  return result;
+}
+
+/**
+ * Chaikin's corner-cutting algorithm.
+ * Each iteration replaces every segment with two new points at 25% and 75%.
+ * Endpoints are preserved exactly.
+ */
+function chaikin(coords: LngLat[], iterations = 3): LngLat[] {
+  if (coords.length < 3) return coords;
+  let pts = coords;
+  for (let iter = 0; iter < iterations; iter++) {
+    const next: LngLat[] = [pts[0]];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [x0, y0] = pts[i];
+      const [x1, y1] = pts[i + 1];
+      next.push([0.75 * x0 + 0.25 * x1, 0.75 * y0 + 0.25 * y1]);
+      next.push([0.25 * x0 + 0.75 * x1, 0.25 * y0 + 0.75 * y1]);
+    }
+    next.push(pts[pts.length - 1]);
+    pts = next;
+  }
+  return pts;
+}
+
+/**
+ * Full smoothing pipeline:
+ *   1. Moving average  — removes GPS noise / micro-jitter
+ *   2. Chaikin ×5     — rounds corners into smooth curves
+ */
+export function smoothRoute(coords: LngLat[]): LngLat[] {
+  if (coords.length < 3) return coords;
+  return chaikin(movingAverage(coords, 3), 2);
+
+}
+
 export function decodePolyline(encoded: string): LngLat[] {
   let index = 0;
   let lat = 0;

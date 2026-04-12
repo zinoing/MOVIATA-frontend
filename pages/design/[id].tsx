@@ -13,7 +13,7 @@ import {
 } from '../../lib/activity';
 import { apiFetch } from '../../lib/api';
 import { addManualProfileUser } from '../../lib/design/friends';
-import { decodePolyline, getPrimaryRoute  } from '../../lib/polyline';
+import { decodePolyline, getPrimaryRoute, smoothRoute } from '../../lib/polyline';
 import { useInstagramProfile } from '../../hooks/useInstagramProfile';
 import { createProfileUser, dedupeProfileUsers } from '../../lib/profileUsers';
 import { useDesignConfig } from '../../context/DesignConfigContext';
@@ -174,7 +174,7 @@ export default function DesignWorkspacePage() {
     if (!encodedPolyline) return [];
     try {
       const rawCoordinates = decodePolyline(encodedPolyline);
-      return getPrimaryRoute(rawCoordinates);
+      return smoothRoute(getPrimaryRoute(rawCoordinates));
     } catch {
       return [];
     }

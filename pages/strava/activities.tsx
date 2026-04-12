@@ -611,11 +611,7 @@ export default function ActivitiesPage() {
                         </div>
 
                         <div className="mt-5 flex items-center justify-between gap-4">
-                          {canDesign ? (
-                            <p className="text-sm text-neutral-400">
-                              {t('card.looksGood')}
-                            </p>
-                          ) : (
+                          {!canDesign && (
                             <p className="text-sm text-neutral-400">
                               {t('card.cantDesign')}
                             </p>

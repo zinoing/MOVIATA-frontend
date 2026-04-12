@@ -53,24 +53,6 @@ function formatElevation(meters?: number) {
   return `${Math.round(meters)}`;
 }
 
-function restoreEditorFromConfig(config: import('../../lib/poster/types').DesignConfig): DesignEditorState {
-  return {
-    instagramEnabled: config.instagramEnabled,
-    shirtColor: config.shirtColor,
-    title: config.title,
-    date: config.date,
-    location: config.location,
-    distance: config.distance,
-    elevation: config.elevation ?? '',
-    time: config.duration,
-    myInstagramId: config.myInstagramId,
-    selectedUsers: config.selectedUsers,
-    routeColor: config.routeColor,
-    showMap: config.showMap ?? true,
-    showRoutePoints: config.showRoutePoints,
-    showContours: config.mapStyle === 'contours',
-  };
-}
 
 function buildInitialEditorState(activity: ActivityResponse, activityType: 'path' | 'motion' | null): DesignEditorState {
   return {
@@ -119,7 +101,7 @@ export default function DesignWorkspacePage() {
   const { id } = router.query;
 
   const instagram = useInstagramProfile();
-  const { saveDraft, config: savedConfig } = useDesignConfig();
+  const { saveDraft } = useDesignConfig();
 
   const [activity, setActivity] = useState<ActivityResponse | null>(null);
   const [editor, setEditor] = useState<DesignEditorState | null>(null);
@@ -162,22 +144,7 @@ export default function DesignWorkspacePage() {
         if (!ignore) {
           setActivity(data);
 
-          // Restore saved config only when the activity AND the map style
-          // match the current session. If the user previously viewed this
-          // activity as "path" and now enters as "motion" (or vice versa),
-          // the saved config would have the wrong mapStyle — so we discard it
-          // and build a fresh editor state from the current activityType.
-          const expectedMapStyle = type === 'motion' ? 'contours' : 'default';
-          const canRestore =
-            savedConfig &&
-            savedConfig.activityId === id &&
-            savedConfig.mapStyle === expectedMapStyle;
-
-          setEditor(
-            canRestore
-              ? restoreEditorFromConfig(savedConfig!)
-              : buildInitialEditorState(data, type),
-          );
+          setEditor(buildInitialEditorState(data, type));
           setActivityFetchState('success');
         }
       } catch (err) {

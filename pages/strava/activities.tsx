@@ -124,7 +124,7 @@ function getRouteHintKey(distanceM: number, points: Point[]): string {
   if (aspectRatio < 0.5) return 'vertical';
   if (aspectRatio > 2)   return 'wide';
   if (km > 15)           return 'long';
-  return 'clean';
+  return '';
 }
 
 // ─── Desktop: RoutePreview ────────────────────────────────────────────────────

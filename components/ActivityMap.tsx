@@ -255,6 +255,28 @@ function applyStyleUpdates(
     map.setPaintProperty('route-start-point', 'circle-color', routeMainColor);
   }
 
+  // end-pin은 SVG 비트맵 이미지라 setPaintProperty로 색상 변경 불가 → 이미지 교체
+  const dpr = window.devicePixelRatio || 1;
+  const pinW = Math.round(27 * dpr);
+  const pinH = Math.round(16 * dpr);
+  const pinSvg = `<svg width="${pinW}" height="${pinH}" viewBox="0 0 30 18" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0"  y="0" width="6" height="6" fill="${routeMainColor}"/>
+    <rect x="12" y="0" width="6" height="6" fill="${routeMainColor}"/>
+    <rect x="24" y="0" width="6" height="6" fill="${routeMainColor}"/>
+    <rect x="6"  y="6" width="6" height="6" fill="${routeMainColor}"/>
+    <rect x="18" y="6" width="6" height="6" fill="${routeMainColor}"/>
+    <rect x="0"  y="12" width="6" height="6" fill="${routeMainColor}"/>
+    <rect x="12" y="12" width="6" height="6" fill="${routeMainColor}"/>
+    <rect x="24" y="12" width="6" height="6" fill="${routeMainColor}"/>
+  </svg>`;
+  const pinUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(pinSvg)}`;
+  const pinImg = new Image(pinW, pinH);
+  pinImg.onload = () => {
+    if (map.hasImage('end-pin')) map.removeImage('end-pin');
+    map.addImage('end-pin', pinImg, { pixelRatio: dpr });
+  };
+  pinImg.src = pinUrl;
+
   // 루트 포인트 표시 여부
   const pointVisibility = showRoutePoints ? 'visible' : 'none';
   if (map.getLayer('route-start-point')) {

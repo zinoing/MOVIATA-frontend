@@ -112,7 +112,6 @@ export default function DesignWorkspacePage() {
   const [isFriendPickerOpen, setIsFriendPickerOpen] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [isGeneratingSnapshot, setIsGeneratingSnapshot] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
   const [fixedMapViewState, setFixedMapViewState] =
     useState<FixedMapViewState | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
@@ -416,34 +415,6 @@ export default function DesignWorkspacePage() {
     };
   }, [routeState.status, editor]);
 
-  const handleDownload = async () => {
-    if (isDownloading || isGeneratingSnapshot) return;
-    if (!editor) return;
-    if (!isMapReady && !mapSnapshotRef.current) return;
-
-    try {
-      setIsDownloading(true);
-
-      await new Promise<void>((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-      );
-
-      const posterCard = document.getElementById('poster-card');
-      if (!posterCard) return;
-
-      const snapshot = await capturePosterCard(posterCard, mapSnapshotRef.current);
-
-      const a = document.createElement('a');
-      a.href = snapshot;
-      a.download = `moviata-${editor.title.replace(/\s+/g, '-').toLowerCase() || 'poster'}.png`;
-      a.click();
-    } catch (e) {
-      console.error('[download] failed:', e);
-      alert(e instanceof Error ? `Failed to save PNG: ${e.message}` : 'Failed to save PNG.');
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   const handleConfirm = async () => {
     if (isGeneratingSnapshot) return;
@@ -582,9 +553,7 @@ export default function DesignWorkspacePage() {
                 isAddingFriend={isAddingFriend}
                 isMapReady={isMapReady}
                 isGeneratingSnapshot={isGeneratingSnapshot}
-                isDownloading={isDownloading}
                 onConfirm={handleConfirm}
-                onDownload={handleDownload}
                 activityType={activityType}
               />
             </div>

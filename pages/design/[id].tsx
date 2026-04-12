@@ -172,7 +172,6 @@ export default function DesignWorkspacePage() {
 
   const coordinates = useMemo<[number, number][]>(() => {
     if (!encodedPolyline) return [];
-
     try {
       const rawCoordinates = decodePolyline(encodedPolyline);
       return getPrimaryRoute(rawCoordinates);
@@ -186,8 +185,10 @@ export default function DesignWorkspacePage() {
     [activityFetchState, error, coordinates],
   );
 
-  const posterCoordinates =
-    routeState.status === 'ready' ? routeState.coordinates : [];
+  const posterCoordinates = useMemo(
+    () => (routeState.status === 'ready' ? routeState.coordinates : []),
+    [routeState],
+  );
 
   const previewDistance = editor?.distance ?? '-';
 

@@ -50,7 +50,6 @@ export default function GpxDesignPage() {
   const [isFriendPickerOpen, setIsFriendPickerOpen] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [isGeneratingSnapshot, setIsGeneratingSnapshot] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
   const [fixedMapViewState, setFixedMapViewState] =
     useState<FixedMapViewState | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
@@ -209,34 +208,6 @@ export default function GpxDesignPage() {
     setIsMapReady(true);
   }, []);
 
-  const handleDownload = async () => {
-    if (isDownloading || isGeneratingSnapshot || !editor) return;
-    if (!isMapReady && !mapSnapshotRef.current) return;
-
-    try {
-      setIsDownloading(true);
-
-      await new Promise<void>((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-      );
-
-      const posterCard = document.getElementById('poster-card');
-      if (!posterCard) return;
-
-      const zoomScale = parseFloat(pageRef.current?.style.zoom || '1') || 1;
-      const snapshot = await capturePosterCard(posterCard, mapSnapshotRef.current, zoomScale);
-
-      const a = document.createElement('a');
-      a.href = snapshot;
-      a.download = `moviata-${editor.title.replace(/\s+/g, '-').toLowerCase() || 'poster'}.png`;
-      a.click();
-    } catch (e) {
-      console.error('[download] failed:', e);
-      alert(e instanceof Error ? `Failed to save PNG: ${e.message}` : 'Failed to save PNG.');
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   const handleConfirm = async () => {
     if (isGeneratingSnapshot || !editor || !gpxData) return;
@@ -353,9 +324,7 @@ export default function GpxDesignPage() {
               isAddingFriend={isAddingFriend}
               isMapReady={isMapReady}
               isGeneratingSnapshot={isGeneratingSnapshot}
-              isDownloading={isDownloading}
               onConfirm={handleConfirm}
-              onDownload={handleDownload}
               activityType={null}
             />
           </div>

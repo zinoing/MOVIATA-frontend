@@ -491,32 +491,28 @@ export default function ActivityMap({
     const map = mapRef.current;
     if (!map) return;
 
+    const emitAfterIdle = () => {
+      // setPaintProperty는 즉시 WebGL에 반영되지 않으므로
+      // idle 이벤트(렌더 완료)를 기다린 후 canvas 캡처
+      map.once('idle', () => {
+        if (mapRef.current !== map) return;
+        onViewStateChangeRef.current?.(readFixedMapViewState(map));
+        onMapCanvasRef.current?.(map.getCanvas());
+      });
+    };
+
     // 스타일이 아직 로드되지 않은 경우 idle 이후 적용
     if (!map.isStyleLoaded()) {
       const onIdle = () => {
         applyStyleUpdates(map, routeColor, shirtColor, showMap, showRoutePoints, showContours);
-        // 스타일 적용 후 canvas 갱신
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (mapRef.current !== map) return;
-            onViewStateChangeRef.current?.(readFixedMapViewState(map));
-            onMapCanvasRef.current?.(map.getCanvas());
-          });
-        });
+        emitAfterIdle();
       };
       map.once('idle', onIdle);
       return () => { map.off('idle', onIdle); };
     }
 
     applyStyleUpdates(map, routeColor, shirtColor, showMap, showRoutePoints, showContours);
-    // 스타일 적용 후 canvas 갱신
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (mapRef.current !== map) return;
-        onViewStateChangeRef.current?.(readFixedMapViewState(map));
-        onMapCanvasRef.current?.(map.getCanvas());
-      });
-    });
+    emitAfterIdle();
   }, [routeColor, showMap, showRoutePoints, showContours, shirtColor]);
 
   return (

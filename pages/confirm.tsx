@@ -33,6 +33,9 @@ export default function ConfirmPage() {
   const router = useRouter();
   const { config, posterSnapshot } = useDesignConfig();
   const [selectedSize, setSelectedSize] = useState<ProductSize>('M');
+  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle');
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
   const t = useTranslations('confirm');
 
   useEffect(() => {
@@ -64,8 +67,54 @@ export default function ConfirmPage() {
     void router.push(`/design/${config.activityId}`);
   };
 
-  const handleBuyNow = () => {
-    // TODO: 결제 연동
+  const uploadDesignImage = async (retryCount = 0): Promise<string> => {
+    if (!posterSnapshot) throw new Error('posterSnapshot이 없습니다.');
+
+    const base64Data = posterSnapshot.replace(/^data:image\/\w+;base64,/, '');
+    const binary = atob(base64Data);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    const blob = new Blob([bytes], { type: 'image/png' });
+
+    const formData = new FormData();
+    formData.append('image', blob, 'design.png');
+
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api/v1', '') ?? 'http://localhost:4000';
+    const res = await fetch(`${apiBase}/api/orders/capture`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      if (retryCount < 2) {
+        await new Promise((r) => setTimeout(r, 1000 * (retryCount + 1)));
+        return uploadDesignImage(retryCount + 1);
+      }
+      const text = await res.text();
+      throw new Error(`업로드 실패 (${res.status}): ${text}`);
+    }
+
+    const data = (await res.json()) as { success: boolean; imageUrl: string; orderId: string };
+    return data.imageUrl;
+  };
+
+  const handleBuyNow = async () => {
+    if (uploadState === 'uploading') return;
+
+    setUploadState('uploading');
+    setUploadError(null);
+
+    try {
+      const imageUrl = await uploadDesignImage();
+      setCapturedImageUrl(imageUrl);
+      setUploadState('done');
+      // TODO: 결제 연동 — imageUrl을 결제 플로우에 전달
+    } catch (err) {
+      setUploadError((err as Error).message);
+      setUploadState('error');
+    }
   };
 
   return (
@@ -94,7 +143,7 @@ export default function ConfirmPage() {
                 <ShirtMockup
                   config={config}
                   posterSnapshot={posterSnapshot}
-                  width={640}
+                  //width={640}
                   productColor={safeProduct.color}
                 />
               </div>
@@ -289,10 +338,19 @@ export default function ConfirmPage() {
             <button
               type="button"
               onClick={handleBuyNow}
-              className="mt-5 w-full rounded-2xl bg-black py-4 text-sm font-semibold text-white transition hover:bg-neutral-800"
+              disabled={uploadState === 'uploading'}
+              className="mt-5 w-full rounded-2xl bg-black py-4 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50"
             >
-              {t('buyNow')}
+              {uploadState === 'uploading' ? t('uploading') : t('buyNow')}
             </button>
+
+            {uploadState === 'error' && uploadError && (
+              <p className="mt-2 text-center text-xs text-red-500">{uploadError}</p>
+            )}
+
+            {uploadState === 'done' && capturedImageUrl && (
+              <p className="mt-2 text-center text-xs text-green-600">{t('uploadDone')}</p>
+            )}
 
             <div className="mt-3 grid grid-cols-3 gap-2">
               <button

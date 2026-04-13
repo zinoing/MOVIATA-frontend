@@ -196,6 +196,8 @@
     "delivery": "예상 배송",
     "deliveryDays": "영업일 기준 5–10일",
     "buyNow": "지금 구매",
+    "uploading": "업로드 중…",
+    "uploadDone": "이미지 저장 완료",
     "redirecting": "리디렉팅 중…"
   },
   "activities": {

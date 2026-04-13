@@ -196,6 +196,8 @@
     "delivery": "Estimated delivery",
     "deliveryDays": "5–10 business days",
     "buyNow": "Buy now",
+    "uploading": "Uploading…",
+    "uploadDone": "Image saved",
     "redirecting": "Redirecting…"
   },
   "activities": {

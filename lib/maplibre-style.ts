@@ -134,20 +134,28 @@ export function buildVectorMonochromeStyle(): StyleSpecification {
       if (shouldDarkenRoad(nextLayer)) {
         const id = nextLayer.id as string;
 
-        // 도로 등급별 minzoom — zoom out할수록 세밀한 도로부터 사라짐
-        // major (고속도로·간선): 멀리서도 보임
-        // minor (일반도로·지선): 중간 zoom부터
-        // detail (서비스로·보도): 가까이서만
         const roadMinzoom =
-          /high/.test(id)              ? 4
-          : /medium/.test(id)          ? 7
-          : /low/.test(id)             ? 9
-          : /other|path/.test(id)      ? 11
-          : 7; // fallback
+          /high/.test(id)         ? 4
+          : /medium/.test(id)     ? 7
+          : /low/.test(id)        ? 9
+          : /other|path/.test(id) ? 11
+          : 7;
+
+        // zoom out할수록 빠르게 얇아짐
+        // high는 멀리서도 어느 정도 굵기 유지, low/other는 급격히 얇아짐
+        const lineWidth =
+          /high/.test(id)
+            ? ['interpolate', ['linear'], ['zoom'], 4, 1.0, 8, 1.4, 12, 2.0, 16, 2.8]
+            : /medium/.test(id)
+            ? ['interpolate', ['linear'], ['zoom'], 7, 0.8, 10, 1.2, 13, 1.6, 16, 2.2]
+            : /low/.test(id)
+            ? ['interpolate', ['linear'], ['zoom'], 9, 0.7, 12, 1.0, 15, 1.4]
+            : ['interpolate', ['linear'], ['zoom'], 11, 0.7, 14, 0.9, 16, 1.2];
 
         nextLayer.paint = {
           ...(nextLayer.paint || {}),
           'line-color': '#111111',
+          'line-width': lineWidth,
           'line-opacity': 0.9,
         };
         nextLayer.minzoom = roadMinzoom;

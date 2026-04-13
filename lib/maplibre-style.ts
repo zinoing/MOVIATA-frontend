@@ -27,45 +27,47 @@ export function buildContourStyle(shirtColor: 'white' | 'black' = 'white'): Styl
           'background-color': background,
         },
       },
+      // ── 가는 선: nth_line 0, 1, 2 (가장 세밀한 등고선)
       {
-        id: 'contour-line',
+        id: 'contour-minor',
         type: 'line',
         source: 'contours',
         'source-layer': 'contour',
-        minzoom: 9,
-        filter: ['!=', ['get', 'nth_line'], 10],
+        minzoom: 0,
+        filter: ['in', ['get', 'nth_line'], ['literal', [0, 1, 2]]],
         paint: {
           'line-color': lineColor,
-          'line-width': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            9, 0.5,
-            11, 0.8,
-            13, 1.1,
-            15, 1.4,
-          ],
-          'line-opacity': 0.9,
+          'line-width': ['interpolate', ['linear'], ['get', 'ele'], 0, 0.4, 600, 0.8, 8000, 1.6],
+          'line-opacity': 0.75,
         },
       },
+
+      // ── 중간 선: nth_line 5 (5번째 등고선)
       {
-        id: 'contour-line-index',
+        id: 'contour-sub',
         type: 'line',
         source: 'contours',
         'source-layer': 'contour',
-        minzoom: 9,
+        minzoom: 0,
+        filter: ['==', ['get', 'nth_line'], 5],
+        paint: {
+          'line-color': lineColor,
+          'line-width': ['interpolate', ['linear'], ['get', 'ele'], 0, 0.7, 600, 1.2, 8000, 2.4],
+          'line-opacity': 0.88,
+        },
+      },
+
+      // ── 굵은 선: nth_line 10 (10번째 주곡선, 가장 진하게)
+      {
+        id: 'contour-major',
+        type: 'line',
+        source: 'contours',
+        'source-layer': 'contour',
+        minzoom: 0,
         filter: ['==', ['get', 'nth_line'], 10],
         paint: {
           'line-color': lineColorIndex,
-          'line-width': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            9, 1.2,
-            11, 1.8,
-            13, 2.4,
-            15, 3.0,
-          ],
+          'line-width': ['interpolate', ['linear'], ['get', 'ele'], 0, 1.2, 600, 2.0, 8000, 4.0],
           'line-opacity': 1,
         },
       },
@@ -98,6 +100,7 @@ function buildSource(): VectorSourceSpecification {
 function shouldDarkenRoad(layer: any) {
   return (
     layer.type === 'line' &&
+    layer.source === 'protomaps' &&  // Protomaps 레이어만 대상 (contour 레이어 제외)
     /(road|street|transport|path|major|minor|highway|bridge|tunnel)/i.test(layer.id)
   );
 }
@@ -129,11 +132,25 @@ export function buildVectorMonochromeStyle(): StyleSpecification {
       };
 
       if (shouldDarkenRoad(nextLayer)) {
+        const id = nextLayer.id as string;
+
+        // 도로 등급별 minzoom — zoom out할수록 세밀한 도로부터 사라짐
+        // major (고속도로·간선): 멀리서도 보임
+        // minor (일반도로·지선): 중간 zoom부터
+        // detail (서비스로·보도): 가까이서만
+        const roadMinzoom =
+          /high/.test(id)              ? 4
+          : /medium/.test(id)          ? 7
+          : /low/.test(id)             ? 9
+          : /other|path/.test(id)      ? 11
+          : 7; // fallback
+
         nextLayer.paint = {
           ...(nextLayer.paint || {}),
           'line-color': '#111111',
           'line-opacity': 0.9,
         };
+        nextLayer.minzoom = roadMinzoom;
       }
 
       return nextLayer;

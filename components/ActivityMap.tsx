@@ -43,6 +43,49 @@ type SavedView = {
   pitch: number;
 };
 
+// ─── 도로 등급 분류 ────────────────────────────────────────────────────────────
+// Protomaps 레이어 id 패턴 기준:
+//   high   : roads_high      → 고속도로·주요간선 (highway, motorway, trunk, primary)
+//   medium : roads_medium    → 일반도로 (secondary, tertiary)
+//   low    : roads_low       → 지선도로 (residential, unclassified)
+//   other  : roads_other     → 서비스로·보조도로
+//   path   : roads_path      → 도보/자전거 전용
+type RoadTier = 'high' | 'medium' | 'low' | 'other' | 'path';
+
+function getRoadTier(layerId: string): RoadTier | null {
+  if (!/road/.test(layerId)) return null;
+  if (/high/.test(layerId))   return 'high';
+  if (/medium/.test(layerId)) return 'medium';
+  if (/low/.test(layerId))    return 'low';
+  if (/path/.test(layerId))   return 'path';
+  if (/other/.test(layerId))  return 'other';
+  // 패턴 미매칭 road 레이어는 'low'로 fallback
+  return 'low';
+}
+
+type RoadColors = Record<RoadTier, string>;
+
+function getRoadColors(isDark: boolean): RoadColors {
+  if (isDark) {
+    return {
+      high:   '#5a5a5a',  // 밝은 회색 — 고속도로
+      medium: '#3d3d3d',  // 중간 회색 — 일반도로
+      low:    '#2a2a2a',  // 어두운 회색 — 지선
+      other:  '#222222',  // 더 어두움 — 서비스로
+      path:   '#1a1a1a',  // 최어두움 — 보도/자전거
+    };
+  }
+  return {
+    high:   '#aaaaaa',  // 진한 회색 — 고속도로
+    medium: '#c0c0c0',  // 중간 회색 — 일반도로
+    low:    '#d4d4d4',  // 연한 회색 — 지선
+    other:  '#dedede',  // 더 연함 — 서비스로
+    path:   '#e8e8e8',  // 최연함 — 보도/자전거
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function readFixedMapViewState(map: maplibregl.Map): FixedMapViewState {
   const center = map.getCenter();
   const bounds = map.getBounds();
@@ -117,10 +160,8 @@ function setupMapLayers(
   const routeMainColor = getRouteColorValue(routeColor);
   const isDark = shirtColor === 'black';
   const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4b4a4a' : '#ffffff';
-  const roadColor = showContours
-    ? isDark ? '#2f2f2f' : '#bdbdbd'
-    : isDark ? '#000000' : '#bdbdbd';
-  const waterColor = showContours ? 'rgba(0,0,0,0)' : '#bdbdbd';
+  const roadColors = getRoadColors(isDark);
+  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#000000' : '#BED6D8';
 
   map.getCanvas().style.background = 'transparent';
 
@@ -211,14 +252,14 @@ function setupMapLayers(
       }
 
       const isWater = id.includes('water') && type === 'fill';
-      const isRoad = id.includes('road') && type === 'line';
+      const roadTier = type === 'line' ? getRoadTier(id) : null;
 
       if (isWater) {
         map.setPaintProperty(id, 'fill-color', waterColor);
         map.setPaintProperty(id, 'fill-opacity', isDark ? 0 : 1);
         map.setLayoutProperty(id, 'visibility', 'visible');
-      } else if (isRoad) {
-        map.setPaintProperty(id, 'line-color', roadColor);
+      } else if (roadTier) {
+        map.setPaintProperty(id, 'line-color', roadColors[roadTier]);
         map.setPaintProperty(id, 'line-opacity', 1);
         map.setLayoutProperty(id, 'visibility', 'visible');
       } else {
@@ -242,10 +283,8 @@ function applyStyleUpdates(
   const routeMainColor = getRouteColorValue(routeColor);
   const isDark = shirtColor === 'black';
   const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4b4a4a' : '#ffffff';
-  const roadColor = showContours
-    ? isDark ? '#2f2f2f' : '#bdbdbd'
-    : isDark ? '#000000' : '#bdbdbd';
-  const waterColor = showContours ? 'rgba(0,0,0,0)' : '#bdbdbd';
+  const roadColors = getRoadColors(isDark);
+  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#000000' : '#BED6D8';
 
   // 루트 색상
   if (map.getLayer('route-main')) {
@@ -255,27 +294,14 @@ function applyStyleUpdates(
     map.setPaintProperty('route-start-point', 'circle-color', routeMainColor);
   }
 
-  // end-pin은 SVG 비트맵 이미지라 setPaintProperty로 색상 변경 불가 → 이미지 교체
-  const dpr = window.devicePixelRatio || 1;
-  const pinW = Math.round(27 * dpr);
-  const pinH = Math.round(16 * dpr);
-  const pinSvg = `<svg width="${pinW}" height="${pinH}" viewBox="0 0 30 18" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0"  y="0" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="12" y="0" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="24" y="0" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="6"  y="6" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="18" y="6" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="0"  y="12" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="12" y="12" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="24" y="12" width="6" height="6" fill="${routeMainColor}"/>
-  </svg>`;
-  const pinUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(pinSvg)}`;
-  const pinImg = new Image(pinW, pinH);
-  pinImg.onload = () => {
-    if (map.hasImage('end-pin')) map.removeImage('end-pin');
-    map.addImage('end-pin', pinImg, { pixelRatio: dpr });
-  };
-  pinImg.src = pinUrl;
+  // 배경 레이어
+  if (map.getLayer('background')) {
+    map.setPaintProperty(
+      'background',
+      'background-color',
+      showContours || !showMap ? 'rgba(0,0,0,0)' : backgroundColor,
+    );
+  }
 
   // 루트 포인트 표시 여부
   const pointVisibility = showRoutePoints ? 'visible' : 'none';
@@ -284,15 +310,6 @@ function applyStyleUpdates(
   }
   if (map.getLayer('route-end-point')) {
     map.setLayoutProperty('route-end-point', 'visibility', pointVisibility);
-  }
-
-  // 배경 레이어
-  if (map.getLayer('background')) {
-    map.setPaintProperty(
-      'background',
-      'background-color',
-      showContours || !showMap ? 'rgba(0,0,0,0)' : backgroundColor,
-    );
   }
 
   // 지도 레이어 표시 여부 (showContours 모드에서는 건드리지 않음)
@@ -312,14 +329,14 @@ function applyStyleUpdates(
       }
 
       const isWater = id.includes('water') && type === 'fill';
-      const isRoad = id.includes('road') && type === 'line';
+      const roadTier = type === 'line' ? getRoadTier(id) : null;
 
       if (isWater) {
         map.setPaintProperty(id, 'fill-color', waterColor);
         map.setPaintProperty(id, 'fill-opacity', isDark ? 0 : 1);
         map.setLayoutProperty(id, 'visibility', 'visible');
-      } else if (isRoad) {
-        map.setPaintProperty(id, 'line-color', roadColor);
+      } else if (roadTier) {
+        map.setPaintProperty(id, 'line-color', roadColors[roadTier]);
         map.setPaintProperty(id, 'line-opacity', 1);
         map.setLayoutProperty(id, 'visibility', 'visible');
       } else {

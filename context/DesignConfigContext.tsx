@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { DesignConfig } from '../lib/poster/types';
 import type { DesignEditorState } from '../components/DesignSettingsPanel';
+import type { FixedMapViewState } from '../lib/poster/types';
 
 const STORAGE_KEY = 'wtm-confirm-draft-v5';
 const EDITOR_STORAGE_KEY = 'wtm-editor-snapshot-v1';
@@ -15,10 +16,16 @@ type PersistedDraftState = {
   config: Readonly<DesignConfig> | null;
 };
 
+type EditorSnapshot = {
+  editor: DesignEditorState;
+  fixedMapViewState: FixedMapViewState | null;
+};
+
 type SaveDraftInput = {
   config: Readonly<DesignConfig>;
   posterSnapshot?: string | null;
   editorSnapshot?: DesignEditorState | null;
+  fixedMapViewState?: FixedMapViewState | null;
 };
 
 type DesignConfigContextValue = {
@@ -26,8 +33,8 @@ type DesignConfigContextValue = {
   posterSnapshot: string | null;
   saveDraft: (input: SaveDraftInput) => void;
   clearDraft: () => void;
-  /** confirm → design 복귀 시 editor 상태 복원 후 null 반환 (한 번만 소비) */
-  consumeEditorSnapshot: () => DesignEditorState | null;
+  /** confirm → design 복귀 시 editor + map view state 복원 후 null 반환 (한 번만 소비) */
+  consumeEditorSnapshot: () => EditorSnapshot | null;
 };
 
 const DesignConfigContext = createContext<DesignConfigContextValue | null>(null);
@@ -70,7 +77,11 @@ export function DesignConfigProvider({ children }: { children: React.ReactNode }
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
 
       if (input.editorSnapshot) {
-        sessionStorage.setItem(EDITOR_STORAGE_KEY, JSON.stringify(input.editorSnapshot));
+        const snapshot: EditorSnapshot = {
+          editor: input.editorSnapshot,
+          fixedMapViewState: input.fixedMapViewState ?? null,
+        };
+        sessionStorage.setItem(EDITOR_STORAGE_KEY, JSON.stringify(snapshot));
       }
     } catch (error) {
       console.error('Failed to persist draft config:', error);
@@ -88,11 +99,11 @@ export function DesignConfigProvider({ children }: { children: React.ReactNode }
   }, []);
 
   /**
-   * confirm → design 복귀일 때만 저장된 editor 상태를 반환하고
+   * confirm → design 복귀일 때만 저장된 editor + fixedMapViewState를 반환하고
    * 플래그와 스냅샷을 즉시 제거합니다 (한 번만 소비).
    * 복귀가 아니거나 스냅샷이 없으면 null을 반환합니다.
    */
-  const consumeEditorSnapshot = useCallback((): DesignEditorState | null => {
+  const consumeEditorSnapshot = useCallback((): EditorSnapshot | null => {
     if (typeof window === 'undefined') return null;
 
     const isReturnFromConfirm = sessionStorage.getItem(RETURN_FLAG_KEY) === '1';
@@ -104,7 +115,7 @@ export function DesignConfigProvider({ children }: { children: React.ReactNode }
       const raw = sessionStorage.getItem(EDITOR_STORAGE_KEY);
       sessionStorage.removeItem(EDITOR_STORAGE_KEY);
       if (!raw) return null;
-      return JSON.parse(raw) as DesignEditorState;
+      return JSON.parse(raw) as EditorSnapshot;
     } catch {
       return null;
     }

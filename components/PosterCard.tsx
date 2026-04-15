@@ -61,6 +61,8 @@ export default function PosterCard({
   }
 
   const instagramUsers = useMemo(() => {
+    console.log('[PosterCard] selectedUsers:', JSON.stringify(selectedUsers, null, 2));
+    console.log('[PosterCard] instagramId:', instagramId);
     if (!instagramEnabled) return [];
 
     if (selectedUsers.length > 0) {

@@ -139,12 +139,17 @@ export default function DesignWorkspacePage() {
         const stored = sessionStorage.getItem('activityType');
         const type = stored === 'path' || stored === 'motion' ? stored : null;
 
-        // confirm에서 돌아온 경우 저장된 editor 상태 복원 (한 번만 소비)
-        const restoredEditor = consumeEditorSnapshot();
+        // confirm에서 돌아온 경우 저장된 editor + map view state 복원 (한 번만 소비)
+        const snapshot = consumeEditorSnapshot();
 
         if (!ignore) {
           setActivity(data);
-          setEditor(restoredEditor ?? buildInitialEditorState(data, type));
+          setEditor(snapshot?.editor ?? buildInitialEditorState(data, type));
+          // map view state 복원 — ActivityMap의 preservedViewRef와 연동되어
+          // 맵이 이전 위치/줌/회전으로 복원됨
+          if (snapshot?.fixedMapViewState) {
+            setFixedMapViewState(snapshot.fixedMapViewState);
+          }
           setActivityFetchState('success');
         }
       } catch (err) {
@@ -470,9 +475,14 @@ export default function DesignWorkspacePage() {
         );
       }
 
-      // config, posterSnapshot과 함께 editor 상태도 저장
-      // → confirm에서 돌아올 때 복원에 사용
-      saveDraft({ config, posterSnapshot: snapshot, editorSnapshot: editor });
+      // config, posterSnapshot과 함께 editor + fixedMapViewState도 저장
+      // → confirm에서 돌아올 때 map 위치/줌/회전까지 복원
+      saveDraft({
+        config,
+        posterSnapshot: snapshot,
+        editorSnapshot: editor,
+        fixedMapViewState,
+      });
       await router.push('/confirm');
     } catch (e) {
       console.error('[confirm] failed:', e);

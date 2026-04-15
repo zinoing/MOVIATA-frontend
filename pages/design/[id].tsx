@@ -561,6 +561,7 @@ export default function DesignWorkspacePage() {
                       onRemoveUser={handleRemoveUser}
                       onMapViewStateChange={setFixedMapViewState}
                       onMapCanvas={handleMapCanvas}
+                      initialMapViewState={fixedMapViewState}
                     />
                   </div>
                 ) : (

@@ -122,12 +122,25 @@ export default function ShirtMockup({
 
       {/* FRONT */}
       <div className="flex flex-col gap-2">
-        <img
-          src={frontSrc}
-          alt="T-shirt front"
-          draggable={false}
-          className="block w-full select-none"
-        />
+        <div className="relative w-full">
+          <img
+            src={frontSrc}
+            alt="T-shirt front"
+            draggable={false}
+            className="block w-full select-none"
+          />
+          <img
+            src={color === 'black' ? '/resources/white_logo.png' : '/resources/black_logo.png'}
+            alt="Moviata logo"
+            draggable={false}
+            className="pointer-events-none absolute select-none"
+            style={{
+              top: '28%',
+              right: '31%',
+              width: '8%',
+            }}
+          />
+        </div>
         <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
           Front
         </p>

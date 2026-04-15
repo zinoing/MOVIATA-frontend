@@ -53,7 +53,6 @@ function formatElevation(meters?: number) {
   return `${Math.round(meters)}`;
 }
 
-
 function buildInitialEditorState(activity: ActivityResponse, activityType: 'path' | 'motion' | null): DesignEditorState {
   return {
     instagramEnabled: false,
@@ -277,19 +276,30 @@ export default function DesignWorkspacePage() {
     await instagram.fetchProfile(editor.myInstagramId);
   }, [editor, instagram]);
 
+  // fetchState 객체 자체는 매 렌더마다 새로 생성되므로
+  // 원시값(status / normalizedHandle / avatarUrl)만 추출해 의존성으로 사용.
+  // → URL이 갱신되어도 handle이 동일하면 useEffect가 재실행되지 않음.
+  const fetchStatus = instagram.state.fetchState.status;
+  const fetchedHandle =
+    instagram.state.fetchState.status === 'success'
+      ? instagram.state.fetchState.profile.normalizedHandle
+      : null;
+  const fetchedAvatarUrl =
+    instagram.state.fetchState.status === 'success'
+      ? instagram.state.fetchState.profile.avatarUrl
+      : null;
+
   useEffect(() => {
     if (!editor?.instagramEnabled) return;
-
-    const fetchState = instagram.state.fetchState;
-    if (fetchState.status !== 'success') return;
+    if (fetchStatus !== 'success' || !fetchedHandle) return;
 
     setEditor((prev) => {
       if (!prev || !prev.instagramEnabled) return prev;
 
       const primaryUser = createProfileUser(
         'fetched_profile',
-        fetchState.profile.normalizedHandle,
-        fetchState.profile.avatarUrl,
+        fetchedHandle,
+        fetchedAvatarUrl ?? '',
         true,
       );
 
@@ -298,7 +308,7 @@ export default function DesignWorkspacePage() {
         primaryUser,
         ...nonPrimaryUsers,
       ]);
-      const nextInstagramId = fetchState.profile.normalizedHandle;
+      const nextInstagramId = fetchedHandle;
 
       const isSameInstagramId = prev.myInstagramId === nextInstagramId;
 
@@ -327,7 +337,7 @@ export default function DesignWorkspacePage() {
         selectedUsers: nextSelectedUsers,
       };
     });
-  }, [editor?.instagramEnabled, instagram.state.fetchState]);
+  }, [editor?.instagramEnabled, fetchStatus, fetchedHandle, fetchedAvatarUrl]);
 
   // Auto-insert \n in title to match where the poster actually wraps.
   // Uses Range API on the real rendered h1 — the only reliable way to detect
@@ -417,13 +427,22 @@ export default function DesignWorkspacePage() {
     };
   }, [routeState.status, editor]);
 
-
   const handleConfirm = async () => {
     if (isGeneratingSnapshot) return;
     if (typeof id !== 'string' || !editor) return;
 
     // Guard: map must be ready before capture.
     if (!isMapReady && !mapSnapshotRef.current) return;
+
+    // instagramEnabled인데 친구만 있고 내 프로필(primary)이 없는 상태면 캡처 불가
+    // → selectedUsers에 primary가 없으면 친구가 내 자리에 표시되는 버그 방지
+    if (editor.instagramEnabled && editor.selectedUsers.length > 0) {
+      const hasPrimary = editor.selectedUsers.some((u) => u.isPrimary);
+      if (!hasPrimary) {
+        alert('내 Instagram 프로필을 먼저 불러와 주세요.');
+        return;
+      }
+    }
 
     try {
       setIsGeneratingSnapshot(true);

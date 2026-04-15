@@ -64,7 +64,19 @@ export default function PosterCard({
     if (!instagramEnabled) return [];
 
     if (selectedUsers.length > 0) {
-      return dedupeProfileUsers(selectedUsers);
+      const deduped = dedupeProfileUsers(selectedUsers);
+
+      // selectedUsers에 primary가 없는 상태(내 프로필 로드 전 친구만 있는 경우)
+      // instagramId로 primary를 보완해 친구가 내 자리에 표시되는 것을 방지
+      const hasPrimary = deduped.some((u) => u.isPrimary);
+      if (!hasPrimary && instagramId) {
+        return dedupeProfileUsers([
+          createProfileUser('manual', instagramId, '', true),
+          ...deduped,
+        ]);
+      }
+
+      return deduped;
     }
 
     if (instagramId) {

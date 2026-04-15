@@ -14,11 +14,42 @@
  *   Replace \n in h1 with block spans before capture so SVG renders the
  *   same line break regardless of font metrics in foreignObject context.
  *
+ *   AVATAR IMAGE FIX:
+ *   Wait for all <img> elements inside captureTarget to fully load before
+ *   capture. html-to-image serialises the DOM at call time — if an avatar
+ *   <img> is still decoding, the wrong cached image or a blank box appears
+ *   in the snapshot.
+ *
  * Layer 2 — Map snapshot:
  *   The pre-captured map PNG is drawn directly onto the output canvas at the
  *   map container's position relative to the card, measured at runtime via
  *   getBoundingClientRect.
  */
+
+/** Wait for every <img> inside el to finish loading (best-effort, 3s timeout). */
+async function waitForImages(el: HTMLElement, timeoutMs = 3000): Promise<void> {
+  const imgs = Array.from(el.querySelectorAll<HTMLImageElement>('img'));
+  if (!imgs.length) return;
+
+  await Promise.all(
+    imgs.map(
+      (img) =>
+        new Promise<void>((resolve) => {
+          // Already loaded or no src
+          if (img.complete || !img.src) {
+            resolve();
+            return;
+          }
+
+          const timer = setTimeout(resolve, timeoutMs);
+
+          img.addEventListener('load', () => { clearTimeout(timer); resolve(); }, { once: true });
+          img.addEventListener('error', () => { clearTimeout(timer); resolve(); }, { once: true });
+        }),
+    ),
+  );
+}
+
 export async function capturePosterCard(
   el: HTMLElement,
   mapDataUrl: string | null,
@@ -95,6 +126,11 @@ export async function capturePosterCard(
 
   await document.fonts.ready;
 
+  // Step 4: wait for all avatar <img> elements to finish loading
+  // html-to-image serialises the DOM at call time — if an avatar is still
+  // decoding, the wrong cached image or a blank box appears in the snapshot.
+  await waitForImages(captureTarget);
+
   try {
     // Layer 1: capture card UI with html-to-image at full pixel ratio
     const uiPng = await toPng(captureTarget, {
@@ -147,6 +183,12 @@ export async function capturePosterCard(
     captureTarget.style.top = savedTop;
     captureTarget.style.zIndex = savedZIndex;
     captureTarget.style.width = savedWidth;
+
+    // Restore h1
+    if (h1 && savedH1Html !== null) {
+      h1.innerHTML = savedH1Html;
+      h1.style.whiteSpace = savedH1WhiteSpace;
+    }
 
     // Restore map
     if (mapContainer) mapContainer.style.display = savedMapDisplay;

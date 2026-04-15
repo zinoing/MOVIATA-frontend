@@ -255,9 +255,7 @@ export default function DesignWorkspacePage() {
           return {
             ...next,
             myInstagramId: '',
-            selectedUsers: next.selectedUsers.filter(
-              (user) => !user.isPrimary,
-            ),
+            selectedUsers: [],
           };
         }
 

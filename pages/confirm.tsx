@@ -64,6 +64,8 @@ export default function ConfirmPage() {
   );
 
   const handleBackToDesign = () => {
+    // design 페이지에서 editor 상태 복원을 위한 플래그 설정
+    sessionStorage.setItem('design-return-from-confirm', '1');
     void router.push(`/design/${config.activityId}`);
   };
 

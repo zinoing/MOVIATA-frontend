@@ -101,7 +101,7 @@ export default function DesignWorkspacePage() {
   const { id } = router.query;
 
   const instagram = useInstagramProfile();
-  const { saveDraft } = useDesignConfig();
+  const { saveDraft, consumeEditorSnapshot } = useDesignConfig();
 
   const [activity, setActivity] = useState<ActivityResponse | null>(null);
   const [editor, setEditor] = useState<DesignEditorState | null>(null);
@@ -140,10 +140,12 @@ export default function DesignWorkspacePage() {
         const stored = sessionStorage.getItem('activityType');
         const type = stored === 'path' || stored === 'motion' ? stored : null;
 
+        // confirm에서 돌아온 경우 저장된 editor 상태 복원 (한 번만 소비)
+        const restoredEditor = consumeEditorSnapshot();
+
         if (!ignore) {
           setActivity(data);
-
-          setEditor(buildInitialEditorState(data, type));
+          setEditor(restoredEditor ?? buildInitialEditorState(data, type));
           setActivityFetchState('success');
         }
       } catch (err) {
@@ -163,7 +165,7 @@ export default function DesignWorkspacePage() {
     return () => {
       ignore = true;
     };
-  }, [id]);
+  }, [id, consumeEditorSnapshot]);
 
   const encodedPolyline = useMemo(() => {
     return activity?.map?.polyline || activity?.map?.summary_polyline || '';
@@ -255,6 +257,8 @@ export default function DesignWorkspacePage() {
           return {
             ...next,
             myInstagramId: '',
+            // isPrimary 여부 관계없이 전체 초기화
+            // (친구만 남으면 ProfileGroup에서 친구가 primary로 오인됨)
             selectedUsers: [],
           };
         }
@@ -446,8 +450,10 @@ export default function DesignWorkspacePage() {
           mapSnapshotRef.current,
         );
       }
-      
-      saveDraft({ config, posterSnapshot: snapshot });
+
+      // config, posterSnapshot과 함께 editor 상태도 저장
+      // → confirm에서 돌아올 때 복원에 사용
+      saveDraft({ config, posterSnapshot: snapshot, editorSnapshot: editor });
       await router.push('/confirm');
     } catch (e) {
       console.error('[confirm] failed:', e);

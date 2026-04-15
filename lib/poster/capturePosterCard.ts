@@ -15,10 +15,12 @@
  *   same line break regardless of font metrics in foreignObject context.
  *
  *   AVATAR IMAGE FIX:
- *   Wait for all <img> elements inside captureTarget to fully load before
- *   capture. html-to-image serialises the DOM at call time — if an avatar
- *   <img> is still decoding, the wrong cached image or a blank box appears
- *   in the snapshot.
+ *   html-to-image fetches all <img> srcs in parallel and re-encodes them as
+ *   base64. When two proxy URLs are fetched concurrently, response ordering
+ *   is not guaranteed — the second avatar's data can end up in the first
+ *   <img> slot (race condition). Fix: pre-fetch every avatar URL ourselves,
+ *   replace each img.src with its base64 data URL before calling toPng, then
+ *   restore the original srcs afterwards.
  *
  * Layer 2 — Map snapshot:
  *   The pre-captured map PNG is drawn directly onto the output canvas at the
@@ -26,28 +28,43 @@
  *   getBoundingClientRect.
  */
 
-/** Wait for every <img> inside el to finish loading (best-effort, 3s timeout). */
-async function waitForImages(el: HTMLElement, timeoutMs = 3000): Promise<void> {
+/**
+ * Fetches every <img> inside el, converts each to a base64 data URL, and
+ * replaces img.src in-place. Returns a Map of img → original src so the
+ * caller can restore them after capture.
+ *
+ * Images that already have a data: src or have no src are skipped.
+ * Fetch failures are silently ignored (original src left unchanged).
+ */
+async function inlineImages(el: HTMLElement): Promise<Map<HTMLImageElement, string>> {
   const imgs = Array.from(el.querySelectorAll<HTMLImageElement>('img'));
-  if (!imgs.length) return;
+  const saved = new Map<HTMLImageElement, string>();
 
   await Promise.all(
-    imgs.map(
-      (img) =>
-        new Promise<void>((resolve) => {
-          // Already loaded or no src
-          if (img.complete || !img.src) {
-            resolve();
-            return;
-          }
+    imgs.map(async (img) => {
+      const src = img.src;
+      if (!src || src.startsWith('data:')) return;
 
-          const timer = setTimeout(resolve, timeoutMs);
+      saved.set(img, src);
 
-          img.addEventListener('load', () => { clearTimeout(timer); resolve(); }, { once: true });
-          img.addEventListener('error', () => { clearTimeout(timer); resolve(); }, { once: true });
-        }),
-    ),
+      try {
+        const res = await fetch(src, { credentials: 'omit' });
+        const blob = await res.blob();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        img.src = dataUrl;
+      } catch {
+        // fetch 실패 시 원본 src 유지, Map에서 제거해 복원 대상에서 제외
+        saved.delete(img);
+      }
+    }),
   );
+
+  return saved;
 }
 
 export async function capturePosterCard(
@@ -126,15 +143,16 @@ export async function capturePosterCard(
 
   await document.fonts.ready;
 
-  // Step 4: wait for all avatar <img> elements to finish loading
-  // html-to-image serialises the DOM at call time — if an avatar is still
-  // decoding, the wrong cached image or a blank box appears in the snapshot.
-  await waitForImages(captureTarget);
+  // Step 4: pre-fetch all avatar <img> srcs and replace with base64 data URLs.
+  // html-to-image fetches images in parallel internally — without this step,
+  // concurrent proxy URL responses can arrive out of order and the wrong avatar
+  // ends up in the wrong <img> slot (race condition).
+  const savedImgSrcs = await inlineImages(captureTarget);
 
   try {
     // Layer 1: capture card UI with html-to-image at full pixel ratio
     const uiPng = await toPng(captureTarget, {
-      pixelRatio: PIXEL_RATIO,  
+      pixelRatio: PIXEL_RATIO,
       width: cardW,
       height: cardH,
     });
@@ -175,6 +193,15 @@ export async function capturePosterCard(
 
     return out.toDataURL('image/png');
   } finally {
+    // Restore inlined img srcs
+    savedImgSrcs.forEach((src, img) => { img.src = src; });
+
+    // Restore h1
+    if (h1 && savedH1Html !== null) {
+      h1.innerHTML = savedH1Html;
+      h1.style.whiteSpace = savedH1WhiteSpace;
+    }
+
     // Restore captureTarget styles
     captureTarget.style.backgroundColor = savedBg;
     captureTarget.style.boxShadow = savedShadow;
@@ -183,12 +210,6 @@ export async function capturePosterCard(
     captureTarget.style.top = savedTop;
     captureTarget.style.zIndex = savedZIndex;
     captureTarget.style.width = savedWidth;
-
-    // Restore h1
-    if (h1 && savedH1Html !== null) {
-      h1.innerHTML = savedH1Html;
-      h1.style.whiteSpace = savedH1WhiteSpace;
-    }
 
     // Restore map
     if (mapContainer) mapContainer.style.display = savedMapDisplay;

@@ -128,6 +128,28 @@ function getRouteColorValue(routeColor: RouteColor) {
   return routeColor === 'orange' ? '#F97316' : '#CF291D';
 }
 
+// ─── end-pin SVG 이미지 생성 헬퍼 ─────────────────────────────────────────────
+// setupMapLayers(초기 등록)과 applyStyleUpdates(색상 교체) 양쪽에서 공유합니다.
+function buildEndPinImage(color: string): { img: HTMLImageElement; dpr: number } {
+  const dpr = window.devicePixelRatio || 1;
+  const pinW = Math.round(27 * dpr);
+  const pinH = Math.round(16 * dpr);
+  const svg = `<svg width="${pinW}" height="${pinH}" viewBox="0 0 30 18" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0"  y="0" width="6" height="6" fill="${color}"/>
+    <rect x="12" y="0" width="6" height="6" fill="${color}"/>
+    <rect x="24" y="0" width="6" height="6" fill="${color}"/>
+    <rect x="6"  y="6" width="6" height="6" fill="${color}"/>
+    <rect x="18" y="6" width="6" height="6" fill="${color}"/>
+    <rect x="0"  y="12" width="6" height="6" fill="${color}"/>
+    <rect x="12" y="12" width="6" height="6" fill="${color}"/>
+    <rect x="24" y="12" width="6" height="6" fill="${color}"/>
+  </svg>`;
+  const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  const img = new Image(pinW, pinH);
+  img.src = url;
+  return { img, dpr };
+}
+
 function createMap(
   container: HTMLElement,
   showContours: boolean,
@@ -192,22 +214,8 @@ function setupMapLayers(
     },
   });
 
-  // End pin (flag icon)
-  const dpr = window.devicePixelRatio || 1;
-  const pinW = Math.round(27 * dpr);
-  const pinH = Math.round(16 * dpr);
-  const pinSvg = `<svg width="${pinW}" height="${pinH}" viewBox="0 0 30 18" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0"  y="0" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="12" y="0" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="24" y="0" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="6"  y="6" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="18" y="6" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="0"  y="12" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="12" y="12" width="6" height="6" fill="${routeMainColor}"/>
-    <rect x="24" y="12" width="6" height="6" fill="${routeMainColor}"/>
-  </svg>`;
-  const pinUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(pinSvg)}`;
-  const pinImg = new Image(pinW, pinH);
+  // End pin (flag icon) — buildEndPinImage 헬퍼로 생성
+  const { img: pinImg, dpr } = buildEndPinImage(routeMainColor);
   pinImg.onload = () => {
     if (!map.hasImage('end-pin')) map.addImage('end-pin', pinImg, { pixelRatio: dpr });
     if (!map.getLayer('route-end-point')) {
@@ -227,7 +235,6 @@ function setupMapLayers(
       });
     }
   };
-  pinImg.src = pinUrl;
 
   if (map.getLayer('background')) {
     map.setPaintProperty(
@@ -287,12 +294,25 @@ function applyStyleUpdates(
   const roadColors = getRoadColors(isDark);
   const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#000000' : '#BED6D8';
 
-  // 루트 색상
+  // 루트 선 색상
   if (map.getLayer('route-main')) {
     map.setPaintProperty('route-main', 'line-color', routeMainColor);
   }
+
+  // 시작점 색상
   if (map.getLayer('route-start-point')) {
     map.setPaintProperty('route-start-point', 'circle-color', routeMainColor);
+  }
+
+  // end-pin 이미지 교체 — SVG는 setPaintProperty로 색상 변경 불가, 이미지 자체를 교체해야 함
+  if (map.hasImage('end-pin')) {
+    const { img, dpr } = buildEndPinImage(routeMainColor);
+    img.onload = () => {
+      // 비동기 로드 사이에 맵이 제거됐을 수 있으므로 재확인
+      if (map.hasImage('end-pin')) {
+        map.updateImage('end-pin', img);
+      }
+    };
   }
 
   // 배경 레이어

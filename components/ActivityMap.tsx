@@ -144,6 +144,7 @@ function createMap(
     pitchWithRotate: false,
     interactive: true,
     canvasContextAttributes: { preserveDrawingBuffer: true },
+    pixelRatio: 3,
   });
 }
 
@@ -159,9 +160,9 @@ function setupMapLayers(
 ) {
   const routeMainColor = getRouteColorValue(routeColor);
   const isDark = shirtColor === 'black';
-  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4b4a4a' : '#ffffff';
+  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4b4a4a' : 'rgba(0,0,0,0)';
   const roadColors = getRoadColors(isDark);
-  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#000000' : '#BED6D8';
+  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? 'rgba(0,0,0,0)' : '#BED6D8';
 
   map.getCanvas().style.background = 'transparent';
 
@@ -282,7 +283,7 @@ function applyStyleUpdates(
 
   const routeMainColor = getRouteColorValue(routeColor);
   const isDark = shirtColor === 'black';
-  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4b4a4a' : '#ffffff';
+  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4b4a4a' : 'rgba(0,0,0,0)';
   const roadColors = getRoadColors(isDark);
   const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#000000' : '#BED6D8';
 

@@ -220,7 +220,15 @@ export default function PosterCard({
         </div>
       </div>
 
-      <div className={compact ? 'mt-3' : 'mt-8'}>
+      <div className={compact ? 'mt-3 flex justify-center' : 'mt-6 flex justify-center'}>
+        <img
+          src={isDark ? '/resources/white_logo.png' : '/resources/black_logo.png'}
+          alt="MOVIATA"
+          style={{ height: compact ? 15 : 23, width: 'auto' }}
+        />
+      </div>
+
+      <div className={compact ? 'mt-2' : 'mt-3'}>
         {(() => {
           const hasDistance = Boolean(distanceValue && distanceValue !== '-');
           const hasElevation = Boolean(elevation && elevation !== '-');

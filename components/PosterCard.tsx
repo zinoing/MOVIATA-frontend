@@ -25,6 +25,7 @@ type Props = {
   compact?: boolean;
   onMapViewStateChange?: (viewState: FixedMapViewState) => void;
   onMapCanvas?: (canvas: HTMLCanvasElement) => void;
+  initialMapViewState?: FixedMapViewState | null;
 };
 
 export default function PosterCard({
@@ -47,6 +48,7 @@ export default function PosterCard({
   compact = false,
   onMapViewStateChange,
   onMapCanvas,
+  initialMapViewState = null,
 }: Props) {
   const isDark = shirtColor === 'black';
   const hasLocation = Boolean(location?.trim());
@@ -61,8 +63,6 @@ export default function PosterCard({
   }
 
   const instagramUsers = useMemo(() => {
-    console.log('[PosterCard] selectedUsers:', JSON.stringify(selectedUsers, null, 2));
-    console.log('[PosterCard] instagramId:', instagramId);
     if (!instagramEnabled) return [];
 
     if (selectedUsers.length > 0) {
@@ -201,6 +201,7 @@ export default function PosterCard({
               showContours={showContours}
               onViewStateChange={onMapViewStateChange}
               onMapCanvas={onMapCanvas}
+              initialViewState={initialMapViewState}
               className="w-full max-w-full"
             />
           ) : (

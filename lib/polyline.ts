@@ -139,7 +139,6 @@ function chaikin(coords: LngLat[], iterations = 3): LngLat[] {
 export function smoothRoute(coords: LngLat[]): LngLat[] {
   if (coords.length < 3) return coords;
   return chaikin(movingAverage(coords, 3), 2);
-
 }
 
 export function decodePolyline(encoded: string): LngLat[] {

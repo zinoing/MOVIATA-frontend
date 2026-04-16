@@ -34,6 +34,12 @@ export type ActivityMapProps = {
   showContours?: boolean;
   onViewStateChange?: (viewState: FixedMapViewState) => void;
   onMapCanvas?: (canvas: HTMLCanvasElement) => void;
+  /**
+   * confirm → design 복귀 시 이전 카메라 상태를 주입합니다.
+   * 제공되면 fitBounds 대신 이 값으로 jumpTo합니다.
+   * 최초 마운트 시 한 번만 적용되며 이후 변경은 무시됩니다.
+   */
+  initialViewState?: FixedMapViewState | null;
 };
 
 type SavedView = {
@@ -54,6 +60,7 @@ type RoadTier = 'high' | 'medium' | 'low' | 'other' | 'path';
 
 function getRoadTier(layerId: string): RoadTier | null {
   if (!/road/.test(layerId)) return null;
+  if (/casing/.test(layerId)) return null;  // casing 레이어는 fill과 겹쳐 3선으로 보이므로 제외
   if (/high/.test(layerId))   return 'high';
   if (/medium/.test(layerId)) return 'medium';
   if (/low/.test(layerId))    return 'low';
@@ -66,22 +73,8 @@ function getRoadTier(layerId: string): RoadTier | null {
 type RoadColors = Record<RoadTier, string>;
 
 function getRoadColors(isDark: boolean): RoadColors {
-  if (isDark) {
-    return {
-      high:   '#5a5a5a',  // 밝은 회색 — 고속도로
-      medium: '#3d3d3d',  // 중간 회색 — 일반도로
-      low:    '#2a2a2a',  // 어두운 회색 — 지선
-      other:  '#222222',  // 더 어두움 — 서비스로
-      path:   '#1a1a1a',  // 최어두움 — 보도/자전거
-    };
-  }
-  return {
-    high:   '#aaaaaa',  // 진한 회색 — 고속도로
-    medium: '#c0c0c0',  // 중간 회색 — 일반도로
-    low:    '#d4d4d4',  // 연한 회색 — 지선
-    other:  '#dedede',  // 더 연함 — 서비스로
-    path:   '#e8e8e8',  // 최연함 — 보도/자전거
-  };
+  const color = isDark ? '#3d3d3d' : '#c0c0c0';
+  return { high: color, medium: color, low: color, other: color, path: color };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -377,6 +370,7 @@ export default function ActivityMap({
   showContours = false,
   onViewStateChange,
   onMapCanvas,
+  initialViewState = null,
 }: ActivityMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -384,6 +378,10 @@ export default function ActivityMap({
   // 카메라 상태 보존: coordinates가 바뀔 때만 초기화, 나머지는 항상 유지
   const preservedViewRef = useRef<SavedView | null>(null);
   const lastCoordinatesRef = useRef<typeof coordinates | null>(null);
+
+  // confirm → design 복귀 시 외부에서 주입된 초기 카메라 상태.
+  // 최초 마운트 시 한 번만 preservedViewRef에 적용하고 이후 prop 변경은 무시.
+  const initialViewStateRef = useRef<FixedMapViewState | null>(initialViewState);
 
   // 콜백을 ref로 안정화 — 부모 리렌더링으로 참조가 바뀌어도 맵 재생성 방지
   const onViewStateChangeRef = useRef(onViewStateChange);
@@ -435,6 +433,19 @@ export default function ActivityMap({
     if (lastCoordinatesRef.current !== coordinates) {
       lastCoordinatesRef.current = coordinates;
       preservedViewRef.current = null;
+    }
+
+    // confirm → design 복귀 시 주입된 초기 카메라 상태를 preservedViewRef에 반영.
+    // 한 번만 소비하고 이후에는 null로 초기화해 일반 흐름으로 복귀.
+    if (initialViewStateRef.current && !preservedViewRef.current) {
+      const iv = initialViewStateRef.current;
+      preservedViewRef.current = {
+        center: iv.center,
+        zoom: iv.zoom,
+        bearing: iv.bearing,
+        pitch: iv.pitch,
+      };
+      initialViewStateRef.current = null;
     }
 
     const viewToRestore = preservedViewRef.current;

@@ -33,12 +33,12 @@ export function buildContourStyle(shirtColor: 'white' | 'black' = 'white'): Styl
         type: 'line',
         source: 'contours',
         'source-layer': 'contour',
-        minzoom: 0,
+        minzoom: 9,
         filter: ['in', ['get', 'nth_line'], ['literal', [0, 1, 2]]],
         paint: {
           'line-color': lineColor,
-          'line-width': ['interpolate', ['linear'], ['get', 'ele'], 0, 0.4, 600, 0.8, 8000, 1.6],
-          'line-opacity': 0.75,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.5, 11, 0.8, 13, 1.1, 15, 1.4],
+          'line-opacity': 0.9,
         },
       },
 
@@ -48,12 +48,12 @@ export function buildContourStyle(shirtColor: 'white' | 'black' = 'white'): Styl
         type: 'line',
         source: 'contours',
         'source-layer': 'contour',
-        minzoom: 0,
+        minzoom: 9,
         filter: ['==', ['get', 'nth_line'], 5],
         paint: {
           'line-color': lineColor,
-          'line-width': ['interpolate', ['linear'], ['get', 'ele'], 0, 0.7, 600, 1.2, 8000, 2.4],
-          'line-opacity': 0.88,
+          'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.5, 11, 0.8, 13, 1.1, 15, 1.4],
+          'line-opacity': 0.9,
         },
       },
 
@@ -63,11 +63,11 @@ export function buildContourStyle(shirtColor: 'white' | 'black' = 'white'): Styl
         type: 'line',
         source: 'contours',
         'source-layer': 'contour',
-        minzoom: 0,
+        minzoom: 9,
         filter: ['==', ['get', 'nth_line'], 10],
         paint: {
           'line-color': lineColorIndex,
-          'line-width': ['interpolate', ['linear'], ['get', 'ele'], 0, 1.2, 600, 2.0, 8000, 4.0],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 9, 1.2, 11, 1.8, 13, 2.4, 15, 3.0],
           'line-opacity': 1,
         },
       },
@@ -135,7 +135,7 @@ export function buildVectorMonochromeStyle(): StyleSpecification {
         const id = nextLayer.id as string;
 
         const roadMinzoom =
-          /high/.test(id)         ? 4
+          /high/.test(id)         ? 7
           : /medium/.test(id)     ? 7
           : /low/.test(id)        ? 9
           : /other|path/.test(id) ? 11
@@ -145,12 +145,12 @@ export function buildVectorMonochromeStyle(): StyleSpecification {
         // high는 멀리서도 어느 정도 굵기 유지, low/other는 급격히 얇아짐
         const lineWidth =
           /high/.test(id)
-            ? ['interpolate', ['linear'], ['zoom'], 4, 1.0, 8, 1.4, 12, 2.0, 16, 2.8]
+            ? ['interpolate', ['linear'], ['zoom'], 4, 1.6, 8, 2.2, 12, 3.2, 16, 4.4]
             : /medium/.test(id)
-            ? ['interpolate', ['linear'], ['zoom'], 7, 0.8, 10, 1.2, 13, 1.6, 16, 2.2]
+            ? ['interpolate', ['linear'], ['zoom'], 7, 1.2, 10, 1.8, 13, 2.6, 16, 3.6]
             : /low/.test(id)
-            ? ['interpolate', ['linear'], ['zoom'], 9, 0.7, 12, 1.0, 15, 1.4]
-            : ['interpolate', ['linear'], ['zoom'], 11, 0.7, 14, 0.9, 16, 1.2];
+            ? ['interpolate', ['linear'], ['zoom'], 9, 1.0, 12, 1.6, 15, 2.4]
+            : ['interpolate', ['linear'], ['zoom'], 11, 1.0, 14, 1.4, 16, 2.0];
 
         nextLayer.paint = {
           ...(nextLayer.paint || {}),

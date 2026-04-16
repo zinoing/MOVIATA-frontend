@@ -7,6 +7,7 @@ import { useDesignConfig } from '../context/DesignConfigContext';
 
 type ProductSize = 'S' | 'M' | 'L' | 'XL';
 type ProductColor = 'white' | 'black';
+type CartItem = { id: number; size: ProductSize; qty: number };
 
 const sizeOptions: ProductSize[] = ['S', 'M', 'L', 'XL'];
 
@@ -32,7 +33,7 @@ function formatPriceKRW(value: number) {
 export default function ConfirmPage() {
   const router = useRouter();
   const { config, posterSnapshot } = useDesignConfig();
-  const [selectedSize, setSelectedSize] = useState<ProductSize>('M');
+  const [cartItems, setCartItems] = useState<CartItem[]>([{ id: Date.now(), size: 'M', qty: 1 }]);
   const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle');
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
@@ -52,16 +53,34 @@ export default function ConfirmPage() {
     );
   }
 
-  const safeProduct = {
-    color: config.shirtColor as ProductColor,
-    size: selectedSize,
-    price: 39000,
-  };
+  const PRICE_PER_ITEM = 39000;
+  const productColor = config.shirtColor as ProductColor;
+
+  const totalQty = cartItems.reduce((s, i) => s + i.qty, 0);
+  const totalPrice = totalQty * PRICE_PER_ITEM;
 
   const totalLabel = useMemo(
-    () => formatPriceKRW(safeProduct.price),
-    [safeProduct.price],
+    () => formatPriceKRW(totalPrice),
+    [totalPrice],
   );
+
+  const addCartItem = () => {
+    setCartItems((prev) => [...prev, { id: Date.now(), size: 'M', qty: 1 }]);
+  };
+
+  const removeCartItem = (id: number) => {
+    setCartItems((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const updateCartSize = (id: number, size: ProductSize) => {
+    setCartItems((prev) => prev.map((i) => (i.id === id ? { ...i, size } : i)));
+  };
+
+  const updateCartQty = (id: number, delta: number) => {
+    setCartItems((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i)),
+    );
+  };
 
   const handleBackToDesign = () => {
     // design 페이지에서 editor 상태 복원을 위한 플래그 설정
@@ -146,7 +165,7 @@ export default function ConfirmPage() {
                   config={config}
                   posterSnapshot={posterSnapshot}
                   //width={640}
-                  productColor={safeProduct.color}
+                  productColor={productColor}
                 />
               </div>
             </div>
@@ -211,34 +230,6 @@ export default function ConfirmPage() {
               {t('product')}
             </p>
 
-            <div className="mt-5">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-neutral-500">{t('size.label')}</p>
-                <p className="text-xs text-neutral-400">{t('size.selected', { size: selectedSize })}</p>
-              </div>
-
-              <div className="mt-3 grid grid-cols-4 gap-2">
-                {sizeOptions.map((size) => {
-                  const isSelected = safeProduct.size === size;
-
-                  return (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => setSelectedSize(size)}
-                      className={`rounded-2xl border px-3 py-3 text-sm font-medium transition ${
-                        isSelected
-                          ? 'border-black bg-black text-white'
-                          : 'border-neutral-200 bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             <div className="mt-6 overflow-hidden rounded-[24px] border border-neutral-200 bg-white">
               <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
@@ -271,20 +262,18 @@ export default function ConfirmPage() {
                   <tbody>
                     {sizeOptions.map((size) => {
                       const guide = sizeGuideMap[size];
-                      const isSelected = selectedSize === size;
+                      const isInCart = cartItems.some((i) => i.size === size);
 
                       return (
                         <tr
                           key={size}
-                          className={`transition ${
-                            isSelected ? 'bg-black/[0.05]' : 'bg-white'
-                          }`}
+                          className={`transition ${isInCart ? 'bg-black/[0.05]' : 'bg-white'}`}
                         >
                           <td className="border-b border-neutral-200 px-3 py-3 font-medium text-neutral-900">
                             <div className="flex items-center gap-2">
                               <span
                                 className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[11px] font-semibold ${
-                                  isSelected
+                                  isInCart
                                     ? 'bg-black text-white'
                                     : 'bg-neutral-200 text-neutral-700'
                                 }`}
@@ -293,17 +282,16 @@ export default function ConfirmPage() {
                               </span>
                             </div>
                           </td>
-
-                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isSelected ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
+                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isInCart ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
                             {guide.length}
                           </td>
-                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isSelected ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
+                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isInCart ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
                             {guide.shoulder}
                           </td>
-                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isSelected ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
+                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isInCart ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
                             {guide.chest}
                           </td>
-                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isSelected ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
+                          <td className={`border-b border-neutral-200 px-2 py-3 text-center ${isInCart ? 'font-semibold text-neutral-950' : 'text-neutral-600'}`}>
                             {guide.sleeve}
                           </td>
                         </tr>
@@ -319,6 +307,72 @@ export default function ConfirmPage() {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* 장바구니 아이템 */}
+          <div className="mt-5 space-y-3">
+            {cartItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3"
+              >
+                {/* 사이즈 선택 */}
+                <select
+                  value={item.size}
+                  onChange={(e) => updateCartSize(item.id, e.target.value as ProductSize)}
+                  className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-900 focus:outline-none"
+                >
+                  {sizeOptions.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+
+                {/* 수량 */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateCartQty(item.id, -1)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-200 bg-white text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
+                  >
+                    −
+                  </button>
+                  <span className="w-5 text-center text-sm font-semibold text-neutral-900">
+                    {item.qty}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => updateCartQty(item.id, 1)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-200 bg-white text-sm font-medium text-neutral-700 transition hover:bg-neutral-100"
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* 소계 */}
+                <span className="ml-auto text-sm font-medium text-neutral-900">
+                  {formatPriceKRW(item.qty * PRICE_PER_ITEM)}
+                </span>
+
+                {/* 삭제 */}
+                {cartItems.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeCartItem(item.id)}
+                    className="text-neutral-400 transition hover:text-neutral-700"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={addCartItem}
+              className="w-full rounded-2xl border border-dashed border-neutral-300 py-3 text-sm font-medium text-neutral-500 transition hover:border-neutral-400 hover:text-neutral-700"
+            >
+              {t('addSize')}
+            </button>
           </div>
 
           <div className="mt-8 rounded-[28px] bg-neutral-50 px-5 py-5">

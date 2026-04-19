@@ -22,7 +22,9 @@ export default function StravaCallbackPage() {
 
     if (typeof code !== 'string') {
       console.error('Missing Strava OAuth code in callback query.');
-      void router.replace('/strava/activities');
+      const savedLocale = sessionStorage.getItem('oauth_locale') ?? 'en';
+      sessionStorage.removeItem('oauth_locale');
+      void router.replace('/strava/activities', undefined, { locale: savedLocale });
       return;
     }
 
@@ -49,7 +51,9 @@ export default function StravaCallbackPage() {
       } catch (error) {
         console.error('Error while processing Strava OAuth callback:', error);
       } finally {
-        void router.replace('/strava/activities');
+        const savedLocale = sessionStorage.getItem('oauth_locale') ?? 'en';
+        sessionStorage.removeItem('oauth_locale');
+        void router.replace('/strava/activities', undefined, { locale: savedLocale });
       }
     };
 

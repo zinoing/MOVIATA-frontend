@@ -67,6 +67,7 @@ export default function SourceSelectionPage() {
         throw new Error('Failed to get the Strava authorization URL.');
       }
 
+      sessionStorage.setItem('oauth_locale', router.locale ?? 'en');
       window.location.href = data.url;
     } catch (error) {
       setMessage(

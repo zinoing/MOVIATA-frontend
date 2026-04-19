@@ -541,28 +541,30 @@ export default function DesignWorkspacePage() {
                   </p>
                 )}
                 {routeState.status === 'ready' ? (
-                  <div id="poster-card" className="relative w-[420px] max-w-full mx-auto">
-                    <PosterCard
-                      coordinates={posterCoordinates}
-                      title={editor.title}
-                      date={editor.date}
-                      location={editor.location}
-                      distance={previewDistance}
-                      duration={editor.time}
-                      elevation={editor.elevation}
-                      shirtColor={editor.shirtColor}
-                      routeColor={editor.routeColor}
-                      showMap={editor.showMap}
-                      showRoutePoints={editor.showRoutePoints}
-                      showContours={editor.showContours}
-                      instagramEnabled={editor.instagramEnabled}
-                      instagramId={editor.myInstagramId}
-                      selectedUsers={editor.selectedUsers}
-                      onRemoveUser={handleRemoveUser}
-                      onMapViewStateChange={setFixedMapViewState}
-                      onMapCanvas={handleMapCanvas}
-                      initialMapViewState={fixedMapViewState}
-                    />
+                  <div className="w-full overflow-x-auto py-1">
+                    <div id="poster-card" className="relative w-[428px] mx-auto">
+                      <PosterCard
+                        coordinates={posterCoordinates}
+                        title={editor.title}
+                        date={editor.date}
+                        location={editor.location}
+                        distance={previewDistance}
+                        duration={editor.time}
+                        elevation={editor.elevation}
+                        shirtColor={editor.shirtColor}
+                        routeColor={editor.routeColor}
+                        showMap={editor.showMap}
+                        showRoutePoints={editor.showRoutePoints}
+                        showContours={editor.showContours}
+                        instagramEnabled={editor.instagramEnabled}
+                        instagramId={editor.myInstagramId}
+                        selectedUsers={editor.selectedUsers}
+                        onRemoveUser={handleRemoveUser}
+                        onMapViewStateChange={setFixedMapViewState}
+                        onMapCanvas={handleMapCanvas}
+                        initialMapViewState={fixedMapViewState}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="flex w-[450px] max-w-full items-center justify-center rounded-[16px] bg-white p-10 text-sm text-neutral-500 shadow-[0_8px_32px_rgba(0,0,0,0.18)]">

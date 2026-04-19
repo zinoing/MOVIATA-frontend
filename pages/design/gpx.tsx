@@ -221,8 +221,7 @@ export default function GpxDesignPage() {
       let snapshot: string | null = null;
       const posterCard = document.getElementById('poster-card');
       if (posterCard) {
-        const zoomScale = parseFloat(pageRef.current?.style.zoom || '1') || 1;
-        snapshot = await capturePosterCard(posterCard, mapSnapshotRef.current, zoomScale);
+        snapshot = await capturePosterCard(posterCard, mapSnapshotRef.current);
       }
       saveDraft({ config, posterSnapshot: snapshot });
       await router.push('/confirm');

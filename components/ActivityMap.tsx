@@ -299,7 +299,7 @@ function applyStyleUpdates(
 
   // end-pin 이미지 교체 — SVG는 setPaintProperty로 색상 변경 불가, 이미지 자체를 교체해야 함
   if (map.hasImage('end-pin')) {
-    const { img, dpr } = buildEndPinImage(routeMainColor);
+    const { img } = buildEndPinImage(routeMainColor);
     img.onload = () => {
       // 비동기 로드 사이에 맵이 제거됐을 수 있으므로 재확인
       if (map.hasImage('end-pin')) {
@@ -552,8 +552,8 @@ export default function ActivityMap({
       className={className}
       style={{
         width: '100%',
-        maxWidth: '300px',
-        aspectRatio: '3 / 4',
+        maxWidth: '380px',
+        aspectRatio: '1 / 1',
         overflow: 'hidden',
         margin: '0 auto',
         background: (showContours || !showMap)

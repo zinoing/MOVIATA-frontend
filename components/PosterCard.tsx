@@ -100,7 +100,7 @@ export default function PosterCard({
 
   const wrapperClass = compact
     ? `w-full aspect-[3/5] rounded-[24px] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.10)] ${cardClass}`
-    : `w-[420px] max-w-full mx-auto rounded-[32px] overflow-hidden px-6 pt-6 pb-8 shadow-[0_8px_40px_rgba(0,0,0,0.12)] ${cardClass}`;
+    : `w-[428px] max-w-full mx-auto rounded-[32px] overflow-hidden px-6 pt-6 pb-8 shadow-[0_8px_40px_rgba(0,0,0,0.12)] ${cardClass}`;
 
   const titleClass = compact
     ? 'font-serif text-[1.3rem] font-bold leading-[1.08] tracking-[-0.01em] uppercase'
@@ -123,8 +123,8 @@ export default function PosterCard({
     : `mt-1.5 text-[1.45rem] font-bold leading-none tracking-[-0.03em] ${primaryTextClass}`;
 
   const contentWidthClass = compact
-    ? 'mx-auto w-full max-w-[260px]'
-    : 'mx-auto w-full max-w-[300px]';
+    ? 'mx-auto w-full max-w-[312px]'
+    : 'mx-auto w-full max-w-[380px]';
 
   return (
     <div className={wrapperClass}>
@@ -138,16 +138,19 @@ export default function PosterCard({
           height: compact ? 40 : 52,
           overflow: 'hidden',
           display: 'flex',
+          justifyContent: 'center',
           alignItems: 'flex-start',
           marginBottom: instagramEnabled ? (compact ? 10 : 20) : 0,
         }}
       >
         {instagramEnabled ? (
-          <ProfileGroup
-            users={instagramUsers}
-            compact={compact}
-            isDark={isDark}
-          />
+          <div style={{ width: '100%', maxWidth: compact ? 312 : 380 }}>
+            <ProfileGroup
+              users={instagramUsers}
+              compact={compact}
+              isDark={isDark}
+            />
+          </div>
         ) : null}
       </div>
 
@@ -190,7 +193,7 @@ export default function PosterCard({
       </div>
 
       <div className={compact ? 'mt-3 flex justify-center' : 'mt-5 flex justify-center'}>
-        <div className={compact ? 'w-full max-w-[260px]' : 'w-full max-w-[300px]'}>
+        <div className={compact ? 'w-full max-w-[312px]' : 'w-full max-w-[380px]'}>
           {coordinates.length > 1 ? (
             <ActivityMap
               coordinates={coordinates}
@@ -262,8 +265,10 @@ export default function PosterCard({
             'justify-between';
 
           return (
-            <div className={`flex items-center ${justifyClass}`}>
-              {stats}
+            <div className={contentWidthClass}>
+              <div className={`flex items-center ${justifyClass}`}>
+                {stats}
+              </div>
             </div>
           );
         })()}

@@ -1,9 +1,20 @@
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Layout from '../components/Layout';
 
+const MOTION_SESSION_KEYS = [
+  'motionJobId', 'motionFramesMeta', 'motionSelectedFrames', 'motionFileType',
+  'motionSelectedFramePaths', 'motionPointCoords', 'motionProcessResult',
+  'motionLayerTransforms', 'motionCompositeImage',
+];
+
 export default function HomePage() {
   const t = useTranslations('home');
+
+  useEffect(() => {
+    MOTION_SESSION_KEYS.forEach((key) => sessionStorage.removeItem(key));
+  }, []);
 
   return (
     <Layout title="MOVIATA">

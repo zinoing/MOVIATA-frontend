@@ -96,6 +96,7 @@ export default function DesignSettingsPanel({
   isMapReady = false,
   isGeneratingSnapshot = false,
   onConfirm,
+  activityType,
 }: DesignSettingsPanelProps) {
   const t = useTranslations('settings');
 
@@ -105,7 +106,7 @@ export default function DesignSettingsPanel({
       updateField(value, onChange, key, e.target.value);
     };
 
-  const addedFriends = value.selectedUsers.filter((user) => !user.isPrimary);
+  const addedFriends = (value.selectedUsers ?? []).filter((user) => !user.isPrimary);
   const normalizedMyInstagramId = normalizeInstagramHandle(value.myInstagramId);
 
   const canAddFriend =
@@ -295,148 +296,154 @@ export default function DesignSettingsPanel({
           </div>
         </section>
 
-        <div className="rounded-[16px] border border-neutral-200 p-4 space-y-4">
-          {/* Map toggle */}
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-neutral-900">{t('map.title')}</p>
-              <p className="mt-1 text-xs text-neutral-500">
-                {t('map.description')}
-              </p>
+        {activityType !== 'motion' && (
+          <div className="rounded-[16px] border border-neutral-200 p-4 space-y-4">
+            {/* Map toggle */}
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-neutral-900">{t('map.title')}</p>
+                <p className="mt-1 text-xs text-neutral-500">
+                  {t('map.description')}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  onChange({
+                    ...value,
+                    showMap: !value.showMap,
+                    showContours: value.showMap ? false : value.showContours,
+                  })
+                }
+                disabled={isGeneratingSnapshot}
+                className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+                  value.showMap ? 'bg-neutral-900' : 'bg-neutral-200'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                <span
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+                    value.showMap ? 'left-6' : 'left-1'
+                  }`}
+                />
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() =>
-                onChange({
-                  ...value,
-                  showMap: !value.showMap,
-                  showContours: value.showMap ? false : value.showContours,
-                })
-              }
-              disabled={isGeneratingSnapshot}
-              className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-                value.showMap ? 'bg-neutral-900' : 'bg-neutral-200'
-              } disabled:cursor-not-allowed disabled:opacity-50`}
-            >
-              <span
-                className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
-                  value.showMap ? 'left-6' : 'left-1'
-                }`}
-              />
-            </button>
-          </div>
+            {/* Divider */}
+            <div className="h-px bg-neutral-100" />
 
-          {/* Divider */}
-          <div className="h-px bg-neutral-100" />
+            {/* Contours toggle — disabled when Map is off */}
+            <div className={`flex items-center justify-between gap-4 transition ${!value.showMap ? 'opacity-40' : ''}`}>
+              <div>
+                <p className="text-sm font-medium text-neutral-900">{t('contours.title')}</p>
+                <p className="mt-1 text-xs text-neutral-500">
+                  {t('contours.description')}
+                </p>
+              </div>
 
-          {/* Contours toggle — disabled when Map is off */}
-          <div className={`flex items-center justify-between gap-4 transition ${!value.showMap ? 'opacity-40' : ''}`}>
-            <div>
-              <p className="text-sm font-medium text-neutral-900">{t('contours.title')}</p>
-              <p className="mt-1 text-xs text-neutral-500">
-                {t('contours.description')}
-              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!value.showMap) return;
+                  onChange({ ...value, showContours: !value.showContours });
+                }}
+                disabled={isGeneratingSnapshot || !value.showMap}
+                className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+                  value.showContours && value.showMap ? 'bg-neutral-900' : 'bg-neutral-200'
+                } disabled:cursor-not-allowed`}
+                aria-pressed={value.showContours}
+              >
+                <span
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+                    value.showContours && value.showMap ? 'left-6' : 'left-1'
+                  }`}
+                />
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (!value.showMap) return;
-                onChange({ ...value, showContours: !value.showContours });
-              }}
-              disabled={isGeneratingSnapshot || !value.showMap}
-              className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-                value.showContours && value.showMap ? 'bg-neutral-900' : 'bg-neutral-200'
-              } disabled:cursor-not-allowed`}
-              aria-pressed={value.showContours}
-            >
-              <span
-                className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
-                  value.showContours && value.showMap ? 'left-6' : 'left-1'
-                }`}
-              />
-            </button>
           </div>
-        </div>
+        )}
 
-        <div className="rounded-[16px] border border-neutral-200 p-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-neutral-900">
-                {t('routePoints.title')}
-              </p>
-              <p className="mt-1 text-xs text-neutral-500">
-                {t('routePoints.description')}
-              </p>
+        {activityType !== 'motion' && (
+          <div className="rounded-[16px] border border-neutral-200 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-neutral-900">
+                  {t('routePoints.title')}
+                </p>
+                <p className="mt-1 text-xs text-neutral-500">
+                  {t('routePoints.description')}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  onChange({
+                    ...value,
+                    showRoutePoints: !value.showRoutePoints,
+                  })
+                }
+                disabled={isGeneratingSnapshot}
+                className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+                  value.showRoutePoints ? 'bg-neutral-900' : 'bg-neutral-200'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                <span
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+                    value.showRoutePoints ? 'left-6' : 'left-1'
+                  }`}
+                />
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                onChange({
-                  ...value,
-                  showRoutePoints: !value.showRoutePoints,
-                })
-              }
-              disabled={isGeneratingSnapshot}
-              className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-                value.showRoutePoints ? 'bg-neutral-900' : 'bg-neutral-200'
-              } disabled:cursor-not-allowed disabled:opacity-50`}
-            >
-              <span
-                className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
-                  value.showRoutePoints ? 'left-6' : 'left-1'
-                }`}
-              />
-            </button>
           </div>
-        </div>
+        )}
 
-        <div className="rounded-[16px] border border-neutral-200 p-4">
-          <p className="text-sm font-medium text-neutral-900">{t('routeColor.title')}</p>
-          <p className="mt-1 text-xs text-neutral-500">
-            {t('routeColor.description')}
-          </p>
+        {activityType !== 'motion' && (
+          <div className="rounded-[16px] border border-neutral-200 p-4">
+            <p className="text-sm font-medium text-neutral-900">{t('routeColor.title')}</p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {t('routeColor.description')}
+            </p>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() =>
-                onChange({
-                  ...value,
-                  routeColor: 'red',
-                })
-              }
-              disabled={isGeneratingSnapshot}
-              className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
-                value.routeColor === 'red'
-                  ? 'border-[#CF291D] bg-[#CF291D] text-white'
-                  : 'border-neutral-300 bg-white text-neutral-900'
-              } disabled:cursor-not-allowed disabled:opacity-50`}
-            >
-              {t('routeColor.red')}
-            </button>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  onChange({
+                    ...value,
+                    routeColor: 'red',
+                  })
+                }
+                disabled={isGeneratingSnapshot}
+                className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+                  value.routeColor === 'red'
+                    ? 'border-[#CF291D] bg-[#CF291D] text-white'
+                    : 'border-neutral-300 bg-white text-neutral-900'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                {t('routeColor.red')}
+              </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                onChange({
-                  ...value,
-                  routeColor: 'orange',
-                })
-              }
-              disabled={isGeneratingSnapshot}
-              className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
-                value.routeColor === 'orange'
-                  ? 'border-[#F97316] bg-[#F97316] text-white'
-                  : 'border-neutral-300 bg-white text-neutral-900'
-              } disabled:cursor-not-allowed disabled:opacity-50`}
-            >
-              {t('routeColor.orange')}
-            </button>
+              <button
+                type="button"
+                onClick={() =>
+                  onChange({
+                    ...value,
+                    routeColor: 'orange',
+                  })
+                }
+                disabled={isGeneratingSnapshot}
+                className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
+                  value.routeColor === 'orange'
+                    ? 'border-[#F97316] bg-[#F97316] text-white'
+                    : 'border-neutral-300 bg-white text-neutral-900'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                {t('routeColor.orange')}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         <section className="rounded-2xl border border-neutral-200 p-4">
           <div className="space-y-4">
@@ -490,43 +497,49 @@ export default function DesignSettingsPanel({
 
         <section className="rounded-2xl border border-neutral-200 p-4">
           <div className="space-y-4">
-            <div>
-              <FieldLabel>{t('distance.title')}</FieldLabel>
-              <input
-                type="text"
-                value={value.distance}
-                onChange={handleInput('distance')}
-                placeholder={t('distance.placeholder')}
-                disabled={isGeneratingSnapshot}
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
+            {activityType !== 'motion' && (
+              <div>
+                <FieldLabel>{t('distance.title')}</FieldLabel>
+                <input
+                  type="text"
+                  value={value.distance}
+                  onChange={handleInput('distance')}
+                  placeholder={t('distance.placeholder')}
+                  disabled={isGeneratingSnapshot}
+                  className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+            )}
 
-            <div>
-              <FieldLabel>Elev Gain (m)</FieldLabel>
-              <input
-                type="text"
-                value={value.elevation}
-                onChange={handleInput('elevation')}
-                placeholder="e.g. 295"
-                disabled={isGeneratingSnapshot}
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
+            {activityType !== 'motion' && (
+              <div>
+                <FieldLabel>Elev Gain (m)</FieldLabel>
+                <input
+                  type="text"
+                  value={value.elevation}
+                  onChange={handleInput('elevation')}
+                  placeholder="e.g. 295"
+                  disabled={isGeneratingSnapshot}
+                  className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+            )}
 
-            <div>
-              <FieldLabel required>{t('time.title')}</FieldLabel>
-              <input
-                type="text"
-                value={value.time}
-                onChange={handleInput('time')}
-                placeholder="00:00"
-                disabled={isGeneratingSnapshot}
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
+            {activityType !== 'motion' && (
+              <div>
+                <FieldLabel required>{t('time.title')}</FieldLabel>
+                <input
+                  type="text"
+                  value={value.time}
+                  onChange={handleInput('time')}
+                  placeholder="00:00"
+                  disabled={isGeneratingSnapshot}
+                  className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+            )}
 
-            <div className="mt-6 space-y-3">
+            <div className={`${activityType !== 'motion' ? 'mt-6' : ''} space-y-3`}>
               <button
                 type="button"
                 onClick={onConfirm}

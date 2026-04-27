@@ -125,7 +125,7 @@
     },
     "activity": {
       "name": "アクティビティ名",
-      "namePlaceholder": "例：サイクリングツアー",
+      "namePlaceholder": "アクティビティ名を入力",
       "date": "アクティビティ日付",
       "datePlaceholder": "例：2024年11月3日",
       "location": "場所",
@@ -258,6 +258,117 @@
     },
     "routeHints": {
       "noDesign": "ルートデータなし · デザイン不可"
+    }
+  },
+  "motionComposite": {
+    "label": "MOTION",
+    "title": "コンポジット生成",
+    "subtitle": "選択したフレームからモーションコンポジットを生成してください。",
+    "config": {
+      "title": "設定",
+      "personColor": "人物アウトラインカラー",
+      "bgColor": "背景アウトラインカラー",
+      "thickness": "アウトラインの太さ",
+      "frameInterval": "フレーム間隔",
+      "everyN": "{n}フレームごと",
+      "outputFormat": "出力形式"
+    },
+    "idle": {
+      "title": "生成の準備完了",
+      "subtitle": "「生成」ボタンを押してコンポジットを開始してください。"
+    },
+    "processing": {
+      "title": "処理中"
+    },
+    "steps": {
+      "extracting_frames": "フレームを抽出中",
+      "masking": "AIによる人物マスキング",
+      "outlining": "アウトライン変換",
+      "compositing": "フレームを合成中"
+    },
+    "frames": {
+      "title": "選択したフレーム",
+      "count": "{count}枚",
+      "empty": "フレームが選択されていません"
+    },
+    "success": {
+      "videoReady": "コンポジット完了。",
+      "download": "PNGをダウンロード",
+      "downloading": "保存中...",
+      "submit": "デザインへ進む",
+      "submitting": "準備中...",
+      "selectLayer": "レイヤー選択",
+      "dragHint": "キャンバスをドラッグして人物を移動"
+    },
+    "actions": {
+      "generate": "コンポジットを生成"
+    },
+    "errors": {
+      "startFailed": "処理の開始に失敗しました。もう一度お試しください。",
+      "processFailed": "処理に失敗しました。もう一度お試しください。",
+      "pollFailed": "処理サービスへの接続が切れました。",
+      "timeout": "処理がタイムアウトしました（5分）。再試行してください。",
+      "retry": "再試行"
+    }
+  },
+  "motionPointSelect": {
+    "label": "MOTION",
+    "title": "ポイント選択",
+    "subtitle": "人物を先にクリックし、続けてオブジェクトを最大2か所クリックしてください。点をクリックすると削除されます。",
+    "personPointLabel": "1点目 — 人物",
+    "objectPointLabel": "2・3点目 — オブジェクト",
+    "frameCounter": "{current} / {total}",
+    "stepGuide": {
+      "1": "胴体の中心をクリックしてください",
+      "2": "頭をクリックしてください",
+      "3": "片腕をクリックしてください",
+      "4": "左足をクリックしてください",
+      "5": "右足をクリックしてください"
+    },
+    "pointProgress": "{set} / 5",
+    "allPointsSet": "ポイント設定完了",
+    "pointSet": "ポイント設定済み",
+    "pointUnset": "タップしてポイントを設定",
+    "dotRemoveHint": "クリックしてポイントを削除",
+    "prev": "← 前へ",
+    "next": "次のフレーム →",
+    "continue": "合成を開始 →"
+  },
+  "motionUpload": {
+    "label": "MOTION",
+    "title": "動画または写真をアップロード",
+    "subtitle": "短いクリップまたは写真をアップロードしてコンポジットデザインを作成します。",
+    "dropzone": {
+      "title": "ここに動画または写真をドロップするかクリックして選択",
+      "subtitle": "対応形式: {formats} · 最大 {max} MB · 動画は最大60秒"
+    },
+    "changeFile": "ファイルを変更",
+    "uploadingFile": "アップロード中…",
+    "uploading": "フレームを抽出中…",
+    "uploadingImage": "写真を準備中…",
+    "frameInterval": {
+      "label": "フレーム間隔",
+      "every": "{n}フレームごと",
+      "hint": "間隔が小さいほど多くのフレーム = より密なコンポジット。"
+    },
+    "success": {
+      "title": "フレーム抽出完了",
+      "frames": "フレーム数",
+      "duration": "再生時間",
+      "fps": "FPS"
+    },
+    "actions": {
+      "upload": "フレームを抽出",
+      "uploadImage": "この写真を使用",
+      "continue": "デザインを続ける →",
+      "uploadAnother": "別の動画をアップロード"
+    },
+    "errors": {
+      "invalidFormat": ".mp4、.mov、.avi、.jpg、.jpeg、.pngファイルのみ対応しています。",
+      "tooLarge": "ファイルサイズは {max} MB 以下にしてください。",
+      "uploadFailed": "アップロードに失敗しました。もう一度お試しください。",
+      "networkError": "ネットワークエラー。処理サービスが起動しているか確認してください。",
+      "parseFailed": "サーバーから予期しない応答がありました。"
     }
   },
   "layout": {

@@ -125,7 +125,7 @@
     },
     "activity": {
       "name": "Activity Name",
-      "namePlaceholder": "E.G. CYCLING TOUR",
+      "namePlaceholder": "Type your activity",
       "date": "Activity Date",
       "datePlaceholder": "E.g. 3 NOVEMBER 2024",
       "location": "Location",
@@ -263,6 +263,117 @@
       "long": "Long route · High density, bold print",
       "clean": "Clean route · Good for A3",
       "noDesign": "No route data · Can't be designed"
+    }
+  },
+  "motionComposite": {
+    "label": "MOTION",
+    "title": "GENERATE COMPOSITE",
+    "subtitle": "Generate your motion composite from the selected frames.",
+    "config": {
+      "title": "Configuration",
+      "personColor": "Person Outline Color",
+      "bgColor": "Background Outline Color",
+      "thickness": "Outline Thickness",
+      "frameInterval": "Frame Interval",
+      "everyN": "Every {n}th frame",
+      "outputFormat": "Output Format"
+    },
+    "idle": {
+      "title": "Ready to generate",
+      "subtitle": "Click Generate to start compositing your frames."
+    },
+    "processing": {
+      "title": "Processing"
+    },
+    "steps": {
+      "extracting_frames": "Extracting frames",
+      "masking": "AI person masking",
+      "outlining": "Outline conversion",
+      "compositing": "Compositing frames"
+    },
+    "frames": {
+      "title": "Selected Frames",
+      "count": "{count} frames",
+      "empty": "No frames selected"
+    },
+    "success": {
+      "videoReady": "Composite ready.",
+      "download": "Download PNG",
+      "downloading": "Saving...",
+      "submit": "Continue to Design",
+      "submitting": "Preparing...",
+      "selectLayer": "Select layer",
+      "dragHint": "Drag the canvas to reposition each figure"
+    },
+    "actions": {
+      "generate": "Generate Composite"
+    },
+    "errors": {
+      "startFailed": "Failed to start processing. Please try again.",
+      "processFailed": "Processing failed. Please try again.",
+      "pollFailed": "Lost connection to processing service.",
+      "timeout": "Processing timed out (5 min). Please try again.",
+      "retry": "Try again"
+    }
+  },
+  "motionPointSelect": {
+    "label": "MOTION",
+    "title": "SELECT POINTS",
+    "subtitle": "Click the person first, then up to 2 object points. Click a dot to remove it.",
+    "personPointLabel": "1st — Person",
+    "objectPointLabel": "2nd & 3rd — Object",
+    "frameCounter": "{current} / {total}",
+    "stepGuide": {
+      "1": "Click the center of the torso",
+      "2": "Click the head",
+      "3": "Click one arm",
+      "4": "Click the left leg",
+      "5": "Click the right leg"
+    },
+    "pointProgress": "{set} / 5",
+    "allPointsSet": "All points set",
+    "pointSet": "Point set",
+    "pointUnset": "Tap to set point",
+    "dotRemoveHint": "Click to remove point",
+    "prev": "← Prev",
+    "next": "Next Frame →",
+    "continue": "Start Composite →"
+  },
+  "motionUpload": {
+    "label": "MOTION",
+    "title": "UPLOAD VIDEO OR PHOTO",
+    "subtitle": "Drop a short clip or photo and we'll prepare it for compositing.",
+    "dropzone": {
+      "title": "Drop video or photo here, or click to browse",
+      "subtitle": "Supported: {formats} · Max {max} MB · Videos up to 60 seconds"
+    },
+    "changeFile": "Change file",
+    "uploadingFile": "Uploading…",
+    "uploading": "Extracting frames…",
+    "uploadingImage": "Preparing photo…",
+    "frameInterval": {
+      "label": "Frame Interval",
+      "every": "Every {n}th",
+      "hint": "Lower interval = more frames = denser composite."
+    },
+    "success": {
+      "title": "Frames extracted",
+      "frames": "Frames",
+      "duration": "Duration",
+      "fps": "FPS"
+    },
+    "actions": {
+      "upload": "Extract Frames",
+      "uploadImage": "Use This Photo",
+      "continue": "Continue to Design →",
+      "uploadAnother": "Upload another video"
+    },
+    "errors": {
+      "invalidFormat": "Only .mp4, .mov, .avi, .jpg, .jpeg, and .png files are supported.",
+      "tooLarge": "File must be {max} MB or less.",
+      "uploadFailed": "Upload failed. Please try again.",
+      "networkError": "Network error. Is the processing service running?",
+      "parseFailed": "Unexpected response from server."
     }
   },
   "layout": {

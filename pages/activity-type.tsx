@@ -18,17 +18,17 @@ export default function ActivityTypePage() {
       available: true,
     },
     {
-      type: null,
+      type: 'motion' as ActivityType,
       label: 'MOTION',
       description: t('activities.motion.description'),
       image: '/activity-type/motion.jpg',
-      available: false,
+      available: true,
     },
   ];
 
   function handleSelect(type: ActivityType) {
     sessionStorage.setItem('activityType', type);
-    void router.push('/start');
+    void router.push(type === 'motion' ? '/motion/upload' : '/start');
   }
 
   return (

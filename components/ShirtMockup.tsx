@@ -30,6 +30,13 @@ export default function ShirtMockup({
       ? '/resources/black-tshirt-front.png'
       : '/resources/white-tshirt-front.png';
 
+  // Preload displacement map as soon as the component mounts so it's
+  // already cached by the time posterSnapshot arrives.
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/resources/tshirt-back-displacement-map.png';
+  }, []);
+
   useEffect(() => {
     if (!posterSnapshot) {
       setWarpedDesign(null);
@@ -50,17 +57,6 @@ export default function ShirtMockup({
       .then(setWarpedDesign)
       .catch((err) => {
         console.error('Displacement map 적용 실패:', err);
-        // DEBUG
-        const box = document.getElementById('__disp_debug__') ?? (() => {
-          const b = document.createElement('div');
-          b.id = '__disp_debug__';
-          b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,80,0.9);color:#ff0;font:12px monospace;padding:8px;max-height:50vh;overflow-y:auto';
-          document.body.appendChild(b);
-          return b;
-        })();
-        const line = document.createElement('div');
-        line.textContent = `[ShirtMockup] applyDisplacementMap catch: ${String(err)}`;
-        box.appendChild(line);
         setWarpedDesign(null); // fallback: 원본 사용
       })
       .finally(() => setIsWarping(false));

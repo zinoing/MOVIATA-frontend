@@ -3,40 +3,13 @@
 /**
  * 이미지를 로드하는 헬퍼 함수
  */
-function showDebug(msg: string) {
-  if (typeof document === 'undefined') return;
-  let box = document.getElementById('__disp_debug__');
-  if (!box) {
-    box = document.createElement('div');
-    box.id = '__disp_debug__';
-    box.style.cssText = [
-      'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:99999',
-      'background:rgba(0,0,80,0.9)', 'color:#ff0', 'font:12px monospace',
-      'padding:8px', 'max-height:50vh', 'overflow-y:auto',
-      'white-space:pre-wrap', 'word-break:break-all',
-    ].join(';');
-    document.body.appendChild(box);
-  }
-  const line = document.createElement('div');
-  line.textContent = `[${new Date().toISOString().slice(11,23)}] ${msg}`;
-  box.appendChild(line);
-  box.scrollTop = box.scrollHeight;
-}
-
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      showDebug(`loadImage ok: ${src.slice(0, 60)} naturalW=${img.naturalWidth}`);
-      resolve(img);
-    };
-    img.onerror = (e) => {
-      showDebug(`loadImage FAILED: ${src.slice(0, 60)} err=${String(e)}`);
-      reject(e);
-    };
+    img.onload = () => resolve(img);
+    img.onerror = reject;
     img.src = src;
-    showDebug(`loadImage start: ${src.slice(0, 60)}`);
   });
 }
 
@@ -148,7 +121,5 @@ export async function applyDisplacementMap(
   }
 
   outCtx.putImageData(outData, 0, 0);
-  const result = outCanvas.toDataURL('image/png');
-  showDebug(`applyDisplacementMap done, result len=${result.length}`);
-  return result;
+  return outCanvas.toDataURL('image/png');
 }

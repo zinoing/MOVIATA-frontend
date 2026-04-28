@@ -36,31 +36,61 @@
  * Images that already have a data: src or have no src are skipped.
  * Fetch failures are silently ignored (original src left unchanged).
  */
+// ─── DEBUG OVERLAY ───────────────────────────────────────────────
+function showDebug(msg: string) {
+  let box = document.getElementById('__capture_debug__');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = '__capture_debug__';
+    box.style.cssText = [
+      'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:99999',
+      'background:rgba(0,0,0,0.85)', 'color:#0f0', 'font:12px monospace',
+      'padding:8px', 'max-height:50vh', 'overflow-y:auto',
+      'white-space:pre-wrap', 'word-break:break-all',
+    ].join(';');
+    document.body.appendChild(box);
+  }
+  const line = document.createElement('div');
+  line.textContent = `[${new Date().toISOString().slice(11,23)}] ${msg}`;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+// ─────────────────────────────────────────────────────────────────
+
 async function inlineImages(el: HTMLElement): Promise<Map<HTMLImageElement, string>> {
   const imgs = Array.from(el.querySelectorAll<HTMLImageElement>('img'));
+  showDebug(`inlineImages: found ${imgs.length} img(s)`);
   const saved = new Map<HTMLImageElement, string>();
 
   await Promise.all(
     imgs.map(async (img) => {
       const src = img.src;
-      if (!src || src.startsWith('data:')) return;
+      showDebug(`img src="${src.slice(0,80)}" complete=${img.complete} naturalW=${img.naturalWidth}`);
+      if (!src || src.startsWith('data:')) {
+        showDebug(`  → skip (data: or empty)`);
+        return;
+      }
 
       saved.set(img, src);
 
       try {
+        showDebug(`  → fetch start`);
         const res = await fetch(src, { credentials: 'omit' });
+        showDebug(`  → fetch ok status=${res.status}`);
         const blob = await res.blob();
+        showDebug(`  → blob size=${blob.size} type=${blob.type}`);
         const dataUrl = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result as string);
           reader.onerror = reject;
           reader.readAsDataURL(blob);
         });
+        showDebug(`  → dataUrl len=${dataUrl.length}`);
         img.src = dataUrl;
-        // src 교체 후 완전히 decode될 때까지 기다려야 toPng()에서 빠지지 않음
-        await img.decode().catch(() => {});
-      } catch {
-        // fetch 실패 시 이미 브라우저에 캐시된 이미지를 canvas로 직접 변환
+        await img.decode().catch((e) => showDebug(`  → decode error: ${e}`));
+        showDebug(`  → decode done naturalW=${img.naturalWidth}`);
+      } catch (e) {
+        showDebug(`  → fetch FAILED: ${e}`);
         try {
           await new Promise<void>((resolve, reject) => {
             if (img.complete && img.naturalWidth > 0) { resolve(); return; }
@@ -72,14 +102,16 @@ async function inlineImages(el: HTMLElement): Promise<Map<HTMLImageElement, stri
           cvs.height = img.naturalHeight;
           cvs.getContext('2d')!.drawImage(img, 0, 0);
           img.src = cvs.toDataURL('image/png');
-        } catch {
-          // canvas 변환도 실패 시 원본 src 유지
+          showDebug(`  → canvas fallback ok naturalW=${img.naturalWidth}`);
+        } catch (e2) {
+          showDebug(`  → canvas fallback FAILED: ${e2}`);
           saved.delete(img);
         }
       }
     }),
   );
 
+  showDebug(`inlineImages done, saved.size=${saved.size}`);
   return saved;
 }
 
@@ -165,21 +197,31 @@ export async function capturePosterCard(
   const savedImgSrcs = await inlineImages(captureTarget);
 
   // Wait until every img inside the card has a resolved naturalWidth.
-  // Safari iOS may defer layout for width:auto images even after decode(),
-  // so we poll until all images report naturalWidth > 0 (max 2s timeout).
+  showDebug('polling naturalWidth...');
   await Promise.all(
     Array.from(captureTarget.querySelectorAll<HTMLImageElement>('img')).map((img) =>
       new Promise<void>((resolve) => {
-        if (img.naturalWidth > 0) { resolve(); return; }
+        if (img.naturalWidth > 0) {
+          showDebug(`  poll ok immediately: src=${img.src.slice(0,60)} naturalW=${img.naturalWidth}`);
+          resolve(); return;
+        }
         const start = Date.now();
         const check = () => {
-          if (img.naturalWidth > 0 || Date.now() - start > 2000) { resolve(); return; }
+          if (img.naturalWidth > 0) {
+            showDebug(`  poll ok after ${Date.now()-start}ms: src=${img.src.slice(0,60)} naturalW=${img.naturalWidth}`);
+            resolve(); return;
+          }
+          if (Date.now() - start > 2000) {
+            showDebug(`  poll TIMEOUT: src=${img.src.slice(0,60)} naturalW=${img.naturalWidth}`);
+            resolve(); return;
+          }
           requestAnimationFrame(check);
         };
         requestAnimationFrame(check);
       }),
     ),
   );
+  showDebug('polling done → calling toPng');
 
   try {
     // Layer 1: capture card UI with html-to-image at full pixel ratio

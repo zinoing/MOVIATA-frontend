@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
-import { MOTION_API_BASE_URL } from '../../lib/api';
+import { getFrameImageUrl } from '../../lib/motionApi';
 
 const MAX_POINTS = 3;
 const DOT_COLORS = ['#FF5A1F', '#3B82F6', '#3B82F6'] as const;
@@ -17,9 +17,33 @@ export default function MotionPointSelectPage() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [selectedFrames, setSelectedFrames] = useState<number[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
-  // Map<frameIndex, XY[]> — 0~MAX_POINTS 개
   const [points, setPoints] = useState<Map<number, XY[]>>(new Map());
   const imgRef = useRef<HTMLImageElement>(null);
+
+  // blob URL cache: frameIndex → object URL
+  const [frameSrcs, setFrameSrcs] = useState<Record<number, string>>({});
+  const fetchingFrames = useRef<Set<number>>(new Set());
+  const frameSrcsRef = useRef<Record<number, string>>({});
+
+  // Revoke blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(frameSrcsRef.current).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  function ensureFrameSrc(jid: string, frameIndex: number) {
+    if (frameSrcsRef.current[frameIndex] !== undefined) return;
+    if (fetchingFrames.current.has(frameIndex)) return;
+    fetchingFrames.current.add(frameIndex);
+    getFrameImageUrl(jid, frameIndex)
+      .then((url) => {
+        frameSrcsRef.current[frameIndex] = url;
+        setFrameSrcs((prev) => ({ ...prev, [frameIndex]: url }));
+      })
+      .catch(() => { /* show empty img on error */ })
+      .finally(() => { fetchingFrames.current.delete(frameIndex); });
+  }
 
   useEffect(() => {
     const id = sessionStorage.getItem('motionJobId');
@@ -31,7 +55,6 @@ export default function MotionPointSelectPage() {
       if (raw) setSelectedFrames(JSON.parse(raw) as number[]);
     } catch { /* ignore */ }
 
-    // 이전에 저장된 포인트 복원
     try {
       const coordsRaw = sessionStorage.getItem('motionPointCoords');
       if (coordsRaw) {
@@ -43,13 +66,27 @@ export default function MotionPointSelectPage() {
     } catch { /* ignore */ }
   }, [router]);
 
+  // Fetch blob URLs for current frame and all thumbnails whenever jobId or frames change
+  useEffect(() => {
+    if (!jobId || selectedFrames.length === 0) return;
+    selectedFrames.forEach((fi) => ensureFrameSrc(jobId, fi));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId, selectedFrames.join(',')]);
+
+  // Also fetch current frame eagerly on navigation between frames
+  useEffect(() => {
+    if (!jobId || selectedFrames.length === 0) return;
+    const fi = selectedFrames[currentIdx];
+    if (fi !== undefined) ensureFrameSrc(jobId, fi);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIdx, jobId]);
+
   if (!jobId || selectedFrames.length === 0) return null;
 
-  const currentFrameIndex = selectedFrames[currentIdx];
+  const currentFrameIndex = selectedFrames[currentIdx]!;
   const totalFrames = selectedFrames.length;
   const currentPoints = points.get(currentFrameIndex) ?? [];
   const isFull = currentPoints.length >= MAX_POINTS;
-
   const allPointed = selectedFrames.every((fi) => (points.get(fi)?.length ?? 0) > 0);
 
   function handleImageClick(e: React.MouseEvent<HTMLDivElement>) {
@@ -104,17 +141,17 @@ export default function MotionPointSelectPage() {
             </h1>
             <p className="mt-4 text-sm leading-7 text-neutral-500">{t('subtitle')}</p>
 
-          {/* Color legend */}
-          <div className="mt-4 flex items-center justify-center gap-5 text-xs text-neutral-500">
-            <span className="flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 rounded-full bg-[#FF5A1F]" />
-              {t('personPointLabel')}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 rounded-full bg-[#3B82F6]" />
-              {t('objectPointLabel')}
-            </span>
-          </div>
+            {/* Color legend */}
+            <div className="mt-4 flex items-center justify-center gap-5 text-xs text-neutral-500">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-3 w-3 rounded-full bg-[#FF5A1F]" />
+                {t('personPointLabel')}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-3 w-3 rounded-full bg-[#3B82F6]" />
+                {t('objectPointLabel')}
+              </span>
+            </div>
           </div>
 
           {/* Card */}
@@ -139,7 +176,7 @@ export default function MotionPointSelectPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   ref={imgRef}
-                  src={`${MOTION_API_BASE_URL}/api/video/frame/${jobId}/${currentFrameIndex}`}
+                  src={frameSrcs[currentFrameIndex] ?? ''}
                   alt={`Frame ${currentFrameIndex}`}
                   className="block w-full h-auto"
                   draggable={false}
@@ -183,7 +220,7 @@ export default function MotionPointSelectPage() {
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={`${MOTION_API_BASE_URL}/api/video/frame/${jobId}/${fi}`}
+                        src={frameSrcs[fi] ?? ''}
                         alt={`Frame ${fi}`}
                         className="absolute inset-0 h-full w-full object-cover"
                       />

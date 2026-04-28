@@ -2,15 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
-import { MOTION_API_BASE_URL } from '../../lib/api';
+import { extractFramesBase64, getFrameImageUrl, type FrameInfo } from '../../lib/motionApi';
 
 const ACCEPTED_VIDEO_FORMATS = ['.mp4', '.mov', '.avi'];
 const ACCEPTED_IMAGE_FORMATS = ['.jpg', '.jpeg', '.png'];
 const ACCEPTED_FORMATS = [...ACCEPTED_VIDEO_FORMATS, ...ACCEPTED_IMAGE_FORMATS];
 const MAX_SIZE_MB = 500;
 const MAX_FRAME_SELECT = 4;
-
-type FrameInfo = { index: number; timestamp_sec: number; path: string };
 
 type UploadState =
   | { status: 'idle' }
@@ -52,6 +50,7 @@ function TimelineSelector({
   onRemoveSlot,
   onContinue,
   onReset,
+  frameSrcs,
 }: {
   jobId: string;
   frames: FrameInfo[];
@@ -62,6 +61,7 @@ function TimelineSelector({
   onRemoveSlot: (idx: number) => void;
   onContinue: () => void;
   onReset: () => void;
+  frameSrcs: Record<number, string>;
 }) {
   const t = useTranslations('motionUpload');
 
@@ -69,6 +69,8 @@ function TimelineSelector({
   const isFull = selectedFrameIndices.length >= MAX_FRAME_SELECT;
   const isCurrentPinned = currentFrame !== null && selectedFrameIndices.includes(currentFrame.index);
   const maxSeek = Math.max(frames.length - 1, 1);
+
+  void jobId; // used by parent to fetch frameSrcs
 
   return (
     <div className="flex flex-col gap-3">
@@ -81,7 +83,7 @@ function TimelineSelector({
           {currentFrame ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
-              src={`${MOTION_API_BASE_URL}/api/video/frame/${jobId}/${currentFrame.index}`}
+              src={frameSrcs[currentFrame.index] ?? ''}
               alt={`Frame ${currentFrame.index}`}
               className="block h-auto w-full"
               draggable={false}
@@ -119,7 +121,6 @@ function TimelineSelector({
 
         {/* Timeline scrubber */}
         <div className="relative px-5 py-3">
-          {/* Track background + orange fill */}
           <div className="pointer-events-none absolute inset-x-[25px] top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[#E0E0E0]">
             <div
               className="h-full rounded-full bg-[#FF5A1F] transition-none"
@@ -127,7 +128,6 @@ function TimelineSelector({
             />
           </div>
 
-          {/* Marker dots — inset-x-[10px] aligns with the slider thumb center range */}
           <div className="pointer-events-none absolute inset-x-[25px] top-1/2 h-0">
             {selectedFrameIndices.map((frameIdx) => {
               const pos = frames.findIndex((f) => f.index === frameIdx);
@@ -183,7 +183,7 @@ function TimelineSelector({
                         <>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={`${MOTION_API_BASE_URL}/api/video/frame/${jobId}/${frameIdx}`}
+                            src={frameSrcs[frameIdx] ?? ''}
                             alt={`Selected frame ${frameIdx}`}
                             className="absolute inset-0 h-full w-full object-cover"
                           />
@@ -237,7 +237,7 @@ export default function MotionUploadPage() {
   const tCommon = useTranslations('common');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const xhrRef = useRef<XMLHttpRequest | null>(null);
+  const cancelledRef = useRef(false);
 
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -245,6 +245,47 @@ export default function MotionUploadPage() {
   const [selectedFrameIndices, setSelectedFrameIndices] = useState<number[]>([]);
   const [seekIndex, setSeekIndex] = useState(0);
 
+  // blob URL cache: frameIndex → object URL
+  const [frameSrcs, setFrameSrcs] = useState<Record<number, string>>({});
+  const fetchingFrames = useRef<Set<number>>(new Set());
+  const frameSrcsRef = useRef<Record<number, string>>({});
+
+  // Revoke all blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(frameSrcsRef.current).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  function ensureFrameSrc(jobId: string, frameIndex: number) {
+    if (frameSrcsRef.current[frameIndex] !== undefined) return;
+    if (fetchingFrames.current.has(frameIndex)) return;
+    fetchingFrames.current.add(frameIndex);
+    getFrameImageUrl(jobId, frameIndex)
+      .then((url) => {
+        frameSrcsRef.current[frameIndex] = url;
+        setFrameSrcs((prev) => ({ ...prev, [frameIndex]: url }));
+      })
+      .catch(() => { /* show empty img on error */ })
+      .finally(() => { fetchingFrames.current.delete(frameIndex); });
+  }
+
+  // Fetch current seek frame
+  useEffect(() => {
+    if (uploadState.status !== 'success') return;
+    const frame = uploadState.frames[seekIndex];
+    if (frame) ensureFrameSrc(uploadState.jobId, frame.index);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seekIndex, uploadState.status === 'success' && (uploadState as { jobId?: string }).jobId]);
+
+  // Fetch selected slot frames
+  useEffect(() => {
+    if (uploadState.status !== 'success') return;
+    selectedFrameIndices.forEach((idx) => ensureFrameSrc((uploadState as { jobId: string }).jobId, idx));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFrameIndices.join(','), uploadState.status === 'success' && (uploadState as { jobId?: string }).jobId]);
+
+  // Restore state from sessionStorage
   useEffect(() => {
     const savedJobId = sessionStorage.getItem('motionJobId');
     const savedFramesMeta = sessionStorage.getItem('motionFramesMeta');
@@ -290,91 +331,95 @@ export default function MotionUploadPage() {
   function handleDragOver(e: React.DragEvent<HTMLDivElement>) { e.preventDefault(); setIsDragging(true); }
   function handleDragLeave() { setIsDragging(false); }
 
-  function handleUpload() {
+  async function handleUpload() {
     if (!selectedFile || uploadState.status === 'uploading') return;
+    cancelledRef.current = false;
 
     const ext = '.' + (selectedFile.name.split('.').pop()?.toLowerCase() ?? '');
     const isImage = ACCEPTED_IMAGE_FORMATS.includes(ext);
 
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    if (!isImage) formData.append('n', '15');
+    // Phase 1: FileReader progress (replaces XHR upload progress)
+    let base64: string;
+    try {
+      base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadstart = () => setUploadState({ status: 'uploading', progress: 0 });
+        reader.onprogress = (e) => {
+          if (cancelledRef.current) { reader.abort(); return; }
+          if (e.lengthComputable)
+            setUploadState({ status: 'uploading', progress: Math.round((e.loaded / e.total) * 100) });
+        };
+        reader.onload = () => resolve((reader.result as string).split(',')[1] ?? '');
+        reader.onerror = () => reject(new Error(t('errors.networkError')));
+        reader.onabort = () => reject(new Error('cancelled'));
+        reader.readAsDataURL(selectedFile);
+      });
+    } catch (err) {
+      if ((err as Error).message === 'cancelled') return;
+      setUploadState({ status: 'error', message: (err as Error).message });
+      return;
+    }
 
-    const xhr = new XMLHttpRequest();
-    xhrRef.current = xhr;
+    if (cancelledRef.current) return;
 
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable)
-        setUploadState({ status: 'uploading', progress: Math.round((e.loaded / e.total) * 100) });
-    });
+    // Phase 2: RunPod call
+    setUploadState({ status: 'processing' });
+    try {
+      const data = await extractFramesBase64(
+        selectedFile.name,
+        selectedFile.type,
+        base64,
+        isImage ? 1 : 15,
+      );
 
-    xhr.upload.addEventListener('load', () => {
-      setUploadState({ status: 'processing' });
-    });
+      if (cancelledRef.current) return;
 
-    xhr.addEventListener('load', () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const data = JSON.parse(xhr.responseText) as {
-            job_id: string;
-            frames_extracted: number;
-            duration_sec: number;
-            fps: number;
-            frames: Array<{ index: number; timestamp_sec: number; path: string }>;
-          };
-          const frames: FrameInfo[] = (data.frames ?? []).map((f) => ({
-            index: f.index,
-            timestamp_sec: f.timestamp_sec,
-            path: f.path,
-          }));
-          sessionStorage.setItem('motionJobId', data.job_id);
-          sessionStorage.setItem('motionFramesMeta', JSON.stringify(frames));
-          if (isImage) {
-            sessionStorage.setItem('motionFileType', 'image');
-            const indices = frames.length > 0 ? [frames[0].index] : [];
-            sessionStorage.setItem('motionSelectedFrames', JSON.stringify(indices));
-            sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify(
-              frames.length > 0 ? [frames[0].path] : []
-            ));
-            void router.push('/motion/point-select');
-            return;
-          }
-          sessionStorage.setItem('motionFileType', 'video');
-          setSeekIndex(0);
-          setSelectedFrameIndices([]);
-          sessionStorage.setItem('motionSelectedFrames', JSON.stringify([]));
-          sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify([]));
-          setUploadState({
-            status: 'success',
-            fileType: 'video',
-            jobId: data.job_id,
-            framesExtracted: data.frames_extracted,
-            durationSec: data.duration_sec,
-            fps: data.fps,
-            frames,
-          });
-        } catch {
-          setUploadState({ status: 'error', message: t('errors.parseFailed') });
-        }
-      } else {
-        let detail = t('errors.uploadFailed');
-        try {
-          const errData = JSON.parse(xhr.responseText) as { detail?: string };
-          if (errData.detail) detail = errData.detail;
-        } catch { /* use default */ }
-        setUploadState({ status: 'error', message: detail });
+      const frames: FrameInfo[] = (data.frames ?? []).map((f) => ({
+        index: f.index,
+        timestamp_sec: f.timestamp_sec,
+        path: f.path,
+      }));
+
+      sessionStorage.setItem('motionJobId', data.job_id);
+      sessionStorage.setItem('motionFramesMeta', JSON.stringify(frames));
+
+      if (isImage) {
+        sessionStorage.setItem('motionFileType', 'image');
+        const indices = frames.length > 0 ? [frames[0].index] : [];
+        sessionStorage.setItem('motionSelectedFrames', JSON.stringify(indices));
+        sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify(
+          frames.length > 0 ? [frames[0].path] : []
+        ));
+        void router.push('/motion/point-select');
+        return;
       }
-    });
 
-    xhr.addEventListener('error', () => setUploadState({ status: 'error', message: t('errors.networkError') }));
-    xhr.addEventListener('abort', () => setUploadState({ status: 'idle' }));
-
-    xhr.open('POST', `${MOTION_API_BASE_URL}/api/video/extract-frames`);
-    xhr.send(formData);
-    setUploadState({ status: 'uploading', progress: 0 });
+      sessionStorage.setItem('motionFileType', 'video');
+      setSeekIndex(0);
+      setSelectedFrameIndices([]);
+      sessionStorage.setItem('motionSelectedFrames', JSON.stringify([]));
+      sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify([]));
+      setUploadState({
+        status: 'success',
+        fileType: 'video',
+        jobId: data.job_id,
+        framesExtracted: data.frames_extracted,
+        durationSec: data.duration_sec,
+        fps: data.fps,
+        frames,
+      });
+    } catch (err) {
+      if (cancelledRef.current) return;
+      let detail = t('errors.uploadFailed');
+      if (err instanceof Error) detail = err.message;
+      setUploadState({ status: 'error', message: detail });
+    }
   }
 
-  function handleCancel() { xhrRef.current?.abort(); }
+  function handleCancel() {
+    cancelledRef.current = true;
+    setUploadState({ status: 'idle' });
+  }
 
   function handleReset() {
     setSelectedFile(null);
@@ -485,7 +530,7 @@ export default function MotionUploadPage() {
                 )}
               </div>
 
-              {/* Upload progress */}
+              {/* Upload progress (FileReader phase) */}
               {uploadState.status === 'uploading' && (
                 <div className="px-8 py-5 border-b border-neutral-100">
                   <div className="flex justify-between text-xs text-neutral-500 mb-2">
@@ -498,7 +543,7 @@ export default function MotionUploadPage() {
                 </div>
               )}
 
-              {/* Frame extraction progress (server-side, indeterminate) */}
+              {/* Processing (RunPod call phase) */}
               {uploadState.status === 'processing' && (
                 <div className="px-8 py-5 border-b border-neutral-100">
                   <div className="flex justify-between text-xs text-neutral-500 mb-2">
@@ -519,7 +564,7 @@ export default function MotionUploadPage() {
                   </button>
                 ) : (
                   <>
-                    <button type="button" onClick={handleUpload} disabled={!selectedFile} className="w-full rounded-[14px] bg-neutral-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#FF5A1F] disabled:cursor-not-allowed disabled:opacity-40">
+                    <button type="button" onClick={() => void handleUpload()} disabled={!selectedFile} className="w-full rounded-[14px] bg-neutral-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#FF5A1F] disabled:cursor-not-allowed disabled:opacity-40">
                       {isImageFile ? t('actions.uploadImage') : t('actions.upload')}
                     </button>
                     <button type="button" onClick={() => void router.back()} className="text-center text-xs text-neutral-400 transition-colors hover:text-neutral-600">
@@ -543,6 +588,7 @@ export default function MotionUploadPage() {
               onRemoveSlot={handleRemoveSlot}
               onContinue={handleContinue}
               onReset={handleReset}
+              frameSrcs={frameSrcs}
             />
           )}
 

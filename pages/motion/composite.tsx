@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
-import { MOTION_API_BASE_URL } from '../../lib/api';
+import {
+  processComposite,
+  getJobStatus,
+  getLayerImageUrl,
+  getFrameImageUrl,
+  type LayerMeta,
+} from '../../lib/motionApi';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-type LayerMeta = { index: number; x: number; y: number; w: number; h: number; frame_w: number; frame_h: number };
 
 type LayerTransform = { dx: number; dy: number; scale: number; rotation: number };
 
@@ -68,7 +72,49 @@ export default function MotionCompositePage() {
   const [activeLayer, setActiveLayer] = useState<number | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Window-level mouse handlers for all drag types
+  // blob URL caches
+  const [frameSrcs, setFrameSrcs] = useState<Record<number, string>>({});
+  const [layerSrcs, setLayerSrcs] = useState<Record<number, string>>({});
+  const frameSrcsRef = useRef<Record<number, string>>({});
+  const layerSrcsRef = useRef<Record<number, string>>({});
+  const fetchingFrames = useRef<Set<number>>(new Set());
+  const fetchingLayers = useRef<Set<number>>(new Set());
+
+  // Revoke blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(frameSrcsRef.current).forEach((url) => URL.revokeObjectURL(url));
+      Object.values(layerSrcsRef.current).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  function ensureFrameSrc(jid: string, frameIndex: number) {
+    if (frameSrcsRef.current[frameIndex] !== undefined) return;
+    if (fetchingFrames.current.has(frameIndex)) return;
+    fetchingFrames.current.add(frameIndex);
+    getFrameImageUrl(jid, frameIndex)
+      .then((url) => {
+        frameSrcsRef.current[frameIndex] = url;
+        setFrameSrcs((prev) => ({ ...prev, [frameIndex]: url }));
+      })
+      .catch(() => {})
+      .finally(() => { fetchingFrames.current.delete(frameIndex); });
+  }
+
+  function ensureLayerSrc(jid: string, index: number) {
+    if (layerSrcsRef.current[index] !== undefined) return;
+    if (fetchingLayers.current.has(index)) return;
+    fetchingLayers.current.add(index);
+    getLayerImageUrl(jid, index)
+      .then((url) => {
+        layerSrcsRef.current[index] = url;
+        setLayerSrcs((prev) => ({ ...prev, [index]: url }));
+      })
+      .catch(() => {})
+      .finally(() => { fetchingLayers.current.delete(index); });
+  }
+
+  // Window-level mouse handlers for drag
   useEffect(() => {
     function onMove(e: MouseEvent) {
       const drag = dragRef.current;
@@ -87,9 +133,7 @@ export default function MotionCompositePage() {
         return next;
       });
     }
-    function onUp() {
-      dragRef.current = null;
-    }
+    function onUp() { dragRef.current = null; }
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     return () => {
@@ -98,6 +142,7 @@ export default function MotionCompositePage() {
     };
   }, []);
 
+  // Restore state from sessionStorage
   useEffect(() => {
     const id = sessionStorage.getItem('motionJobId');
     if (!id) { void router.replace('/motion/upload'); return; }
@@ -120,25 +165,42 @@ export default function MotionCompositePage() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [router]);
 
+  // Fetch frame thumbnail blob URLs
+  useEffect(() => {
+    if (!jobId || selectedFrames.length === 0) return;
+    selectedFrames.forEach((fi) => ensureFrameSrc(jobId, fi));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId, selectedFrames.join(',')]);
+
+  // Fetch layer blob URLs when processing succeeds
+  useEffect(() => {
+    if (processState.status !== 'success') return;
+    const { jobId: jid, layers } = processState;
+    // Reset previous layer cache
+    Object.values(layerSrcsRef.current).forEach((url) => URL.revokeObjectURL(url));
+    layerSrcsRef.current = {};
+    fetchingLayers.current.clear();
+    setLayerSrcs({});
+    layers.forEach((_, i) => ensureLayerSrc(jid, i));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [processState.status === 'success' && (processState as { jobId?: string }).jobId]);
+
   function startPolling(taskId: string) {
     if (pollRef.current) clearInterval(pollRef.current);
     const startedAt = Date.now();
     let consecutivePollErrors = 0;
+    let inFlight = false;
 
     const intervalId = setInterval(async () => {
+      if (inFlight) return;
       if (Date.now() - startedAt > 5 * 60 * 1000) {
         clearInterval(intervalId);
         setProcessState({ status: 'error', message: t('errors.timeout') });
         return;
       }
+      inFlight = true;
       try {
-        const res = await fetch(`${MOTION_API_BASE_URL}/api/video/status/${taskId}`);
-        const data = (await res.json()) as {
-          status: string;
-          progress?: { step: string; progress: number };
-          result?: { job_id: string; layers: LayerMeta[] };
-          error?: string;
-        };
+        const data = await getJobStatus(taskId);
         consecutivePollErrors = 0;
 
         if (data.status === 'SUCCESS' && data.result) {
@@ -162,6 +224,8 @@ export default function MotionCompositePage() {
           clearInterval(intervalId);
           setProcessState({ status: 'error', message: t('errors.pollFailed') });
         }
+      } finally {
+        inFlight = false;
       }
     }, 2000);
     pollRef.current = intervalId;
@@ -178,13 +242,7 @@ export default function MotionCompositePage() {
 
     if (lastTaskIdRef.current) {
       try {
-        const res = await fetch(`${MOTION_API_BASE_URL}/api/video/status/${lastTaskIdRef.current}`);
-        const data = (await res.json()) as {
-          status: string;
-          progress?: { step: string; progress: number };
-          result?: { job_id: string; layers: LayerMeta[] };
-          error?: string;
-        };
+        const data = await getJobStatus(lastTaskIdRef.current);
         if (data.status === 'SUCCESS' && data.result) {
           lastTaskIdRef.current = null;
           const layers = data.result.layers ?? [];
@@ -200,20 +258,18 @@ export default function MotionCompositePage() {
       lastTaskIdRef.current = null;
     }
 
-    const form = new FormData();
-    form.append('job_id', jobId);
-    form.append('person_color', '#ffffff');
-    form.append('background_color', '#000000');
-    form.append('outline_thickness', '3');
-    form.append('mode', 'ghost');
-    selectedFramePaths.forEach((p) => form.append('frame_paths', p));
-    if (pointCoords.length > 0) form.append('point_coords', JSON.stringify(pointCoords));
-
     let taskId: string;
     try {
-      const res = await fetch(`${MOTION_API_BASE_URL}/api/video/process`, { method: 'POST', body: form });
-      if (!res.ok) { const e = (await res.json()) as { detail?: string }; throw new Error(e.detail ?? t('errors.startFailed')); }
-      taskId = ((await res.json()) as { celery_task_id: string }).celery_task_id;
+      const result = await processComposite({
+        jobId,
+        framePaths: selectedFramePaths,
+        personColor: '#ffffff',
+        backgroundColor: '#000000',
+        outlineThickness: 3,
+        mode: 'ghost',
+        pointCoords: pointCoords.length > 0 ? pointCoords : undefined,
+      });
+      taskId = result.celery_task_id;
       lastTaskIdRef.current = taskId;
     } catch (e) {
       setProcessState({ status: 'error', message: e instanceof Error ? e.message : t('errors.startFailed') });
@@ -265,15 +321,12 @@ export default function MotionCompositePage() {
     if (!layers.length) return;
     setIsDownloading(true);
     try {
-      const containerW = containerRef.current.clientWidth; // canvas is 1:1 so containerW = containerH
+      const containerW = containerRef.current.clientWidth;
       const frameW = layers[0]!.frame_w;
       const frameH = layers[0]!.frame_h;
-      // Export canvas uses the same coordinate system as the display:
-      // longest side fills the full square, shorter side is centered.
       const longer = Math.max(frameW, frameH);
       const frameOffsetX = (longer - frameW) / 2;
       const frameOffsetY = (longer - frameH) / 2;
-      // px per canvas unit (display)
       const displayScale = containerW / longer;
 
       const cvs = document.createElement('canvas');
@@ -286,15 +339,16 @@ export default function MotionCompositePage() {
       for (let i = 0; i < layers.length; i++) {
         const layer = layers[i]!;
         const tr = transforms[i] ?? DEFAULT_TRANSFORM;
+
+        // Use cached blob URL; fall back to fresh fetch if not ready
+        const src = layerSrcsRef.current[i] ?? await getLayerImageUrl(jid, i);
         const img = new Image();
-        img.crossOrigin = 'anonymous';
         await new Promise<void>(resolve => {
           img.onload = () => resolve();
           img.onerror = () => resolve();
-          img.src = `${MOTION_API_BASE_URL}/api/video/layer/${jid}/${i}`;
+          img.src = src;
         });
 
-        // Center of the layer in the square coordinate system
         const cx = frameOffsetX + layer.x + layer.w / 2 + tr.dx / displayScale;
         const cy = frameOffsetY + layer.y + layer.h / 2 + tr.dy / displayScale;
         ctx.save();
@@ -327,9 +381,6 @@ export default function MotionCompositePage() {
       ? framesMeta.filter((f) => selectedFrames.includes(f.index))
       : selectedFrames.map((idx) => ({ index: idx, timestamp_sec: 0 }));
 
-  const frameW = isSuccess && processState.layers[0] ? processState.layers[0].frame_w : 16;
-  const frameH = isSuccess && processState.layers[0] ? processState.layers[0].frame_h : 9;
-
   if (!jobId) return null;
 
   return (
@@ -359,7 +410,7 @@ export default function MotionCompositePage() {
                       <div className="h-20 w-28 overflow-hidden rounded-[10px] bg-neutral-100">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={`${MOTION_API_BASE_URL}/api/video/frame/${jobId}/${frame.index}`}
+                          src={frameSrcs[frame.index] ?? ''}
                           alt={`Frame ${frame.index}`}
                           className="h-full w-full object-cover"
                           loading="lazy"
@@ -446,10 +497,9 @@ export default function MotionCompositePage() {
                   <p className="text-[11px] text-neutral-400">{t('success.dragHint')}</p>
 
                   <div className="flex justify-center">
-                    {/* Wrapper: relative context for both canvas and handles overlay */}
                     <div style={{ position: 'relative', width: '100%', maxWidth: 600 }}>
 
-                      {/* Canvas — overflow:hidden clips layer images */}
+                      {/* Canvas */}
                       <div
                         ref={containerRef}
                         className="relative w-full select-none overflow-hidden rounded-[18px] bg-black"
@@ -458,15 +508,10 @@ export default function MotionCompositePage() {
                       >
                         {processState.layers.map((layer, i) => {
                           const tr = transforms[i] ?? DEFAULT_TRANSFORM;
-                          // Canvas is 1:1. Map frame coords into canvas percentage.
-                          // The longer side of the frame fills 100% of canvas,
-                          // the shorter side is scaled and centered.
                           const longer = Math.max(layer.frame_w, layer.frame_h);
-                          // pxToPct: converts frame pixels → canvas %
                           const pxToPct = 100 / longer;
                           const frameOffsetX = (longer - layer.frame_w) / 2;
                           const frameOffsetY = (longer - layer.frame_h) / 2;
-
                           const leftPct   = (frameOffsetX + layer.x) * pxToPct;
                           const topPct    = (frameOffsetY + layer.y) * pxToPct;
                           const widthPct  = layer.w * pxToPct;
@@ -477,8 +522,7 @@ export default function MotionCompositePage() {
                             <img
                               key={i}
                               ref={el => { layerRefs.current[i] = el; }}
-                              crossOrigin="anonymous"
-                              src={`${MOTION_API_BASE_URL}/api/video/layer/${processState.jobId}/${i}`}
+                              src={layerSrcs[i] ?? ''}
                               alt={`Layer ${i + 1}`}
                               draggable={false}
                               style={{
@@ -499,12 +543,11 @@ export default function MotionCompositePage() {
                         })}
                       </div>
 
-                      {/* Handles overlay — NOT clipped, sits on top of canvas */}
+                      {/* Handles overlay */}
                       {activeLayer !== null && (() => {
                         const layer = processState.layers[activeLayer];
                         if (!layer) return null;
                         const tr = transforms[activeLayer] ?? DEFAULT_TRANSFORM;
-                        // Same fit logic as the layer images
                         const longer = Math.max(layer.frame_w, layer.frame_h);
                         const pxToPct = 100 / longer;
                         const frameOffsetX = (longer - layer.frame_w) / 2;
@@ -527,62 +570,22 @@ export default function MotionCompositePage() {
                                 pointerEvents: 'none',
                               }}
                             >
-                              {/* Selection border */}
-                              <div style={{
-                                position: 'absolute', inset: 0,
-                                border: '1.5px solid rgba(255,90,31,0.9)',
-                                pointerEvents: 'none',
-                              }} />
-
-                              {/* Rotation stem */}
-                              <div style={{
-                                position: 'absolute',
-                                top: -20, left: '50%',
-                                width: 1, height: 20,
-                                background: 'rgba(255,90,31,0.75)',
-                                transform: 'translateX(-50%)',
-                                pointerEvents: 'none',
-                              }} />
-
-                              {/* Rotation handle */}
+                              <div style={{ position: 'absolute', inset: 0, border: '1.5px solid rgba(255,90,31,0.9)', pointerEvents: 'none' }} />
+                              <div style={{ position: 'absolute', top: -20, left: '50%', width: 1, height: 20, background: 'rgba(255,90,31,0.75)', transform: 'translateX(-50%)', pointerEvents: 'none' }} />
                               <div
                                 onMouseDown={(e) => handleRotateMouseDown(e, activeLayer)}
-                                style={{
-                                  position: 'absolute',
-                                  top: -38, left: '50%',
-                                  transform: 'translateX(-50%)',
-                                  width: 18, height: 18,
-                                  borderRadius: '50%',
-                                  background: 'white',
-                                  border: '1.5px solid rgba(255,90,31,0.9)',
-                                  cursor: 'grab',
-                                  pointerEvents: 'auto',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
-                                }}
+                                style={{ position: 'absolute', top: -38, left: '50%', transform: 'translateX(-50%)', width: 18, height: 18, borderRadius: '50%', background: 'white', border: '1.5px solid rgba(255,90,31,0.9)', cursor: 'grab', pointerEvents: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}
                               >
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
                                   <path d="M4 12a8 8 0 1 0 8-8" stroke="#FF5A1F" strokeWidth="2.5" strokeLinecap="round" />
                                   <path d="M4 8v4h4" stroke="#FF5A1F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                               </div>
-
-                              {/* Resize handles */}
                               {RESIZE_HANDLES.map(({ pos, cursor }, hi) => (
                                 <div
                                   key={hi}
                                   onMouseDown={(e) => handleResizeMouseDown(e, activeLayer)}
-                                  style={{
-                                    position: 'absolute',
-                                    width: 10, height: 10,
-                                    borderRadius: '50%',
-                                    background: 'white',
-                                    border: '1.5px solid rgba(255,90,31,0.9)',
-                                    cursor,
-                                    pointerEvents: 'auto',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                                    ...pos,
-                                  }}
+                                  style={{ position: 'absolute', width: 10, height: 10, borderRadius: '50%', background: 'white', border: '1.5px solid rgba(255,90,31,0.9)', cursor, pointerEvents: 'auto', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', ...pos }}
                                 />
                               ))}
                             </div>
@@ -656,3 +659,4 @@ export default function MotionCompositePage() {
     </Layout>
   );
 }
+

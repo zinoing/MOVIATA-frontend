@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
-import { extractFramesBase64, getFrameImageUrl, type FrameInfo } from '../../lib/motionApi';
+import { IS_RUNPOD, extractFramesBase64, getFrameImageUrl, type FrameInfo, type ExtractFramesResponse } from '../../lib/motionApi';
 
 const ACCEPTED_VIDEO_FORMATS = ['.mp4', '.mov', '.avi'];
 const ACCEPTED_IMAGE_FORMATS = ['.jpg', '.jpeg', '.png'];
@@ -331,6 +331,8 @@ export default function MotionUploadPage() {
   function handleDragOver(e: React.DragEvent<HTMLDivElement>) { e.preventDefault(); setIsDragging(true); }
   function handleDragLeave() { setIsDragging(false); }
 
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
+
   async function handleUpload() {
     if (!selectedFile || uploadState.status === 'uploading') return;
     cancelledRef.current = false;
@@ -338,7 +340,46 @@ export default function MotionUploadPage() {
     const ext = '.' + (selectedFile.name.split('.').pop()?.toLowerCase() ?? '');
     const isImage = ACCEPTED_IMAGE_FORMATS.includes(ext);
 
-    // Phase 1: FileReader progress (replaces XHR upload progress)
+    // ── Direct mode (local): XHR with original File — no base64 round-trip
+    if (!IS_RUNPOD) {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      if (!isImage) formData.append('n', '15');
+
+      const data = await new Promise<ExtractFramesResponse>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhrRef.current = xhr;
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable)
+            setUploadState({ status: 'uploading', progress: Math.round((e.loaded / e.total) * 100) });
+        });
+        xhr.upload.addEventListener('load', () => setUploadState({ status: 'processing' }));
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try { resolve(JSON.parse(xhr.responseText) as ExtractFramesResponse); }
+            catch { reject(new Error(t('errors.parseFailed'))); }
+          } else {
+            let msg = t('errors.uploadFailed');
+            try { msg = (JSON.parse(xhr.responseText) as { detail?: string }).detail ?? msg; } catch { /**/ }
+            reject(new Error(msg));
+          }
+        });
+        xhr.addEventListener('error', () => reject(new Error(t('errors.networkError'))));
+        xhr.addEventListener('abort', () => reject(new Error('cancelled')));
+        xhr.open('POST', `${process.env.NEXT_PUBLIC_MOTION_API_BASE_URL}/api/video/extract-frames`);
+        xhr.send(formData);
+        setUploadState({ status: 'uploading', progress: 0 });
+      }).catch((err: Error) => {
+        if (err.message !== 'cancelled')
+          setUploadState({ status: 'error', message: err.message });
+        return null;
+      });
+
+      if (!data) return;
+      return applyExtractResult(data, isImage);
+    }
+
+    // ── RunPod mode (production): FileReader → base64 → RunPod
     let base64: string;
     try {
       base64 = await new Promise<string>((resolve, reject) => {
@@ -362,7 +403,6 @@ export default function MotionUploadPage() {
 
     if (cancelledRef.current) return;
 
-    // Phase 2: RunPod call
     setUploadState({ status: 'processing' });
     try {
       const data = await extractFramesBase64(
@@ -373,41 +413,7 @@ export default function MotionUploadPage() {
       );
 
       if (cancelledRef.current) return;
-
-      const frames: FrameInfo[] = (data.frames ?? []).map((f) => ({
-        index: f.index,
-        timestamp_sec: f.timestamp_sec,
-        path: f.path,
-      }));
-
-      sessionStorage.setItem('motionJobId', data.job_id);
-      sessionStorage.setItem('motionFramesMeta', JSON.stringify(frames));
-
-      if (isImage) {
-        sessionStorage.setItem('motionFileType', 'image');
-        const indices = frames.length > 0 ? [frames[0].index] : [];
-        sessionStorage.setItem('motionSelectedFrames', JSON.stringify(indices));
-        sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify(
-          frames.length > 0 ? [frames[0].path] : []
-        ));
-        void router.push('/motion/point-select');
-        return;
-      }
-
-      sessionStorage.setItem('motionFileType', 'video');
-      setSeekIndex(0);
-      setSelectedFrameIndices([]);
-      sessionStorage.setItem('motionSelectedFrames', JSON.stringify([]));
-      sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify([]));
-      setUploadState({
-        status: 'success',
-        fileType: 'video',
-        jobId: data.job_id,
-        framesExtracted: data.frames_extracted,
-        durationSec: data.duration_sec,
-        fps: data.fps,
-        frames,
-      });
+      applyExtractResult(data, isImage);
     } catch (err) {
       if (cancelledRef.current) return;
       let detail = t('errors.uploadFailed');
@@ -416,7 +422,45 @@ export default function MotionUploadPage() {
     }
   }
 
+  function applyExtractResult(data: ExtractFramesResponse, isImage: boolean) {
+    const frames: FrameInfo[] = (data.frames ?? []).map((f) => ({
+      index: f.index,
+      timestamp_sec: f.timestamp_sec,
+      path: f.path,
+    }));
+
+    sessionStorage.setItem('motionJobId', data.job_id);
+    sessionStorage.setItem('motionFramesMeta', JSON.stringify(frames));
+
+    if (isImage) {
+      sessionStorage.setItem('motionFileType', 'image');
+      const indices = frames.length > 0 ? [frames[0].index] : [];
+      sessionStorage.setItem('motionSelectedFrames', JSON.stringify(indices));
+      sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify(
+        frames.length > 0 ? [frames[0].path] : []
+      ));
+      void router.push('/motion/point-select');
+      return;
+    }
+
+    sessionStorage.setItem('motionFileType', 'video');
+    setSeekIndex(0);
+    setSelectedFrameIndices([]);
+    sessionStorage.setItem('motionSelectedFrames', JSON.stringify([]));
+    sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify([]));
+    setUploadState({
+      status: 'success',
+      fileType: 'video',
+      jobId: data.job_id,
+      framesExtracted: data.frames_extracted,
+      durationSec: data.duration_sec,
+      fps: data.fps,
+      frames,
+    });
+  }
+
   function handleCancel() {
+    xhrRef.current?.abort();
     cancelledRef.current = true;
     setUploadState({ status: 'idle' });
   }

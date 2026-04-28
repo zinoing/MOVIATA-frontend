@@ -14,7 +14,7 @@
 
 const MOTION_API_BASE_URL = process.env.NEXT_PUBLIC_MOTION_API_BASE_URL ?? '';
 const RUNPOD_API_KEY      = process.env.NEXT_PUBLIC_RUNPOD_API_KEY ?? '';
-const IS_RUNPOD           = MOTION_API_BASE_URL.includes('runpod.ai');
+export const IS_RUNPOD    = MOTION_API_BASE_URL.includes('runpod.ai');
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

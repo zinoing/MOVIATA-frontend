@@ -60,22 +60,8 @@ async function inlineImages(el: HTMLElement): Promise<Map<HTMLImageElement, stri
         // src 교체 후 완전히 decode될 때까지 기다려야 toPng()에서 빠지지 않음
         await img.decode().catch(() => {});
       } catch {
-        // fetch 실패 시 이미 브라우저에 캐시된 이미지를 canvas로 직접 변환
-        try {
-          await new Promise<void>((resolve, reject) => {
-            if (img.complete && img.naturalWidth > 0) { resolve(); return; }
-            img.onload = () => resolve();
-            img.onerror = reject;
-          });
-          const cvs = document.createElement('canvas');
-          cvs.width = img.naturalWidth;
-          cvs.height = img.naturalHeight;
-          cvs.getContext('2d')!.drawImage(img, 0, 0);
-          img.src = cvs.toDataURL('image/png');
-        } catch {
-          // canvas 변환도 실패 시 원본 src 유지
-          saved.delete(img);
-        }
+        // fetch 실패 시 원본 src 유지, Map에서 제거해 복원 대상에서 제외
+        saved.delete(img);
       }
     }),
   );
@@ -164,12 +150,19 @@ export async function capturePosterCard(
   // ends up in the wrong <img> slot (race condition).
   const savedImgSrcs = await inlineImages(captureTarget);
 
+  // Wait one animation frame after inlining so the browser has committed
+  // all new img.src values to the render tree before html-to-image reads them.
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
   try {
     // Layer 1: capture card UI with html-to-image at full pixel ratio
+    // cacheBust:false — all srcs are already base64 data URLs; re-fetching
+    // would bypass our inlined values and risk missing the logo again.
     const uiPng = await toPng(captureTarget, {
       pixelRatio: PIXEL_RATIO,
       width: cardW,
       height: cardH,
+      cacheBust: false,
     });
 
     // Build output canvas

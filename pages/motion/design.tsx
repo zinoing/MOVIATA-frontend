@@ -162,12 +162,18 @@ function MotionPosterCard({
 
       {/* Logo */}
       <div className="mt-6 flex justify-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={isDark ? '/resources/white_logo.png' : '/resources/black_logo.png'}
-          alt="MOVIATA"
-          style={{ height: 23, width: 'auto' }}
-        />
+        <span
+          style={{
+            fontFamily: '"Inter", system-ui, sans-serif',
+            fontWeight: 700,
+            fontSize: '18px',
+            letterSpacing: '-0.03em',
+            color: isDark ? '#EDE8DC' : '#1A1A1A',
+            userSelect: 'none',
+          }}
+        >
+          MOVIATA
+        </span>
       </div>
 
       {/* Stats */}

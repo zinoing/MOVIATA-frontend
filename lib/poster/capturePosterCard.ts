@@ -151,14 +151,38 @@ export async function capturePosterCard(
 
   await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
+  // Measure logo positions BEFORE hiding (DOM still intact at fixed position)
+  const logoImgs = Array.from(
+    captureTarget.querySelectorAll<HTMLImageElement>('img')
+  ).filter((img) => {
+    const original = savedImgSrcs.get(img) ?? img.src;
+    return original.includes('logo');
+  });
+  const logoMeasurements = logoImgs.map((img) => {
+    const r = img.getBoundingClientRect();
+    return {
+      dataUrl: img.src, // already base64
+      x: r.left - cardRect.left,
+      y: r.top - cardRect.top,
+      w: r.width,
+      h: r.height,
+    };
+  });
+
+  // Hide logos so toPng doesn't attempt to render them (Safari iOS bug)
+  logoImgs.forEach((img) => { img.style.visibility = 'hidden'; });
+
   try {
-    // Layer 1: capture card UI with html-to-image at full pixel ratio
+    // Layer 1: capture card UI (without logo) with html-to-image
     const uiPng = await toPng(captureTarget, {
       pixelRatio: PIXEL_RATIO,
       width: cardW,
       height: cardH,
       cacheBust: false,
     });
+
+    // Restore logo visibility immediately after capture
+    logoImgs.forEach((img) => { img.style.visibility = ''; });
 
     // Build output canvas
     const out = document.createElement('canvas');
@@ -174,6 +198,24 @@ export async function capturePosterCard(
       img.src = uiPng;
     });
     ctx.drawImage(uiImg, 0, 0);
+
+    // Draw logos directly onto canvas at PIXEL_RATIO scale
+    // Bypasses Safari iOS SVG foreignObject + data: URL rendering bug
+    await Promise.all(logoMeasurements.map(async (m) => {
+      const logoImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = m.dataUrl;
+      });
+      ctx.drawImage(
+        logoImg,
+        Math.round(m.x * PIXEL_RATIO),
+        Math.round(m.y * PIXEL_RATIO),
+        Math.round(m.w * PIXEL_RATIO),
+        Math.round(m.h * PIXEL_RATIO),
+      );
+    }));
 
     // Draw Layer 2: map snapshot at measured position
     if (effectiveMapDataUrl && mapRect) {
@@ -196,6 +238,9 @@ export async function capturePosterCard(
 
     return out.toDataURL('image/png');
   } finally {
+    // Restore logo visibility in case of early error
+    logoImgs.forEach((img) => { img.style.visibility = ''; });
+
     // Restore inlined img srcs
     savedImgSrcs.forEach((src, img) => { img.src = src; });
 

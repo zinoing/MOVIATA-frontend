@@ -129,7 +129,7 @@ export default function ShirtMockup({
 
       {/* FRONT */}
       <div className="flex flex-col gap-2">
-        <div className="relative w-full">
+        <div className="relative w-full" style={{ containerType: 'inline-size' }}>
           <img
             src={frontSrc}
             alt="T-shirt front"
@@ -139,14 +139,14 @@ export default function ShirtMockup({
           <span
             className="pointer-events-none absolute select-none"
             style={{
-              top: '30%',
-              left: '60%',
+              top: '28%',
+              right: '29%',
               fontFamily: '"Inter", system-ui, sans-serif',
               fontWeight: 700,
-              fontSize: 'clamp(10px, 2.8%, 16px)',
+              fontSize: '2.0cqi',
               letterSpacing: '-0.03em',
               color: color === 'black' ? '#EDE8DC' : '#1A1A1A',
-              whiteSpace: 'nowrap',
+              userSelect: 'none',
             }}
           >
             MOVIATA

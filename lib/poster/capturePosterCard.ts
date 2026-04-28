@@ -36,6 +36,28 @@
  * Images that already have a data: src or have no src are skipped.
  * Fetch failures are silently ignored (original src left unchanged).
  */
+// ─── DEBUG OVERLAY ───────────────────────────────────────────────
+function showDebug(msg: string) {
+  if (typeof document === 'undefined') return;
+  let box = document.getElementById('__capture_debug__');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = '__capture_debug__';
+    box.style.cssText = [
+      'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:99999',
+      'background:rgba(0,0,0,0.85)', 'color:#0f0', 'font:12px monospace',
+      'padding:8px', 'max-height:50vh', 'overflow-y:auto',
+      'white-space:pre-wrap', 'word-break:break-all',
+    ].join(';');
+    document.body.appendChild(box);
+  }
+  const line = document.createElement('div');
+  line.textContent = `[${new Date().toISOString().slice(11,23)}] ${msg}`;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+// ─────────────────────────────────────────────────────────────────
+
 async function inlineImages(el: HTMLElement): Promise<Map<HTMLImageElement, string>> {
   const imgs = Array.from(el.querySelectorAll<HTMLImageElement>('img'));
   const saved = new Map<HTMLImageElement, string>();
@@ -188,6 +210,11 @@ export async function capturePosterCard(
       }),
     ),
   );
+
+  // Log every img src just before toPng
+  Array.from(captureTarget.querySelectorAll<HTMLImageElement>('img')).forEach((img, idx) => {
+    showDebug(`pre-toPng img[${idx}] src[:30]="${img.src.slice(0,30)}" naturalW=${img.naturalWidth}`);
+  });
 
   try {
     // Layer 1: capture card UI with html-to-image at full pixel ratio

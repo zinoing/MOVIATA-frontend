@@ -36,28 +36,6 @@
  * Images that already have a data: src or have no src are skipped.
  * Fetch failures are silently ignored (original src left unchanged).
  */
-// ─── DEBUG OVERLAY ───────────────────────────────────────────────
-function showDebug(msg: string) {
-  if (typeof document === 'undefined') return;
-  let box = document.getElementById('__capture_debug__');
-  if (!box) {
-    box = document.createElement('div');
-    box.id = '__capture_debug__';
-    box.style.cssText = [
-      'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:99999',
-      'background:rgba(0,0,0,0.85)', 'color:#0f0', 'font:12px monospace',
-      'padding:8px', 'max-height:50vh', 'overflow-y:auto',
-      'white-space:pre-wrap', 'word-break:break-all',
-    ].join(';');
-    document.body.appendChild(box);
-  }
-  const line = document.createElement('div');
-  line.textContent = `[${new Date().toISOString().slice(11,23)}] ${msg}`;
-  box.appendChild(line);
-  box.scrollTop = box.scrollHeight;
-}
-// ─────────────────────────────────────────────────────────────────
-
 async function inlineImages(el: HTMLElement): Promise<Map<HTMLImageElement, string>> {
   const imgs = Array.from(el.querySelectorAll<HTMLImageElement>('img'));
   const saved = new Map<HTMLImageElement, string>();
@@ -65,9 +43,7 @@ async function inlineImages(el: HTMLElement): Promise<Map<HTMLImageElement, stri
   await Promise.all(
     imgs.map(async (img) => {
       const src = img.src;
-      if (!src || src.startsWith('data:')) {
-        return;
-      }
+      if (!src || src.startsWith('data:')) return;
 
       saved.set(img, src);
 
@@ -81,21 +57,10 @@ async function inlineImages(el: HTMLElement): Promise<Map<HTMLImageElement, stri
           reader.readAsDataURL(blob);
         });
         img.src = dataUrl;
-      } catch (e) {
-        try {
-          await new Promise<void>((resolve, reject) => {
-            if (img.complete && img.naturalWidth > 0) { resolve(); return; }
-            img.onload = () => resolve();
-            img.onerror = reject;
-          });
-          const cvs = document.createElement('canvas');
-          cvs.width = img.naturalWidth;
-          cvs.height = img.naturalHeight;
-          cvs.getContext('2d')!.drawImage(img, 0, 0);
-          img.src = cvs.toDataURL('image/png');
-        } catch (e2) {
-          saved.delete(img);
-        }
+        await img.decode().catch(() => {});
+      } catch {
+        // fetch 실패 시 원본 src 유지, Map에서 제거해 복원 대상에서 제외
+        saved.delete(img);
       }
     }),
   );
@@ -184,42 +149,10 @@ export async function capturePosterCard(
   // ends up in the wrong <img> slot (race condition).
   const savedImgSrcs = await inlineImages(captureTarget);
 
-  // Safari iOS does not paint images outside the viewport even after decode().
-  // Force all images to be visible by temporarily scrolling the card into view.
-  captureTarget.scrollIntoView({ block: 'start', behavior: 'instant' });
   await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-
-  // Wait until every img inside the card has a resolved naturalWidth.
-  await Promise.all(
-    Array.from(captureTarget.querySelectorAll<HTMLImageElement>('img')).map((img) =>
-      new Promise<void>((resolve) => {
-        if (img.naturalWidth > 0) {
-          resolve(); return;
-        }
-        const start = Date.now();
-        const check = () => {
-          if (img.naturalWidth > 0) {
-            resolve(); return;
-          }
-          if (Date.now() - start > 2000) {
-            resolve(); return;
-          }
-          requestAnimationFrame(check);
-        };
-        requestAnimationFrame(check);
-      }),
-    ),
-  );
-
-  // Log every img src just before toPng
-  Array.from(captureTarget.querySelectorAll<HTMLImageElement>('img')).forEach((img, idx) => {
-    showDebug(`pre-toPng img[${idx}] src[:30]="${img.src.slice(0,30)}" naturalW=${img.naturalWidth}`);
-  });
 
   try {
     // Layer 1: capture card UI with html-to-image at full pixel ratio
-    // cacheBust:false — all srcs are already base64 data URLs; re-fetching
-    // would bypass our inlined values and risk missing the logo again.
     const uiPng = await toPng(captureTarget, {
       pixelRatio: PIXEL_RATIO,
       width: cardW,

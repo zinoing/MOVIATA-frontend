@@ -140,10 +140,10 @@ export default function ShirtMockup({
             className="pointer-events-none absolute select-none"
             style={{
               top: '30%',
-              right: '30%',
+              left: '60%',
               fontFamily: '"Inter", system-ui, sans-serif',
               fontWeight: 700,
-              fontSize: 'clamp(10px, 4.2%, 18px)',
+              fontSize: 'clamp(10px, 2.8%, 16px)',
               letterSpacing: '-0.03em',
               color: color === 'black' ? '#EDE8DC' : '#1A1A1A',
               whiteSpace: 'nowrap',

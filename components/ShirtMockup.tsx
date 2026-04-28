@@ -136,17 +136,21 @@ export default function ShirtMockup({
             draggable={false}
             className="block w-full select-none"
           />
-          <img
-            src={color === 'black' ? '/resources/white_logo.png' : '/resources/black_logo.png'}
-            alt="Moviata logo"
-            draggable={false}
+          <span
             className="pointer-events-none absolute select-none"
             style={{
-              top: '28%',
-              right: '31%',
-              width: '8%',
+              top: '30%',
+              right: '30%',
+              fontFamily: '"Inter", system-ui, sans-serif',
+              fontWeight: 700,
+              fontSize: 'clamp(10px, 4.2%, 18px)',
+              letterSpacing: '-0.03em',
+              color: color === 'black' ? '#EDE8DC' : '#1A1A1A',
+              whiteSpace: 'nowrap',
             }}
-          />
+          >
+            MOVIATA
+          </span>
         </div>
         <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
           Front

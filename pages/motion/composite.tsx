@@ -64,6 +64,7 @@ export default function MotionCompositePage() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [selectedFrames, setSelectedFrames] = useState<number[]>([]);
   const [selectedFramePaths, setSelectedFramePaths] = useState<string[]>([]);
+  const [selectedFrameData, setSelectedFrameData] = useState<string[]>([]);
   const [framesMeta, setFramesMeta] = useState<FrameMeta[]>([]);
   const [pointCoords, setPointCoords] = useState<{ frame_index: number; points: { x: number; y: number }[] }[]>([]);
   const [processState, setProcessState] = useState<ProcessState>({ status: 'idle' });
@@ -149,6 +150,7 @@ export default function MotionCompositePage() {
     setJobId(id);
     try { const r = sessionStorage.getItem('motionSelectedFrames'); if (r) setSelectedFrames(JSON.parse(r) as number[]); } catch { /**/ }
     try { const r = sessionStorage.getItem('motionSelectedFramePaths'); if (r) setSelectedFramePaths(JSON.parse(r) as string[]); } catch { /**/ }
+    try { const r = sessionStorage.getItem('motionSelectedFrameData'); if (r) setSelectedFrameData(JSON.parse(r) as string[]); } catch { /**/ }
     try { const r = sessionStorage.getItem('motionFramesMeta'); if (r) setFramesMeta(JSON.parse(r) as FrameMeta[]); } catch { /**/ }
     try { const r = sessionStorage.getItem('motionPointCoords'); if (r) setPointCoords(JSON.parse(r) as { frame_index: number; points: { x: number; y: number }[] }[]); } catch { /**/ }
     try {
@@ -263,6 +265,7 @@ export default function MotionCompositePage() {
       const result = await processComposite({
         jobId,
         framePaths: selectedFramePaths,
+        frameData: selectedFrameData.length > 0 ? selectedFrameData : undefined,
         personColor: '#ffffff',
         backgroundColor: '#000000',
         outlineThickness: 3,

@@ -35,8 +35,29 @@ export default function MotionPointSelectPage() {
   function ensureFrameSrc(jid: string, frameIndex: number) {
     if (frameSrcsRef.current[frameIndex] !== undefined) return;
     if (fetchingFrames.current.has(frameIndex)) return;
+
+    // Use sessionStorage-cached base64 data when available (RunPod mode: avoids
+    // worker isolation issue where a new worker won't have the original frame files).
+    const framePos = selectedFrames.indexOf(frameIndex);
+    if (framePos !== -1) {
+      try {
+        const raw = sessionStorage.getItem('motionSelectedFrameData');
+        if (raw) {
+          const dataArr = JSON.parse(raw) as string[];
+          const b64 = dataArr[framePos];
+          if (b64) {
+            const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+            const url = URL.createObjectURL(new Blob([bytes], { type: 'image/png' }));
+            frameSrcsRef.current[frameIndex] = url;
+            setFrameSrcs((prev) => ({ ...prev, [frameIndex]: url }));
+            return;
+          }
+        }
+      } catch { /* fall through to API */ }
+    }
+
     fetchingFrames.current.add(frameIndex);
-    getFrameImageUrl(jid, frameIndex)
+    getFrameImageUrl(jid, frameIndex, 800)
       .then((url) => {
         frameSrcsRef.current[frameIndex] = url;
         setFrameSrcs((prev) => ({ ...prev, [frameIndex]: url }));

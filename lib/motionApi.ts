@@ -211,8 +211,9 @@ export async function extractFrames(file: File, n: number): Promise<ExtractFrame
 }
 
 /** GET /api/video/frame/:jobId/:frameIndex → URL (blob or direct) */
-export function getFrameImageUrl(jobId: string, frameIndex: number): Promise<string> {
-  return fetchMotionImageUrl(`/api/video/frame/${jobId}/${frameIndex}`);
+export function getFrameImageUrl(jobId: string, frameIndex: number, width?: number): Promise<string> {
+  const qs = width ? `?w=${width}` : '';
+  return fetchMotionImageUrl(`/api/video/frame/${jobId}/${frameIndex}${qs}`);
 }
 
 /** POST /api/video/process */

@@ -12,12 +12,13 @@
  * Mode is auto-detected from the URL — no extra env var needed.
  *
  * Upload flow (both modes):
- *   1. getPresignedUploadUrl()  → backend issues an R2 presigned PUT URL
+ *   1. getPresignedUploadUrl()  → Railway backend (NEXT_PUBLIC_BACKEND_URL) issues R2 presigned PUT URL
  *   2. PUT file directly to R2  → bypasses RunPod payload limit entirely
- *   3. extractFramesFromR2()    → backend downloads from R2, extracts frames
+ *   3. extractFramesFromR2()    → RunPod/FastAPI downloads from R2, extracts frames
  */
 
 const MOTION_API_BASE_URL = process.env.NEXT_PUBLIC_MOTION_API_BASE_URL ?? '';
+const BACKEND_URL         = process.env.NEXT_PUBLIC_BACKEND_URL ?? '';
 const RUNPOD_API_KEY      = process.env.NEXT_PUBLIC_RUNPOD_API_KEY ?? '';
 export const IS_RUNPOD    = MOTION_API_BASE_URL.includes('runpod.ai');
 
@@ -163,15 +164,22 @@ export async function fetchMotionImageUrl(endpoint: string): Promise<string> {
 
 // ── API calls ─────────────────────────────────────────────────────────────────
 
-/** POST /api/video/presigned-upload → { presigned_url, object_key } */
-export function getPresignedUploadUrl(
+/** POST /api/video/presigned-upload → { presigned_url, object_key }
+ *  Always calls Railway backend directly, never goes through RunPod. */
+export async function getPresignedUploadUrl(
   filename: string,
   contentType: string,
 ): Promise<{ presigned_url: string; object_key: string }> {
-  return callApi('/api/video/presigned-upload', 'POST', {
-    filename,
-    content_type: contentType || 'application/octet-stream',
-  });
+  const base = BACKEND_URL || MOTION_API_BASE_URL;
+  const formData = new FormData();
+  formData.append('filename', filename);
+  formData.append('content_type', contentType || 'application/octet-stream');
+  const resp = await fetch(`${base}/api/video/presigned-upload`, { method: 'POST', body: formData });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({})) as { detail?: string };
+    throw new Error(err.detail ?? `presigned-upload HTTP ${resp.status}`);
+  }
+  return resp.json();
 }
 
 /** POST /api/video/extract-frames with R2 key */

@@ -29,12 +29,6 @@ type FrameMeta = { index: number; timestamp_sec: number };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const STEPS = ['masking', 'outlining', 'compositing'] as const;
-const STEP_INDEX = STEPS.reduce<Record<string, number>>(
-  (acc, step, i) => ({ ...acc, [step]: i }),
-  {}
-);
-
 const DEFAULT_TRANSFORM: LayerTransform = { dx: 0, dy: 0, scale: 1, rotation: 0 };
 
 const RESIZE_HANDLES: { pos: React.CSSProperties; cursor: string }[] = [
@@ -376,9 +370,6 @@ export default function MotionCompositePage() {
 
   const isProcessing = processState.status === 'processing';
   const isSuccess = processState.status === 'success';
-  const currentStepIndex = isProcessing
-    ? (STEP_INDEX[processState.step] ?? 0)
-    : isSuccess ? STEPS.length : -1;
 
   const displayFrames: FrameMeta[] =
     framesMeta.length > 0
@@ -457,45 +448,10 @@ export default function MotionCompositePage() {
 
               {/* Processing */}
               {isProcessing && (
-                <div className="flex flex-1 flex-col gap-6 py-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400">{t('processing.title')}</p>
-                  <div className="flex flex-col gap-3">
-                    {STEPS.map((step, i) => {
-                      const done = i < currentStepIndex;
-                      const active = i === currentStepIndex;
-                      return (
-                        <div key={step} className="flex items-center gap-3">
-                          <div className={[
-                            'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors',
-                            done ? 'bg-neutral-900 text-white' : active ? 'bg-neutral-200 text-neutral-900 animate-pulse' : 'bg-neutral-100 text-neutral-300',
-                          ].join(' ')}>
-                            {done ? (
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                                <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            ) : i + 1}
-                          </div>
-                          <span className={[
-                            'text-sm transition-colors',
-                            done ? 'text-neutral-400 line-through' : active ? 'font-semibold text-neutral-950' : 'text-neutral-300',
-                          ].join(' ')}>
-                            {t(`steps.${step}`)}
-                          </span>
-                          {active && (
-                            <span className="ml-auto flex gap-1">
-                              <span className="h-1 w-1 rounded-full bg-neutral-400 animate-bounce [animation-delay:0ms]" />
-                              <span className="h-1 w-1 rounded-full bg-neutral-400 animate-bounce [animation-delay:150ms]" />
-                              <span className="h-1 w-1 rounded-full bg-neutral-400 animate-bounce [animation-delay:300ms]" />
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-auto">
-                    <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
-                      <div className="absolute h-full w-1/4 rounded-full bg-neutral-900 animate-indeterminate" />
-                    </div>
+                <div className="flex flex-1 flex-col items-center justify-center gap-6 py-10">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">{t('processing.title')}</p>
+                  <div className="relative h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-neutral-100">
+                    <div className="absolute h-full w-1/4 rounded-full bg-neutral-900 animate-indeterminate" />
                   </div>
                 </div>
               )}

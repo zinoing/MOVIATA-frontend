@@ -10,7 +10,7 @@ type CheckoutViewProps = {
   onBack: () => void;
 };
 
-const BASE_PRICE = 39000;
+const BASE_PRICE = 35000;
 
 export default function CheckoutView({
   shirtColor,

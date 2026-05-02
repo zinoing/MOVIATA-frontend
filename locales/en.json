@@ -156,11 +156,9 @@
     "productInfo": "Product Information",
     "productDescription": {
       "title": "Product Description",
-      "text": "This shirt transforms your movement into a minimal visual record. Each design is generated from your real activity data, including your route, distance, and date.",
-      "bullet1": "Premium 100% polyester fabric",
-      "bullet2": "Lightweight and breathable feel",
-      "bullet3": "High-resolution custom print",
-      "bullet4": "Designed for everyday wear"
+      "bullet1": "100% wool fabric",
+      "bullet2": "High-resolution custom print",
+      "bullet3": "Designed for everyday wear"
     },
     "refund": {
       "title": "Refund & Exchange",

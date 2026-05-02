@@ -53,7 +53,7 @@ export default function ConfirmPage() {
     );
   }
 
-  const PRICE_PER_ITEM = 39000;
+  const PRICE_PER_ITEM = 35000;
   const productColor = config.shirtColor as ProductColor;
 
   const totalQty = cartItems.reduce((s, i) => s + i.qty, 0);
@@ -186,13 +186,10 @@ export default function ConfirmPage() {
                   </p>
 
                   <div className="mt-3 text-sm leading-7 text-neutral-600">
-                    <p>{t('productDescription.text')}</p>
-
-                    <div className="mt-4 space-y-2">
+                    <div className="space-y-2">
                       <Bullet>{t('productDescription.bullet1')}</Bullet>
                       <Bullet>{t('productDescription.bullet2')}</Bullet>
                       <Bullet>{t('productDescription.bullet3')}</Bullet>
-                      <Bullet>{t('productDescription.bullet4')}</Bullet>
                     </div>
                   </div>
                 </section>

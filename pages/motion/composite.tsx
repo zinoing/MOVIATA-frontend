@@ -75,6 +75,7 @@ export default function MotionCompositePage() {
 
   // blob URL caches
   const [frameSrcs, setFrameSrcs] = useState<Record<number, string>>({});
+  const [loadedFrames, setLoadedFrames] = useState<Record<number, boolean>>({});
   const [layerSrcs, setLayerSrcs] = useState<Record<number, string>>({});
   const frameSrcsRef = useRef<Record<number, string>>({});
   const layerSrcsRef = useRef<Record<number, string>>({});
@@ -410,13 +411,17 @@ export default function MotionCompositePage() {
                 <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none">
                   {displayFrames.map((frame) => (
                     <div key={frame.index} className="flex shrink-0 flex-col items-center gap-1.5">
-                      <div className="h-20 w-28 overflow-hidden rounded-[10px] bg-neutral-100">
+                      <div className="relative h-20 w-28 overflow-hidden rounded-[10px] bg-neutral-100">
+                        {(!frameSrcs[frame.index] || !loadedFrames[frame.index]) && (
+                          <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 bg-[length:200%_100%]" />
+                        )}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={frameSrcs[frame.index] ?? ''}
                           alt={`Frame ${frame.index}`}
-                          className="h-full w-full object-cover"
+                          className={`h-full w-full object-cover transition-opacity duration-300 ${loadedFrames[frame.index] ? 'opacity-100' : 'opacity-0'}`}
                           loading="lazy"
+                          onLoad={() => setLoadedFrames((prev) => ({ ...prev, [frame.index]: true }))}
                         />
                       </div>
                       <span className="text-[10px] text-neutral-400 font-mono tabular-nums">

@@ -22,6 +22,7 @@ export default function MotionPointSelectPage() {
 
   // blob URL cache: frameIndex → object URL
   const [frameSrcs, setFrameSrcs] = useState<Record<number, string>>({});
+  const [loadedFrames, setLoadedFrames] = useState<Record<number, boolean>>({});
   const fetchingFrames = useRef<Set<number>>(new Set());
   const frameSrcsRef = useRef<Record<number, string>>({});
 
@@ -190,17 +191,21 @@ export default function MotionPointSelectPage() {
 
             {/* Image area */}
             <div
-              className="relative mx-3 mb-3 overflow-hidden rounded-[14px] bg-[#F5F5F5] select-none"
+              className="relative mx-3 mb-3 overflow-hidden rounded-[14px] bg-[#F5F5F5] select-none min-h-[200px]"
               style={{ cursor: isFull ? 'default' : 'crosshair' }}
             >
+              {(!frameSrcs[currentFrameIndex] || !loadedFrames[currentFrameIndex]) && (
+                <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 bg-[length:200%_100%]" />
+              )}
               <div onClick={handleImageClick} className="relative w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   ref={imgRef}
                   src={frameSrcs[currentFrameIndex] ?? ''}
                   alt={`Frame ${currentFrameIndex}`}
-                  className="block w-full h-auto"
+                  className={`block w-full h-auto transition-opacity duration-300 ${loadedFrames[currentFrameIndex] ? 'opacity-100' : 'opacity-0'}`}
                   draggable={false}
+                  onLoad={() => setLoadedFrames((prev) => ({ ...prev, [currentFrameIndex]: true }))}
                 />
                 {currentPoints.map((p, i) => (
                   <button
@@ -239,11 +244,15 @@ export default function MotionPointSelectPage() {
                       ].join(' ')}
                       style={{ aspectRatio: '1 / 1', maxWidth: 56 }}
                     >
+                      {(!frameSrcs[fi] || !loadedFrames[fi]) && (
+                        <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 bg-[length:200%_100%]" />
+                      )}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={frameSrcs[fi] ?? ''}
                         alt={`Frame ${fi}`}
-                        className="absolute inset-0 h-full w-full object-cover"
+                        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${loadedFrames[fi] ? 'opacity-100' : 'opacity-0'}`}
+                        onLoad={() => setLoadedFrames((prev) => ({ ...prev, [fi]: true }))}
                       />
                       {count > 0 && (
                         <div className="absolute bottom-1 right-1 h-2.5 w-2.5 rounded-full bg-[#FF5A1F] shadow-[0_0_0_1.5px_white]" />

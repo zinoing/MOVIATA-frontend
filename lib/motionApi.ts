@@ -171,13 +171,14 @@ export async function getPresignedUploadUrl(
   contentType: string,
 ): Promise<{ presigned_url: string; object_key: string }> {
   const base = BACKEND_URL || MOTION_API_BASE_URL;
-  const formData = new FormData();
-  formData.append('filename', filename);
-  formData.append('content_type', contentType || 'application/octet-stream');
-  const resp = await fetch(`${base}/api/video/presigned-upload`, { method: 'POST', body: formData });
+  const resp = await fetch(`${base}/api/video/presigned-upload`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename, content_type: contentType || 'application/octet-stream' }),
+  });
   if (!resp.ok) {
-    const err = await resp.json().catch(() => ({})) as { detail?: string };
-    throw new Error(err.detail ?? `presigned-upload HTTP ${resp.status}`);
+    const err = await resp.json().catch(() => ({})) as { message?: string; detail?: string };
+    throw new Error(err.message ?? err.detail ?? `presigned-upload HTTP ${resp.status}`);
   }
   return resp.json();
 }

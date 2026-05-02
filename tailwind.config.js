@@ -11,9 +11,14 @@ module.exports = {
           '0%':   { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition:  '200% 0' },
         },
+        indeterminate: {
+          '0%':   { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(500%)' },
+        },
       },
       animation: {
-        shimmer: 'shimmer 1.5s ease-in-out infinite',
+        shimmer:       'shimmer 1.5s ease-in-out infinite',
+        indeterminate: 'indeterminate 1.4s ease-in-out infinite',
       },
       fontFamily: {
         gulfs: ['"Gulfs Display"', 'sans-serif'],

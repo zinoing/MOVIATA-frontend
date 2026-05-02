@@ -481,19 +481,20 @@ export default function MotionCompositePage() {
                           ].join(' ')}>
                             {t(`steps.${step}`)}
                           </span>
-                          {active && processState.status === 'processing' && (
-                            <span className="ml-auto text-xs text-neutral-400">{processState.progress}%</span>
+                          {active && (
+                            <span className="ml-auto flex gap-1">
+                              <span className="h-1 w-1 rounded-full bg-neutral-400 animate-bounce [animation-delay:0ms]" />
+                              <span className="h-1 w-1 rounded-full bg-neutral-400 animate-bounce [animation-delay:150ms]" />
+                              <span className="h-1 w-1 rounded-full bg-neutral-400 animate-bounce [animation-delay:300ms]" />
+                            </span>
                           )}
                         </div>
                       );
                     })}
                   </div>
                   <div className="mt-auto">
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
-                      <div
-                        className="h-full rounded-full bg-neutral-900 transition-all duration-500"
-                        style={{ width: `${processState.status === 'processing' ? processState.progress : 0}%` }}
-                      />
+                    <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
+                      <div className="absolute h-full w-1/4 rounded-full bg-neutral-900 animate-indeterminate" />
                     </div>
                   </div>
                 </div>

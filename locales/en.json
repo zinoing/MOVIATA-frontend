@@ -369,6 +369,7 @@
     "errors": {
       "invalidFormat": "Only .mp4, .mov, .avi, .jpg, .jpeg, and .png files are supported.",
       "tooLarge": "File must be {max} MB or less.",
+      "tooLong": "Video must be {max} seconds or less.",
       "uploadFailed": "Upload failed. Please try again.",
       "networkError": "Network error. Is the processing service running?",
       "parseFailed": "Unexpected response from server."

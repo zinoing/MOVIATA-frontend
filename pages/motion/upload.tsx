@@ -2,12 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
-import { IS_RUNPOD, extractFramesBase64, getFrameImageUrl, type FrameInfo, type ExtractFramesResponse } from '../../lib/motionApi';
+import { IS_RUNPOD, getPresignedUploadUrl, extractFramesFromR2, getFrameImageUrl, type FrameInfo, type ExtractFramesResponse } from '../../lib/motionApi';
 
 const ACCEPTED_VIDEO_FORMATS = ['.mp4', '.mov', '.avi'];
 const ACCEPTED_IMAGE_FORMATS = ['.jpg', '.jpeg', '.png'];
 const ACCEPTED_FORMATS = [...ACCEPTED_VIDEO_FORMATS, ...ACCEPTED_IMAGE_FORMATS];
 const MAX_SIZE_MB = 500;
+const MAX_VIDEO_DURATION_SEC = 60;
 const MAX_FRAME_SELECT = 4;
 
 type UploadState =
@@ -307,9 +308,28 @@ export default function MotionUploadPage() {
     return null;
   }
 
-  function handleFileChange(file: File) {
+  function checkVideoDuration(file: File): Promise<string | null> {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        URL.revokeObjectURL(url);
+        resolve(video.duration > MAX_VIDEO_DURATION_SEC ? t('errors.tooLong', { max: MAX_VIDEO_DURATION_SEC }) : null);
+      };
+      video.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+      video.src = url;
+    });
+  }
+
+  async function handleFileChange(file: File) {
     const error = validateFile(file);
     if (error) { setUploadState({ status: 'error', message: error }); return; }
+    const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (ACCEPTED_VIDEO_FORMATS.includes(ext)) {
+      const durationError = await checkVideoDuration(file);
+      if (durationError) { setUploadState({ status: 'error', message: durationError }); return; }
+    }
     setSelectedFile(file);
     setUploadState({ status: 'idle' });
   }
@@ -339,86 +359,56 @@ export default function MotionUploadPage() {
 
     const ext = '.' + (selectedFile.name.split('.').pop()?.toLowerCase() ?? '');
     const isImage = ACCEPTED_IMAGE_FORMATS.includes(ext);
+    const contentType = selectedFile.type || 'application/octet-stream';
 
-    // ── Direct mode (local): XHR with original File — no base64 round-trip
-    if (!IS_RUNPOD) {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      if (!isImage) formData.append('n', '15');
-
-      const data = await new Promise<ExtractFramesResponse>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhrRef.current = xhr;
-        xhr.upload.addEventListener('progress', (e) => {
-          if (e.lengthComputable)
-            setUploadState({ status: 'uploading', progress: Math.round((e.loaded / e.total) * 100) });
-        });
-        xhr.upload.addEventListener('load', () => setUploadState({ status: 'processing' }));
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try { resolve(JSON.parse(xhr.responseText) as ExtractFramesResponse); }
-            catch { reject(new Error(t('errors.parseFailed'))); }
-          } else {
-            let msg = t('errors.uploadFailed');
-            try { msg = (JSON.parse(xhr.responseText) as { detail?: string }).detail ?? msg; } catch { /**/ }
-            reject(new Error(msg));
-          }
-        });
-        xhr.addEventListener('error', () => reject(new Error(t('errors.networkError'))));
-        xhr.addEventListener('abort', () => reject(new Error('cancelled')));
-        xhr.open('POST', `${process.env.NEXT_PUBLIC_MOTION_API_BASE_URL}/api/video/extract-frames`);
-        xhr.send(formData);
-        setUploadState({ status: 'uploading', progress: 0 });
-      }).catch((err: Error) => {
-        if (err.message !== 'cancelled')
-          setUploadState({ status: 'error', message: err.message });
-        return null;
-      });
-
-      if (!data) return;
-      return applyExtractResult(data, isImage);
-    }
-
-    // ── RunPod mode (production): FileReader → base64 → RunPod
-    let base64: string;
+    // ── Step 1: get presigned R2 upload URL from backend
+    setUploadState({ status: 'uploading', progress: 0 });
+    let presignedUrl: string;
+    let objectKey: string;
     try {
-      base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadstart = () => setUploadState({ status: 'uploading', progress: 0 });
-        reader.onprogress = (e) => {
-          if (cancelledRef.current) { reader.abort(); return; }
-          if (e.lengthComputable)
-            setUploadState({ status: 'uploading', progress: Math.round((e.loaded / e.total) * 100) });
-        };
-        reader.onload = () => resolve((reader.result as string).split(',')[1] ?? '');
-        reader.onerror = () => reject(new Error(t('errors.networkError')));
-        reader.onabort = () => reject(new Error('cancelled'));
-        reader.readAsDataURL(selectedFile);
-      });
+      const result = await getPresignedUploadUrl(selectedFile.name, contentType);
+      presignedUrl = result.presigned_url;
+      objectKey = result.object_key;
     } catch (err) {
-      if ((err as Error).message === 'cancelled') return;
-      setUploadState({ status: 'error', message: (err as Error).message });
+      setUploadState({ status: 'error', message: err instanceof Error ? err.message : t('errors.uploadFailed') });
       return;
     }
 
     if (cancelledRef.current) return;
 
+    // ── Step 2: PUT file directly to R2 (bypasses RunPod payload limit)
+    const uploadOk = await new Promise<boolean>((resolve) => {
+      const xhr = new XMLHttpRequest();
+      xhrRef.current = xhr;
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable)
+          setUploadState({ status: 'uploading', progress: Math.round((e.loaded / e.total) * 100) });
+      });
+      xhr.upload.addEventListener('load', () => setUploadState({ status: 'processing' }));
+      xhr.addEventListener('load', () => resolve(xhr.status >= 200 && xhr.status < 300));
+      xhr.addEventListener('error', () => resolve(false));
+      xhr.addEventListener('abort', () => resolve(false));
+      xhr.open('PUT', presignedUrl);
+      xhr.setRequestHeader('Content-Type', contentType);
+      xhr.send(selectedFile);
+    });
+
+    if (cancelledRef.current) return;
+
+    if (!uploadOk) {
+      setUploadState({ status: 'error', message: t('errors.uploadFailed') });
+      return;
+    }
+
+    // ── Step 3: trigger frame extraction via R2 key
     setUploadState({ status: 'processing' });
     try {
-      const data = await extractFramesBase64(
-        selectedFile.name,
-        selectedFile.type,
-        base64,
-        isImage ? 1 : 15,
-      );
-
+      const data = await extractFramesFromR2(objectKey, isImage ? 1 : 15);
       if (cancelledRef.current) return;
       applyExtractResult(data, isImage);
     } catch (err) {
       if (cancelledRef.current) return;
-      let detail = t('errors.uploadFailed');
-      if (err instanceof Error) detail = err.message;
-      setUploadState({ status: 'error', message: detail });
+      setUploadState({ status: 'error', message: err instanceof Error ? err.message : t('errors.uploadFailed') });
     }
   }
 

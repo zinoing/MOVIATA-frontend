@@ -10,6 +10,11 @@
  *                       Image responses (base64) are decoded to blob URLs.
  *
  * Mode is auto-detected from the URL — no extra env var needed.
+ *
+ * Upload flow (both modes):
+ *   1. getPresignedUploadUrl()  → backend issues an R2 presigned PUT URL
+ *   2. PUT file directly to R2  → bypasses RunPod payload limit entirely
+ *   3. extractFramesFromR2()    → backend downloads from R2, extracts frames
  */
 
 const MOTION_API_BASE_URL = process.env.NEXT_PUBLIC_MOTION_API_BASE_URL ?? '';
@@ -55,17 +60,10 @@ export interface StatusResponse {
   error?: string;
 }
 
-interface RunPodFilePayload {
-  filename: string;
-  content_type: string;
-  data: string; // base64
-}
-
 interface RunPodInput {
   endpoint: string;
   method?: 'GET' | 'POST';
   body?: Record<string, string | number | string[]>;
-  files?: Record<string, RunPodFilePayload>;
 }
 
 interface ImagePayload {
@@ -101,7 +99,6 @@ async function callDirectApi<T>(
   endpoint: string,
   method: 'GET' | 'POST',
   body: Record<string, string | number | string[]> = {},
-  files: Record<string, RunPodFilePayload> = {},
 ): Promise<T> {
   const url = `${MOTION_API_BASE_URL}${endpoint}`;
 
@@ -117,20 +114,11 @@ async function callDirectApi<T>(
     return resp.json() as Promise<T>;
   }
 
-  // POST — build FormData
   const formData = new FormData();
   for (const [k, v] of Object.entries(body)) {
     if (Array.isArray(v)) v.forEach((i) => formData.append(k, i));
     else formData.append(k, String(v));
   }
-  for (const [field, meta] of Object.entries(files)) {
-    const binary = atob(meta.data);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const blob = new Blob([bytes], { type: meta.content_type });
-    formData.append(field, blob, meta.filename);
-  }
-
   const resp = await fetch(url, { method: 'POST', body: formData });
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({})) as { detail?: string };
@@ -145,12 +133,9 @@ function callApi<T>(
   endpoint: string,
   method: 'GET' | 'POST',
   body: Record<string, string | number | string[]> = {},
-  files: Record<string, RunPodFilePayload> = {},
 ): Promise<T> {
-  if (IS_RUNPOD) {
-    return callRunPod<T>({ endpoint, method, body, files: Object.keys(files).length ? files : undefined });
-  }
-  return callDirectApi<T>(endpoint, method, body, files);
+  if (IS_RUNPOD) return callRunPod<T>({ endpoint, method, body });
+  return callDirectApi<T>(endpoint, method, body);
 }
 
 // ── Image helper ──────────────────────────────────────────────────────────────
@@ -176,38 +161,22 @@ export async function fetchMotionImageUrl(endpoint: string): Promise<string> {
   return URL.createObjectURL(blob);
 }
 
-// ── File helper ───────────────────────────────────────────────────────────────
+// ── API calls ─────────────────────────────────────────────────────────────────
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve((reader.result as string).split(',')[1] ?? '');
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+/** POST /api/video/presigned-upload → { presigned_url, object_key } */
+export function getPresignedUploadUrl(
+  filename: string,
+  contentType: string,
+): Promise<{ presigned_url: string; object_key: string }> {
+  return callApi('/api/video/presigned-upload', 'POST', {
+    filename,
+    content_type: contentType || 'application/octet-stream',
   });
 }
 
-// ── API calls ─────────────────────────────────────────────────────────────────
-
-/** POST /api/video/extract-frames (pre-encoded base64 variant for progress tracking) */
-export function extractFramesBase64(
-  filename: string,
-  contentType: string,
-  base64: string,
-  n: number,
-): Promise<ExtractFramesResponse> {
-  return callApi<ExtractFramesResponse>(
-    '/api/video/extract-frames',
-    'POST',
-    { n },
-    { file: { filename, content_type: contentType || 'application/octet-stream', data: base64 } },
-  );
-}
-
-/** POST /api/video/extract-frames */
-export async function extractFrames(file: File, n: number): Promise<ExtractFramesResponse> {
-  const data = await fileToBase64(file);
-  return extractFramesBase64(file.name, file.type, data, n);
+/** POST /api/video/extract-frames with R2 key */
+export function extractFramesFromR2(r2Key: string, n: number): Promise<ExtractFramesResponse> {
+  return callApi<ExtractFramesResponse>('/api/video/extract-frames', 'POST', { r2_key: r2Key, n });
 }
 
 /** GET /api/video/frame/:jobId/:frameIndex → URL (blob or direct) */
@@ -236,8 +205,8 @@ export function processComposite(params: {
     mode:              params.mode,
   };
   if (params.pointCoords) body['point_coords'] = JSON.stringify(params.pointCoords);
-  // In RunPod mode each job runs on an isolated worker, so we send the raw
-  // frame bytes (base64) so the process worker can reconstruct them locally.
+  // In RunPod mode each job runs on an isolated worker — send raw frame bytes so
+  // the process worker can reconstruct them locally.
   if (IS_RUNPOD && params.frameData && params.frameData.length > 0) {
     body['frame_data'] = JSON.stringify(params.frameData);
   }

@@ -364,6 +364,7 @@
     "errors": {
       "invalidFormat": ".mp4, .mov, .avi, .jpg, .jpeg, .png 파일만 지원됩니다.",
       "tooLarge": "파일 크기는 {max} MB 이하여야 합니다.",
+      "tooLong": "영상은 {max}초 이하여야 합니다.",
       "uploadFailed": "업로드에 실패했습니다. 다시 시도해주세요.",
       "networkError": "네트워크 오류. 처리 서비스가 실행 중인지 확인하세요.",
       "parseFailed": "서버에서 예상치 못한 응답을 받았습니다."

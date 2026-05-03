@@ -114,31 +114,42 @@ export default function MotionCompositePage() {
       .finally(() => { fetchingLayers.current.delete(index); });
   }
 
-  // Window-level mouse handlers for drag
+  // Window-level mouse/touch handlers for drag
   useEffect(() => {
-    function onMove(e: MouseEvent) {
+    function applyDrag(clientX: number, clientY: number) {
       const drag = dragRef.current;
       if (!drag) return;
       setTransforms(prev => {
         const next = [...prev];
         if (drag.type === 'move') {
-          next[drag.idx] = { ...next[drag.idx]!, dx: drag.dx0 + e.clientX - drag.mx0, dy: drag.dy0 + e.clientY - drag.my0 };
+          next[drag.idx] = { ...next[drag.idx]!, dx: drag.dx0 + clientX - drag.mx0, dy: drag.dy0 + clientY - drag.my0 };
         } else if (drag.type === 'rotate') {
-          const angle = Math.atan2(e.clientY - drag.cy, e.clientX - drag.cx);
+          const angle = Math.atan2(clientY - drag.cy, clientX - drag.cx);
           next[drag.idx] = { ...next[drag.idx]!, rotation: drag.rotation0 + (angle - drag.startAngle) * (180 / Math.PI) };
         } else if (drag.type === 'resize') {
-          const dist = Math.hypot(e.clientX - drag.cx, e.clientY - drag.cy);
+          const dist = Math.hypot(clientX - drag.cx, clientY - drag.cy);
           next[drag.idx] = { ...next[drag.idx]!, scale: Math.max(0.05, drag.scale0 * (dist / drag.startDist)) };
         }
         return next;
       });
     }
+    function onMove(e: MouseEvent) { applyDrag(e.clientX, e.clientY); }
+    function onTouchMove(e: TouchEvent) {
+      if (!dragRef.current) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      if (t) applyDrag(t.clientX, t.clientY);
+    }
     function onUp() { dragRef.current = null; }
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onUp);
     return () => {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onUp);
     };
   }, []);
 
@@ -296,6 +307,16 @@ export default function MotionCompositePage() {
     dragRef.current = { type: 'move', idx, mx0: e.clientX, my0: e.clientY, dx0: tr.dx, dy0: tr.dy };
   }
 
+  function handleLayerTouchStart(e: React.TouchEvent, idx: number) {
+    e.preventDefault();
+    e.stopPropagation();
+    const touch = e.touches[0];
+    if (!touch) return;
+    setActiveLayer(idx);
+    const tr = transforms[idx] ?? DEFAULT_TRANSFORM;
+    dragRef.current = { type: 'move', idx, mx0: touch.clientX, my0: touch.clientY, dx0: tr.dx, dy0: tr.dy };
+  }
+
   function handleRotateMouseDown(e: React.MouseEvent, idx: number) {
     e.preventDefault();
     e.stopPropagation();
@@ -311,6 +332,23 @@ export default function MotionCompositePage() {
     };
   }
 
+  function handleRotateTouchStart(e: React.TouchEvent, idx: number) {
+    e.preventDefault();
+    e.stopPropagation();
+    const touch = e.touches[0];
+    if (!touch) return;
+    const el = layerRefs.current[idx];
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    dragRef.current = {
+      type: 'rotate', idx, cx, cy,
+      startAngle: Math.atan2(touch.clientY - cy, touch.clientX - cx),
+      rotation0: transforms[idx]?.rotation ?? 0,
+    };
+  }
+
   function handleResizeMouseDown(e: React.MouseEvent, idx: number) {
     e.preventDefault();
     e.stopPropagation();
@@ -320,6 +358,21 @@ export default function MotionCompositePage() {
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const startDist = Math.hypot(e.clientX - cx, e.clientY - cy);
+    if (startDist < 1) return;
+    dragRef.current = { type: 'resize', idx, cx, cy, startDist, scale0: transforms[idx]?.scale ?? 1 };
+  }
+
+  function handleResizeTouchStart(e: React.TouchEvent, idx: number) {
+    e.preventDefault();
+    e.stopPropagation();
+    const touch = e.touches[0];
+    if (!touch) return;
+    const el = layerRefs.current[idx];
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const startDist = Math.hypot(touch.clientX - cx, touch.clientY - cy);
     if (startDist < 1) return;
     dragRef.current = { type: 'resize', idx, cx, cy, startDist, scale0: transforms[idx]?.scale ?? 1 };
   }
@@ -473,8 +526,9 @@ export default function MotionCompositePage() {
                       <div
                         ref={containerRef}
                         className="relative w-full select-none overflow-hidden rounded-[18px] bg-black"
-                        style={{ aspectRatio: '1 / 1' }}
+                        style={{ aspectRatio: '1 / 1', touchAction: 'none' }}
                         onMouseDown={() => setActiveLayer(null)}
+                        onTouchStart={() => setActiveLayer(null)}
                       >
                         {processState.layers.map((layer, i) => {
                           const tr = transforms[i] ?? DEFAULT_TRANSFORM;
@@ -508,6 +562,7 @@ export default function MotionCompositePage() {
                                 transformOrigin: 'center center',
                               }}
                               onMouseDown={(e) => handleLayerMouseDown(e, i)}
+                              onTouchStart={(e) => handleLayerTouchStart(e, i)}
                             />
                           );
                         })}
@@ -544,6 +599,7 @@ export default function MotionCompositePage() {
                               <div style={{ position: 'absolute', top: -20, left: '50%', width: 1, height: 20, background: 'rgba(255,90,31,0.75)', transform: 'translateX(-50%)', pointerEvents: 'none' }} />
                               <div
                                 onMouseDown={(e) => handleRotateMouseDown(e, activeLayer)}
+                                onTouchStart={(e) => handleRotateTouchStart(e, activeLayer)}
                                 style={{ position: 'absolute', top: -38, left: '50%', transform: 'translateX(-50%)', width: 18, height: 18, borderRadius: '50%', background: 'white', border: '1.5px solid rgba(255,90,31,0.9)', cursor: 'grab', pointerEvents: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}
                               >
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
@@ -555,6 +611,7 @@ export default function MotionCompositePage() {
                                 <div
                                   key={hi}
                                   onMouseDown={(e) => handleResizeMouseDown(e, activeLayer)}
+                                  onTouchStart={(e) => handleResizeTouchStart(e, activeLayer)}
                                   style={{ position: 'absolute', width: 10, height: 10, borderRadius: '50%', background: 'white', border: '1.5px solid rgba(255,90,31,0.9)', cursor, pointerEvents: 'auto', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', ...pos }}
                                 />
                               ))}

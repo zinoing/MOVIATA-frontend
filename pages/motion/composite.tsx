@@ -70,10 +70,12 @@ export default function MotionCompositePage() {
   const layerSrcsRef = useRef<Record<number, string>>({});
   const fetchingLayers = useRef<Set<number>>(new Set());
 
-  // Revoke layer blob URLs on unmount
+  // Revoke any remaining blob URLs on unmount
   useEffect(() => {
     return () => {
-      Object.values(layerSrcsRef.current).forEach((url) => URL.revokeObjectURL(url));
+      Object.values(layerSrcsRef.current)
+        .filter(url => url.startsWith('blob:'))
+        .forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
 
@@ -82,9 +84,31 @@ export default function MotionCompositePage() {
     if (fetchingLayers.current.has(index)) return;
     fetchingLayers.current.add(index);
     getLayerImageUrl(jid, index)
-      .then((url) => {
-        layerSrcsRef.current[index] = url;
-        setLayerSrcs((prev) => ({ ...prev, [index]: url }));
+      .then(async (url) => {
+        // RunPod returns blob URLs which are revoked on navigation.
+        // Convert to data URL so the image survives page transitions.
+        let persistUrl = url;
+        if (url.startsWith('blob:')) {
+          try {
+            const resp = await fetch(url);
+            const blob = await resp.blob();
+            persistUrl = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            URL.revokeObjectURL(url);
+          } catch { /* fall back to blob URL */ }
+        }
+        layerSrcsRef.current[index] = persistUrl;
+        setLayerSrcs((prev) => ({ ...prev, [index]: persistUrl }));
+        try {
+          const raw = sessionStorage.getItem('motionLayerSrcs') ?? '{}';
+          const map: Record<string, string> = JSON.parse(raw);
+          map[String(index)] = persistUrl;
+          sessionStorage.setItem('motionLayerSrcs', JSON.stringify(map));
+        } catch { /**/ }
       })
       .catch(() => {})
       .finally(() => { fetchingLayers.current.delete(index); });
@@ -139,17 +163,27 @@ export default function MotionCompositePage() {
       const r = sessionStorage.getItem('motionLayerTransforms');
       if (r) setTransforms(JSON.parse(r) as LayerTransform[]);
     } catch { /**/ }
+    try {
+      const r = sessionStorage.getItem('motionLayerSrcs');
+      if (r) {
+        const map = JSON.parse(r) as Record<string, string>;
+        const numericMap: Record<number, string> = {};
+        for (const [k, v] of Object.entries(map)) {
+          const idx = Number(k);
+          numericMap[idx] = v;
+          layerSrcsRef.current[idx] = v;
+        }
+        setLayerSrcs(numericMap);
+      }
+    } catch { /**/ }
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [router]);
 
-  // Fetch layer blob URLs when processing succeeds
+  // Fetch any missing layer URLs when processing succeeds.
+  // Already-restored entries in layerSrcsRef (from sessionStorage) are skipped.
   useEffect(() => {
     if (processState.status !== 'success') return;
     const { jobId: jid, layers } = processState;
-    Object.values(layerSrcsRef.current).forEach((url) => URL.revokeObjectURL(url));
-    layerSrcsRef.current = {};
-    fetchingLayers.current.clear();
-    setLayerSrcs({});
     layers.forEach((_, i) => ensureLayerSrc(jid, i));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [processState.status === 'success' && (processState as { jobId?: string }).jobId]);
@@ -208,6 +242,11 @@ export default function MotionCompositePage() {
     setActiveLayer(null);
     sessionStorage.removeItem('motionProcessResult');
     sessionStorage.removeItem('motionLayerTransforms');
+    sessionStorage.removeItem('motionLayerSrcs');
+    Object.values(layerSrcsRef.current).filter(u => u.startsWith('blob:')).forEach(u => URL.revokeObjectURL(u));
+    layerSrcsRef.current = {};
+    fetchingLayers.current.clear();
+    setLayerSrcs({});
 
     if (lastTaskIdRef.current) {
       try {

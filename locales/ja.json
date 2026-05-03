@@ -362,10 +362,10 @@
       "upload": "フレームを抽出",
       "uploadImage": "この写真を使用",
       "continue": "デザインを続ける →",
-      "uploadAnother": "別の動画をアップロード"
+      "uploadAnother": "別のファイルをアップロード"
     },
     "errors": {
-      "invalidFormat": ".mp4、.movファイルのみ対応しています。",
+      "invalidFormat": ".mp4、.mov、.jpg、.jpeg、.png、.webpファイルのみ対応しています。",
       "tooLarge": "ファイルサイズは {max} MB 以下にしてください。",
       "tooLong": "動画は {max} 秒以下にしてください。",
       "uploadFailed": "アップロードに失敗しました。もう一度お試しください。",

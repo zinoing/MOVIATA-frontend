@@ -3,7 +3,9 @@ import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
 
-const ACCEPTED_FORMATS = ['.mp4', '.mov'];
+const VIDEO_FORMATS = ['.mp4', '.mov'];
+const IMAGE_FORMATS = ['.jpg', '.jpeg', '.png', '.webp'];
+const ACCEPTED_FORMATS = [...VIDEO_FORMATS, ...IMAGE_FORMATS];
 const MAX_SIZE_MB = 500;
 const MAX_VIDEO_DURATION_SEC = 60;
 const MAX_CAPTURES = 4;
@@ -30,12 +32,47 @@ export default function MotionUploadPage() {
 
   const [isDragging, setIsDragging] = useState(false);
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [captures, setCaptures] = useState<CaptureEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
 
   useEffect(() => {
-    return () => { if (videoSrc) URL.revokeObjectURL(videoSrc); };
-  }, [videoSrc]);
+    return () => {
+      if (videoSrc) URL.revokeObjectURL(videoSrc);
+      if (imageSrc) URL.revokeObjectURL(imageSrc);
+    };
+  }, [videoSrc, imageSrc]);
+
+  // Auto-process image: capture single frame then navigate to point-select
+  useEffect(() => {
+    if (!imageSrc) return;
+    setIsProcessingImage(true);
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) { setIsProcessingImage(false); return; }
+      const targetW = Math.min(800, img.naturalWidth);
+      const targetH = Math.round(img.naturalHeight * (targetW / img.naturalWidth));
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { setIsProcessingImage(false); return; }
+      ctx.drawImage(img, 0, 0, targetW, targetH);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      const jobId = crypto.randomUUID();
+      const frameData = [dataUrl.slice(dataUrl.indexOf(',') + 1)];
+      sessionStorage.setItem('motionJobId', jobId);
+      sessionStorage.setItem('motionSelectedFrames', JSON.stringify([0]));
+      sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify([`uploads/${jobId}/frame_000000.png`]));
+      sessionStorage.setItem('motionSelectedFrameData', JSON.stringify(frameData));
+      sessionStorage.setItem('motionFramesMeta', JSON.stringify([{ index: 0, timestamp_sec: 0 }]));
+      void router.push('/motion/point-select');
+    };
+    img.onerror = () => setIsProcessingImage(false);
+    img.src = imageSrc;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageSrc]);
 
   function validateFile(file: File): string | null {
     const ext = '.' + (file.name.split('.').pop()?.toLowerCase() ?? '');
@@ -62,11 +99,24 @@ export default function MotionUploadPage() {
     setError(null);
     const err = validateFile(file);
     if (err) { setError(err); return; }
-    const durationErr = await checkVideoDuration(file);
-    if (durationErr) { setError(durationErr); return; }
-    if (videoSrc) URL.revokeObjectURL(videoSrc);
-    setVideoSrc(URL.createObjectURL(file));
-    setCaptures([]);
+
+    const ext = '.' + (file.name.split('.').pop()?.toLowerCase() ?? '');
+
+    if (IMAGE_FORMATS.includes(ext)) {
+      if (videoSrc) URL.revokeObjectURL(videoSrc);
+      if (imageSrc) URL.revokeObjectURL(imageSrc);
+      setVideoSrc(null);
+      setCaptures([]);
+      setImageSrc(URL.createObjectURL(file));
+    } else {
+      const durationErr = await checkVideoDuration(file);
+      if (durationErr) { setError(durationErr); return; }
+      if (videoSrc) URL.revokeObjectURL(videoSrc);
+      if (imageSrc) URL.revokeObjectURL(imageSrc);
+      setImageSrc(null);
+      setVideoSrc(URL.createObjectURL(file));
+      setCaptures([]);
+    }
   }
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -107,7 +157,9 @@ export default function MotionUploadPage() {
 
   function handleReset() {
     if (videoSrc) URL.revokeObjectURL(videoSrc);
+    if (imageSrc) URL.revokeObjectURL(imageSrc);
     setVideoSrc(null);
+    setImageSrc(null);
     setCaptures([]);
     setError(null);
   }
@@ -129,7 +181,7 @@ export default function MotionUploadPage() {
   const isFull = captures.length >= MAX_CAPTURES;
 
   return (
-    <Layout title="Upload Video — MOVIATA">
+    <Layout title="Upload — MOVIATA">
       <div className="min-h-screen bg-white px-4 py-16 flex flex-col items-center justify-center">
         <div className="w-full max-w-lg">
 
@@ -149,7 +201,7 @@ export default function MotionUploadPage() {
           {/* Hidden canvas used for capture */}
           <canvas ref={canvasRef} className="hidden" />
 
-          {!videoSrc ? (
+          {!videoSrc && !imageSrc ? (
             /* ── Drop zone ── */
             <div className="rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.08)] overflow-hidden bg-white">
               <div
@@ -196,6 +248,31 @@ export default function MotionUploadPage() {
                 </button>
               </div>
             </div>
+          ) : imageSrc ? (
+            /* ── Image preview + auto-process ── */
+            <div className="flex flex-col gap-3">
+              <div className="rounded-[20px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
+                <div className="relative m-3 overflow-hidden rounded-[16px] bg-neutral-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imageSrc} alt="Uploaded" className="w-full object-contain" />
+                  {isProcessingImage && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900" />
+                    </div>
+                  )}
+                </div>
+                <div className="px-4 pb-4 pt-1">
+                  <p className="text-xs text-neutral-400 text-center">{t('uploadingImage')}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="w-full rounded-[14px] bg-neutral-100 px-5 py-3 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-200"
+              >
+                {t('actions.uploadAnother')}
+              </button>
+            </div>
           ) : (
             /* ── Video player + capture ── */
             <div className="flex flex-col gap-3">
@@ -206,7 +283,7 @@ export default function MotionUploadPage() {
                   {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                   <video
                     ref={videoRef}
-                    src={videoSrc}
+                    src={videoSrc ?? undefined}
                     controls
                     playsInline
                     className="w-full"

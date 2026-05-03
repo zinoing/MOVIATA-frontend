@@ -362,10 +362,10 @@
       "upload": "프레임 추출",
       "uploadImage": "이 사진 사용",
       "continue": "디자인 계속하기 →",
-      "uploadAnother": "다른 영상 업로드"
+      "uploadAnother": "다른 파일 업로드"
     },
     "errors": {
-      "invalidFormat": ".mp4, .mov 파일만 지원됩니다.",
+      "invalidFormat": ".mp4, .mov, .jpg, .jpeg, .png, .webp 파일만 지원됩니다.",
       "tooLarge": "파일 크기는 {max} MB 이하여야 합니다.",
       "tooLong": "영상은 {max}초 이하여야 합니다.",
       "uploadFailed": "업로드에 실패했습니다. 다시 시도해주세요.",

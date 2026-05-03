@@ -367,10 +367,10 @@
       "upload": "Extract Frames",
       "uploadImage": "Use This Photo",
       "continue": "Continue to Design →",
-      "uploadAnother": "Upload another video"
+      "uploadAnother": "Upload another file"
     },
     "errors": {
-      "invalidFormat": "Only .mp4 and .mov files are supported.",
+      "invalidFormat": "Only .mp4, .mov, .jpg, .jpeg, .png, and .webp files are supported.",
       "tooLarge": "File must be {max} MB or less.",
       "tooLong": "Video must be {max} seconds or less.",
       "uploadFailed": "Upload failed. Please try again.",

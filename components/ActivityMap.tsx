@@ -175,9 +175,9 @@ function setupMapLayers(
 ) {
   const routeMainColor = getRouteColorValue(routeColor);
   const isDark = shirtColor === 'black';
-  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#3d3d3d' : 'rgba(0,0,0,0)';
+  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#000000' : 'rgba(0,0,0,0)';
   const roadColors = getRoadColors(isDark);
-  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? 'rgba(0,0,0,0)' : '#BED6D8';
+  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4a4a4a' : '#BED6D8';
 
   map.getCanvas().style.background = 'transparent';
 
@@ -257,7 +257,7 @@ function setupMapLayers(
 
       if (isWater) {
         map.setPaintProperty(id, 'fill-color', waterColor);
-        map.setPaintProperty(id, 'fill-opacity', isDark ? 0 : 1);
+        map.setPaintProperty(id, 'fill-opacity', 1);
         map.setLayoutProperty(id, 'visibility', 'visible');
       } else if (roadTier) {
         map.setPaintProperty(id, 'line-color', roadColors[roadTier]);
@@ -283,9 +283,9 @@ function applyStyleUpdates(
 
   const routeMainColor = getRouteColorValue(routeColor);
   const isDark = shirtColor === 'black';
-  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#3d3d3d' : 'rgba(0,0,0,0)';
+  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#000000' : 'rgba(0,0,0,0)';
   const roadColors = getRoadColors(isDark);
-  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#000000' : '#BED6D8';
+  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4a4a4a' : '#BED6D8';
 
   // 루트 선 색상
   if (map.getLayer('route-main')) {
@@ -347,7 +347,7 @@ function applyStyleUpdates(
 
       if (isWater) {
         map.setPaintProperty(id, 'fill-color', waterColor);
-        map.setPaintProperty(id, 'fill-opacity', isDark ? 0 : 1);
+        map.setPaintProperty(id, 'fill-opacity', 1);
         map.setLayoutProperty(id, 'visibility', 'visible');
       } else if (roadTier) {
         map.setPaintProperty(id, 'line-color', roadColors[roadTier]);

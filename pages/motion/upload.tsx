@@ -289,12 +289,12 @@ export default function MotionUploadPage() {
                     className="w-full"
                   />
                   {/* Capture button */}
-                  <div className="absolute bottom-3 right-3">
+                  <div className="absolute bottom-14 right-3">
                     <button
                       type="button"
                       onClick={handleCapture}
                       disabled={isFull}
-                      className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-white/85 text-neutral-700 shadow-sm backdrop-blur-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-35"
+                      className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#FF5A1F] text-white shadow-sm transition hover:bg-[#FF5A1F]/85 disabled:cursor-not-allowed disabled:opacity-35"
                     >
                       <CameraIcon />
                     </button>

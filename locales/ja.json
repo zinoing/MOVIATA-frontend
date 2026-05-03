@@ -344,6 +344,9 @@
     "uploadingFile": "アップロード中…",
     "uploading": "フレームを抽出中…",
     "uploadingImage": "写真を準備中…",
+    "frameSelect": {
+      "pinAdd": "フレームをピン"
+    },
     "frameInterval": {
       "label": "フレーム間隔",
       "every": "{n}フレームごと",

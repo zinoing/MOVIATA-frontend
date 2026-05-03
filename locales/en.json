@@ -349,6 +349,9 @@
     "uploadingFile": "Uploading…",
     "uploading": "Extracting frames…",
     "uploadingImage": "Preparing photo…",
+    "frameSelect": {
+      "pinAdd": "Pin frame"
+    },
     "frameInterval": {
       "label": "Frame Interval",
       "every": "Every {n}th",

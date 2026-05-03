@@ -344,6 +344,9 @@
     "uploadingFile": "업로드 중…",
     "uploading": "프레임 추출 중…",
     "uploadingImage": "사진 준비 중…",
+    "frameSelect": {
+      "pinAdd": "프레임 고정"
+    },
     "frameInterval": {
       "label": "프레임 간격",
       "every": "매 {n}번째",

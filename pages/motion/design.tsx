@@ -13,6 +13,69 @@ import { buildDesignConfig } from '../../lib/poster/buildDesignConfig';
 import { capturePosterCard } from '../../lib/poster/capturePosterCard';
 import type { ProfileUser } from '../../types/profile';
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+/**
+ * Captures the motion poster card by hiding the composite <img> (which is a
+ * large data URL that html-to-image cannot reliably render inside SVG
+ * foreignObject), capturing the card UI separately, then drawing the composite
+ * image onto the output canvas manually — mirroring how capturePosterCard
+ * handles the map layer in the path design flow.
+ */
+async function captureMotionCard(el: HTMLElement, compositeDataUrl: string | null): Promise<string> {
+  const PIXEL_RATIO = 3;
+
+  // capturePosterCard uses el.firstElementChild for sizing measurements
+  const captureTarget = (el.firstElementChild as HTMLElement | null) ?? el;
+  const cardRect = captureTarget.getBoundingClientRect();
+  const cardW = Math.round(cardRect.width);
+  const cardH = Math.round(cardRect.height);
+
+  const compositeImg = el.querySelector<HTMLImageElement>('img[alt="Motion composite"]');
+
+  if (!compositeDataUrl || !compositeImg) {
+    return capturePosterCard(el, null);
+  }
+
+  // Measure before any DOM mutation
+  const imgRect = compositeImg.getBoundingClientRect();
+  const relX = imgRect.left - cardRect.left;
+  const relY = imgRect.top - cardRect.top;
+
+  // Hide the composite image so capturePosterCard only renders the card UI
+  const savedVisibility = compositeImg.style.visibility;
+  compositeImg.style.visibility = 'hidden';
+  try {
+    const cardPng = await capturePosterCard(el, null);
+    const [cardImg, compImg] = await Promise.all([loadImage(cardPng), loadImage(compositeDataUrl)]);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = cardW * PIXEL_RATIO;
+    canvas.height = cardH * PIXEL_RATIO;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(cardImg, 0, 0);
+    ctx.drawImage(
+      compImg,
+      Math.round(relX * PIXEL_RATIO),
+      Math.round(relY * PIXEL_RATIO),
+      Math.round(imgRect.width * PIXEL_RATIO),
+      Math.round(imgRect.height * PIXEL_RATIO),
+    );
+    return canvas.toDataURL('image/png');
+  } finally {
+    compositeImg.style.visibility = savedVisibility;
+  }
+}
+
 // ─── Motion Poster Card ───────────────────────────────────────────────────────
 
 type MotionPosterCardProps = {
@@ -413,7 +476,7 @@ export default function MotionDesignPage() {
       let snapshot: string | null = null;
       const posterCard = document.getElementById('poster-card');
       if (posterCard) {
-        snapshot = await capturePosterCard(posterCard, null);
+        snapshot = await captureMotionCard(posterCard, processedComposite);
       }
       sessionStorage.setItem('motionDesignEditor', JSON.stringify(editor));
       saveDraft({ config, posterSnapshot: snapshot, editorSnapshot: editor });

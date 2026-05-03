@@ -109,6 +109,7 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
             <Link
               href="/"
               className="text-sm font-black tracking-[-0.03em] text-neutral-950 transition-opacity duration-[180ms] hover:opacity-50"
+              style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
             >
               MOVIATA
             </Link>

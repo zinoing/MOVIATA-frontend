@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
-import { IS_RUNPOD, getPresignedUploadUrl, extractFramesFromR2, getFrameImageUrl, type FrameInfo, type ExtractFramesResponse } from '../../lib/motionApi';
+import { getPresignedUploadUrl, extractFramesFromR2, getFrameImageUrl, type FrameInfo, type ExtractFramesResponse } from '../../lib/motionApi';
 
 const ACCEPTED_VIDEO_FORMATS = ['.mp4', '.mov', '.avi'];
 const ACCEPTED_IMAGE_FORMATS = ['.jpg', '.jpeg', '.png'];
@@ -42,7 +42,6 @@ function PinAddIcon() {
 // ─── Timeline selector ────────────────────────────────────────────────────────
 
 function TimelineSelector({
-  jobId,
   frames,
   seekIndex,
   onSeek,
@@ -52,8 +51,10 @@ function TimelineSelector({
   onContinue,
   onReset,
   frameSrcs,
+  onEnsureFrame,
+  aspectRatio,
+  onAspectRatioMeasured,
 }: {
-  jobId: string;
   frames: FrameInfo[];
   seekIndex: number;
   onSeek: (i: number) => void;
@@ -63,42 +64,100 @@ function TimelineSelector({
   onContinue: () => void;
   onReset: () => void;
   frameSrcs: Record<number, string>;
+  onEnsureFrame: (frameIndex: number) => void;
+  aspectRatio: number | null;
+  onAspectRatioMeasured: (ratio: number) => void;
 }) {
   const t = useTranslations('motionUpload');
 
+  const cardRef = useRef<HTMLDivElement>(null);
+  const isVisibleRef = useRef(false);
+  const aspectMeasuredRef = useRef(false);
+
+  // Keep refs up-to-date for use inside observer callback without re-registering
+  const currentFrameRef = useRef<FrameInfo | null>(null);
+  const selectedIndicesRef = useRef<number[]>(selectedFrameIndices);
+
   const currentFrame = frames[seekIndex] ?? null;
+  currentFrameRef.current = currentFrame;
+  selectedIndicesRef.current = selectedFrameIndices;
+
   const isFull = selectedFrameIndices.length >= MAX_FRAME_SELECT;
   const isCurrentPinned = currentFrame !== null && selectedFrameIndices.includes(currentFrame.index);
   const maxSeek = Math.max(frames.length - 1, 1);
+  const previewRatio = aspectRatio ?? 16 / 9;
 
-  void jobId; // used by parent to fetch frameSrcs
+  // Observe main card — fetch frames only when in viewport
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = !!entry?.isIntersecting;
+        if (isVisibleRef.current) {
+          if (currentFrameRef.current) onEnsureFrame(currentFrameRef.current.index);
+          selectedIndicesRef.current.forEach((idx) => onEnsureFrame(idx));
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch current frame when seekIndex changes (if card is visible)
+  useEffect(() => {
+    if (isVisibleRef.current && currentFrame) onEnsureFrame(currentFrame.index);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentFrame?.index]);
+
+  // Fetch newly-pinned slot frames (if card is visible)
+  useEffect(() => {
+    if (isVisibleRef.current) selectedFrameIndices.forEach((idx) => onEnsureFrame(idx));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFrameIndices.join(',')]);
+
+  const currentSrc = currentFrame ? (frameSrcs[currentFrame.index] ?? '') : '';
+
+  function handleImgLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    if (aspectMeasuredRef.current) return;
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    if (naturalWidth > 0 && naturalHeight > 0) {
+      aspectMeasuredRef.current = true;
+      onAspectRatioMeasured(naturalWidth / naturalHeight);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-3">
 
       {/* ── Main card ── */}
-      <div className="rounded-[20px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
+      <div ref={cardRef} className="rounded-[20px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
 
         {/* Preview */}
-        <div className="relative m-3 overflow-hidden rounded-[16px] bg-[#F5F5F5] min-h-[140px]">
-          {currentFrame ? (
+        <div
+          className="relative m-3 overflow-hidden rounded-[16px] bg-[#F5F5F5]"
+          style={{ aspectRatio: String(previewRatio) }}
+        >
+          {/* Skeleton: shown until blob URL is ready */}
+          {!currentSrc && (
+            <div className="absolute inset-0 animate-pulse bg-neutral-200" />
+          )}
+
+          {currentFrame && (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
-              src={frameSrcs[currentFrame.index] ?? ''}
+              src={currentSrc}
               alt={`Frame ${currentFrame.index}`}
-              className="block h-auto w-full"
+              className="absolute inset-0 h-full w-full object-cover"
               draggable={false}
+              onLoad={handleImgLoad}
             />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
-                <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" />
-              </svg>
-            </div>
           )}
 
           {/* Timestamp badge */}
-          {currentFrame && (
+          {currentFrame && currentSrc && (
             <div className="absolute bottom-3 left-3 rounded-[6px] bg-black/40 px-2 py-0.5">
               <span className="font-mono text-[11px] tabular-nums text-white">
                 {currentFrame.timestamp_sec.toFixed(2)}s
@@ -106,7 +165,7 @@ function TimelineSelector({
             </div>
           )}
 
-          {/* Pin buttons */}
+          {/* Pin button */}
           <div className="absolute bottom-3 right-3 flex gap-2">
             <button
               type="button"
@@ -171,6 +230,7 @@ function TimelineSelector({
                 {Array.from({ length: MAX_FRAME_SELECT }).map((_, i) => {
                   const frameIdx = selectedFrameIndices[i];
                   const filled = frameIdx !== undefined;
+                  const slotSrc = filled ? (frameSrcs[frameIdx] ?? '') : '';
                   return (
                     <button
                       key={i}
@@ -180,11 +240,16 @@ function TimelineSelector({
                       className="relative flex-1 overflow-hidden rounded-[10px] bg-[#E0E0E0] transition disabled:cursor-default"
                       style={{ aspectRatio: '1 / 1' }}
                     >
-                      {filled && (
+                      {/* Slot skeleton */}
+                      {filled && !slotSrc && (
+                        <div className="absolute inset-0 animate-pulse bg-neutral-300" />
+                      )}
+                      {/* Slot image */}
+                      {filled && slotSrc && (
                         <>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={frameSrcs[frameIdx] ?? ''}
+                            src={slotSrc}
                             alt={`Selected frame ${frameIdx}`}
                             className="absolute inset-0 h-full w-full object-cover"
                           />
@@ -245,6 +310,7 @@ export default function MotionUploadPage() {
   const [uploadState, setUploadState] = useState<UploadState>({ status: 'idle' });
   const [selectedFrameIndices, setSelectedFrameIndices] = useState<number[]>([]);
   const [seekIndex, setSeekIndex] = useState(0);
+  const [videoAspectRatio, setVideoAspectRatio] = useState<number | null>(null);
 
   // blob URL cache: frameIndex → object URL
   const [frameSrcs, setFrameSrcs] = useState<Record<number, string>>({});
@@ -270,21 +336,6 @@ export default function MotionUploadPage() {
       .catch(() => { /* show empty img on error */ })
       .finally(() => { fetchingFrames.current.delete(frameIndex); });
   }
-
-  // Fetch current seek frame
-  useEffect(() => {
-    if (uploadState.status !== 'success') return;
-    const frame = uploadState.frames[seekIndex];
-    if (frame) ensureFrameSrc(uploadState.jobId, frame.index);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seekIndex, uploadState.status === 'success' && (uploadState as { jobId?: string }).jobId]);
-
-  // Fetch selected slot frames
-  useEffect(() => {
-    if (uploadState.status !== 'success') return;
-    selectedFrameIndices.forEach((idx) => ensureFrameSrc((uploadState as { jobId: string }).jobId, idx));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFrameIndices.join(','), uploadState.status === 'success' && (uploadState as { jobId?: string }).jobId]);
 
   // Restore state from sessionStorage
   useEffect(() => {
@@ -459,6 +510,7 @@ export default function MotionUploadPage() {
     setSelectedFile(null);
     setSelectedFrameIndices([]);
     setSeekIndex(0);
+    setVideoAspectRatio(null);
     setUploadState({ status: 'idle' });
   }
 
@@ -613,7 +665,6 @@ export default function MotionUploadPage() {
           {/* ── Timeline state ── */}
           {isSuccess && uploadState.status === 'success' && (
             <TimelineSelector
-              jobId={uploadState.jobId}
               frames={uploadState.frames}
               seekIndex={seekIndex}
               onSeek={setSeekIndex}
@@ -623,6 +674,9 @@ export default function MotionUploadPage() {
               onContinue={handleContinue}
               onReset={handleReset}
               frameSrcs={frameSrcs}
+              onEnsureFrame={(idx) => ensureFrameSrc(uploadState.jobId, idx)}
+              aspectRatio={videoAspectRatio}
+              onAspectRatioMeasured={setVideoAspectRatio}
             />
           )}
 

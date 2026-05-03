@@ -417,7 +417,6 @@ export default function MotionUploadPage() {
       index: f.index,
       timestamp_sec: f.timestamp_sec,
       path: f.path,
-      data: f.data,
     }));
 
     sessionStorage.setItem('motionJobId', data.job_id);
@@ -430,9 +429,6 @@ export default function MotionUploadPage() {
       sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify(
         frames.length > 0 ? [frames[0].path] : []
       ));
-      if (IS_RUNPOD && frames.length > 0 && frames[0].data) {
-        sessionStorage.setItem('motionSelectedFrameData', JSON.stringify([frames[0].data]));
-      }
       void router.push('/motion/point-select');
       return;
     }
@@ -442,7 +438,6 @@ export default function MotionUploadPage() {
     setSelectedFrameIndices([]);
     sessionStorage.setItem('motionSelectedFrames', JSON.stringify([]));
     sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify([]));
-    if (IS_RUNPOD) sessionStorage.setItem('motionSelectedFrameData', JSON.stringify([]));
     setUploadState({
       status: 'success',
       fileType: 'video',
@@ -471,10 +466,6 @@ export default function MotionUploadPage() {
     sessionStorage.setItem('motionSelectedFrames', JSON.stringify(indices));
     const paths = indices.map((idx) => frames.find((f) => f.index === idx)?.path ?? '').filter(Boolean);
     sessionStorage.setItem('motionSelectedFramePaths', JSON.stringify(paths));
-    if (IS_RUNPOD) {
-      const data = indices.map((idx) => frames.find((f) => f.index === idx)?.data ?? '').filter(Boolean);
-      sessionStorage.setItem('motionSelectedFrameData', JSON.stringify(data));
-    }
   }
 
   function handlePinAdd() {

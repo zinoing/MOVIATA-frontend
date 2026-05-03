@@ -24,7 +24,7 @@ export const IS_RUNPOD    = MOTION_API_BASE_URL.includes('runpod.ai');
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type FrameInfo = { index: number; timestamp_sec: number; path: string; data?: string };
+export type FrameInfo = { index: number; timestamp_sec: number; path: string };
 
 export interface ExtractFramesResponse {
   job_id: string;
@@ -198,7 +198,6 @@ export function getFrameImageUrl(jobId: string, frameIndex: number, width?: numb
 export function processComposite(params: {
   jobId: string;
   framePaths: string[];
-  frameData?: string[];
   personColor: string;
   backgroundColor: string;
   outlineThickness: number;
@@ -214,11 +213,6 @@ export function processComposite(params: {
     mode:              params.mode,
   };
   if (params.pointCoords) body['point_coords'] = JSON.stringify(params.pointCoords);
-  // In RunPod mode each job runs on an isolated worker — send raw frame bytes so
-  // the process worker can reconstruct them locally.
-  if (IS_RUNPOD && params.frameData && params.frameData.length > 0) {
-    body['frame_data'] = JSON.stringify(params.frameData);
-  }
   return callApi<ProcessResponse>('/api/video/process', 'POST', body);
 }
 

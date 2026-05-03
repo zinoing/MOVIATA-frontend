@@ -73,7 +73,7 @@ function getRoadTier(layerId: string): RoadTier | null {
 type RoadColors = Record<RoadTier, string>;
 
 function getRoadColors(isDark: boolean): RoadColors {
-  const color = isDark ? '#3d3d3d' : '#c0c0c0';
+  const color = isDark ? '#4b4a4a' : '#c0c0c0';
   return { high: color, medium: color, low: color, other: color, path: color };
 }
 
@@ -175,7 +175,7 @@ function setupMapLayers(
 ) {
   const routeMainColor = getRouteColorValue(routeColor);
   const isDark = shirtColor === 'black';
-  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4b4a4a' : 'rgba(0,0,0,0)';
+  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#3d3d3d' : 'rgba(0,0,0,0)';
   const roadColors = getRoadColors(isDark);
   const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? 'rgba(0,0,0,0)' : '#BED6D8';
 
@@ -283,7 +283,7 @@ function applyStyleUpdates(
 
   const routeMainColor = getRouteColorValue(routeColor);
   const isDark = shirtColor === 'black';
-  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4b4a4a' : 'rgba(0,0,0,0)';
+  const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#3d3d3d' : 'rgba(0,0,0,0)';
   const roadColors = getRoadColors(isDark);
   const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#000000' : '#BED6D8';
 

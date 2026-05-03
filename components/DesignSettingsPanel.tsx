@@ -1,4 +1,5 @@
 import type { ChangeEvent, ReactNode } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import type { ProfileUser } from '../types/profile';
 
@@ -84,6 +85,42 @@ function normalizePosterTitle(input: string) {
   return lines.join('\n').slice(0, 60);
 }
 
+function detectTitleWraps(rawTitle: string): string {
+  if (typeof document === 'undefined') return rawTitle;
+  const parts = rawTitle.split('\n');
+  if (parts.length >= 2) return rawTitle;
+
+  const words = (parts[0] ?? '').split(/\s+/).filter(Boolean);
+  if (words.length <= 1) return rawTitle;
+
+  const div = document.createElement('div');
+  div.style.cssText =
+    'position:absolute;visibility:hidden;pointer-events:none;top:-9999px;left:-9999px;' +
+    "width:380px;font-family:var(--font-playfair),'Playfair Display',Georgia,serif;" +
+    'font-size:2.35rem;font-weight:700;line-height:1.02;letter-spacing:-0.02em;' +
+    'text-transform:uppercase;white-space:normal;';
+  document.body.appendChild(div);
+
+  div.textContent = '​';
+  const oneLineH = div.clientHeight;
+
+  let line1 = '';
+  let wrapAt = -1;
+  for (let i = 0; i < words.length; i++) {
+    const candidate = line1 ? `${line1} ${words[i]}` : words[i]!;
+    div.textContent = candidate;
+    if (div.clientHeight > oneLineH && line1) {
+      wrapAt = i;
+      break;
+    }
+    line1 = candidate;
+  }
+
+  document.body.removeChild(div);
+  if (wrapAt === -1) return rawTitle;
+  return `${line1}\n${words.slice(wrapAt).join(' ')}`;
+}
+
 export default function DesignSettingsPanel({
   value,
   onChange,
@@ -117,6 +154,22 @@ export default function DesignSettingsPanel({
     normalizedMyInstagramId.length > 0 &&
     myInstagramFetchStatus !== 'loading' &&
     !isGeneratingSnapshot;
+
+  const valueRef = useRef(value);
+  valueRef.current = value;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  useEffect(() => {
+    const raw = value.title;
+    const id = setTimeout(() => {
+      const wrapped = detectTitleWraps(raw);
+      if (wrapped !== raw) {
+        onChangeRef.current({ ...valueRef.current, title: wrapped });
+      }
+    }, 300);
+    return () => clearTimeout(id);
+  }, [value.title]);
 
   return (
     <aside className="w-full rounded-[20px] border border-neutral-200 bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.08)] lg:sticky lg:top-6">

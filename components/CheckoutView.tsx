@@ -103,7 +103,7 @@ export default function CheckoutView({
             Price
           </p>
           <p className="mt-2 text-[32px] font-semibold tracking-[-0.03em] text-neutral-950">
-            ₩{BASE_PRICE.toLocaleString()}
+            TBU
           </p>
         </div>
 

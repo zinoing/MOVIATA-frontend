@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../components/Layout';
@@ -26,10 +26,6 @@ const sizeGuideMap: Record<
   XL: { length: '77', shoulder: '51', chest: '58', sleeve: '24' },
 };
 
-function formatPriceKRW(value: number) {
-  return `₩${value.toLocaleString('ko-KR')}`;
-}
-
 export default function ConfirmPage() {
   const router = useRouter();
   const { config, posterSnapshot } = useDesignConfig();
@@ -53,16 +49,7 @@ export default function ConfirmPage() {
     );
   }
 
-  const PRICE_PER_ITEM = 35000;
   const productColor = config.shirtColor as ProductColor;
-
-  const totalQty = cartItems.reduce((s, i) => s + i.qty, 0);
-  const totalPrice = totalQty * PRICE_PER_ITEM;
-
-  const totalLabel = useMemo(
-    () => formatPriceKRW(totalPrice),
-    [totalPrice],
-  );
 
   const addCartItem = () => {
     setCartItems((prev) => [...prev, { id: Date.now(), size: 'M', qty: 1 }]);
@@ -350,7 +337,7 @@ export default function ConfirmPage() {
 
                 {/* 소계 */}
                 <span className="ml-auto text-sm font-medium text-neutral-900">
-                  {formatPriceKRW(item.qty * PRICE_PER_ITEM)}
+                  TBU
                 </span>
 
                 {/* 삭제 */}
@@ -380,7 +367,7 @@ export default function ConfirmPage() {
               <div>
                 <p className="text-sm text-neutral-500">{t('total')}</p>
                 <p className="mt-1 text-[32px] font-semibold tracking-[-0.03em] text-neutral-950">
-                  {totalLabel}
+                  TBU
                 </p>
               </div>
 

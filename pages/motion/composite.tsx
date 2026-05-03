@@ -239,7 +239,7 @@ export default function MotionCompositePage() {
         mode: 'ghost',
         pointCoords: pointCoords.length > 0 ? pointCoords : undefined,
       });
-      taskId = result.celery_task_id;
+      taskId = result.job_id;
       lastTaskIdRef.current = taskId;
     } catch (e) {
       setProcessState({ status: 'error', message: e instanceof Error ? e.message : t('errors.startFailed') });

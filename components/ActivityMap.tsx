@@ -177,7 +177,7 @@ function setupMapLayers(
   const isDark = shirtColor === 'black';
   const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#000000' : 'rgba(0,0,0,0)';
   const roadColors = getRoadColors(isDark);
-  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4a4a4a' : '#BED6D8';
+  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#7a7a7a' : '#BED6D8';
 
   map.getCanvas().style.background = 'transparent';
 
@@ -285,7 +285,7 @@ function applyStyleUpdates(
   const isDark = shirtColor === 'black';
   const backgroundColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#000000' : 'rgba(0,0,0,0)';
   const roadColors = getRoadColors(isDark);
-  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#4a4a4a' : '#BED6D8';
+  const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#7a7a7a' : '#BED6D8';
 
   // 루트 선 색상
   if (map.getLayer('route-main')) {

@@ -51,7 +51,6 @@ function TimelineSelector({
   onContinue,
   onReset,
   frameSrcs,
-  onEnsureFrame,
   aspectRatio,
   onAspectRatioMeasured,
 }: {
@@ -64,59 +63,17 @@ function TimelineSelector({
   onContinue: () => void;
   onReset: () => void;
   frameSrcs: Record<number, string>;
-  onEnsureFrame: (frameIndex: number) => void;
   aspectRatio: number | null;
   onAspectRatioMeasured: (ratio: number) => void;
 }) {
   const t = useTranslations('motionUpload');
-
-  const cardRef = useRef<HTMLDivElement>(null);
-  const isVisibleRef = useRef(false);
   const aspectMeasuredRef = useRef(false);
 
-  // Keep refs up-to-date for use inside observer callback without re-registering
-  const currentFrameRef = useRef<FrameInfo | null>(null);
-  const selectedIndicesRef = useRef<number[]>(selectedFrameIndices);
-
   const currentFrame = frames[seekIndex] ?? null;
-  currentFrameRef.current = currentFrame;
-  selectedIndicesRef.current = selectedFrameIndices;
-
   const isFull = selectedFrameIndices.length >= MAX_FRAME_SELECT;
   const isCurrentPinned = currentFrame !== null && selectedFrameIndices.includes(currentFrame.index);
   const maxSeek = Math.max(frames.length - 1, 1);
   const previewRatio = aspectRatio ?? 16 / 9;
-
-  // Observe main card — fetch frames only when in viewport
-  useEffect(() => {
-    const el = cardRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        isVisibleRef.current = !!entry?.isIntersecting;
-        if (isVisibleRef.current) {
-          if (currentFrameRef.current) onEnsureFrame(currentFrameRef.current.index);
-          selectedIndicesRef.current.forEach((idx) => onEnsureFrame(idx));
-        }
-      },
-      { threshold: 0.1 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Fetch current frame when seekIndex changes (if card is visible)
-  useEffect(() => {
-    if (isVisibleRef.current && currentFrame) onEnsureFrame(currentFrame.index);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentFrame?.index]);
-
-  // Fetch newly-pinned slot frames (if card is visible)
-  useEffect(() => {
-    if (isVisibleRef.current) selectedFrameIndices.forEach((idx) => onEnsureFrame(idx));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFrameIndices.join(',')]);
 
   const currentSrc = currentFrame ? (frameSrcs[currentFrame.index] ?? '') : '';
 
@@ -133,7 +90,7 @@ function TimelineSelector({
     <div className="flex flex-col gap-3">
 
       {/* ── Main card ── */}
-      <div ref={cardRef} className="rounded-[20px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
+      <div className="rounded-[20px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden">
 
         {/* Preview */}
         <div
@@ -328,7 +285,7 @@ export default function MotionUploadPage() {
     if (frameSrcsRef.current[frameIndex] !== undefined) return;
     if (fetchingFrames.current.has(frameIndex)) return;
     fetchingFrames.current.add(frameIndex);
-    getFrameImageUrl(jobId, frameIndex)
+    getFrameImageUrl(jobId, frameIndex, 800)
       .then((url) => {
         frameSrcsRef.current[frameIndex] = url;
         setFrameSrcs((prev) => ({ ...prev, [frameIndex]: url }));
@@ -336,6 +293,14 @@ export default function MotionUploadPage() {
       .catch(() => { /* show empty img on error */ })
       .finally(() => { fetchingFrames.current.delete(frameIndex); });
   }
+
+  // Load all frames at once when extraction completes
+  useEffect(() => {
+    if (uploadState.status !== 'success') return;
+    const { jobId, frames } = uploadState;
+    frames.forEach((f) => ensureFrameSrc(jobId, f.index));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadState.status === 'success' && (uploadState as { jobId?: string }).jobId]);
 
   // Restore state from sessionStorage
   useEffect(() => {
@@ -454,7 +419,7 @@ export default function MotionUploadPage() {
     // ── Step 3: trigger frame extraction via R2 key
     setUploadState({ status: 'processing' });
     try {
-      const data = await extractFramesFromR2(objectKey, isImage ? 1 : 15);
+      const data = await extractFramesFromR2(objectKey, isImage ? 1 : 30);
       if (cancelledRef.current) return;
       applyExtractResult(data, isImage);
     } catch (err) {
@@ -674,7 +639,6 @@ export default function MotionUploadPage() {
               onContinue={handleContinue}
               onReset={handleReset}
               frameSrcs={frameSrcs}
-              onEnsureFrame={(idx) => ensureFrameSrc(uploadState.jobId, idx)}
               aspectRatio={videoAspectRatio}
               onAspectRatioMeasured={setVideoAspectRatio}
             />

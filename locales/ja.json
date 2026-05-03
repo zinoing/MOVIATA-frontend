@@ -337,7 +337,7 @@
     "title": "動画または写真をアップロード",
     "subtitle": "短いクリップまたは写真をアップロードしてコンポジットデザインを作成します。",
     "dropzone": {
-      "title": "ここに動画または写真をドロップするかクリックして選択",
+      "title": "ここに動画をドロップするかクリックして選択",
       "subtitle": "対応形式: {formats} · 最大 {max} MB · 動画は最大60秒"
     },
     "changeFile": "ファイルを変更",
@@ -365,7 +365,7 @@
       "uploadAnother": "別の動画をアップロード"
     },
     "errors": {
-      "invalidFormat": ".mp4、.mov、.avi、.jpg、.jpeg、.pngファイルのみ対応しています。",
+      "invalidFormat": ".mp4、.movファイルのみ対応しています。",
       "tooLarge": "ファイルサイズは {max} MB 以下にしてください。",
       "tooLong": "動画は {max} 秒以下にしてください。",
       "uploadFailed": "アップロードに失敗しました。もう一度お試しください。",

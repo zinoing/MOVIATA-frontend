@@ -11,31 +11,16 @@
  *
  * Mode is auto-detected from the URL — no extra env var needed.
  *
- * Upload flow (both modes):
- *   1. getPresignedUploadUrl()  → Railway backend (NEXT_PUBLIC_BACKEND_URL) issues R2 presigned PUT URL
- *   2. PUT file directly to R2  → bypasses RunPod payload limit entirely
- *   3. extractFramesFromR2()    → RunPod/FastAPI downloads from R2, extracts frames
+ * Upload flow:
+ *   1. Browser captures frames via canvas → base64 JPEG stored in sessionStorage
+ *   2. processComposite() → sends frame_data (base64 array) to RunPod/FastAPI
  */
 
 const MOTION_API_BASE_URL = process.env.NEXT_PUBLIC_MOTION_API_BASE_URL ?? '';
-const BACKEND_URL         = process.env.NEXT_PUBLIC_BACKEND_URL ?? '';
 const RUNPOD_API_KEY      = process.env.NEXT_PUBLIC_RUNPOD_API_KEY ?? '';
 export const IS_RUNPOD    = MOTION_API_BASE_URL.includes('runpod.ai');
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-export type FrameInfo = { index: number; timestamp_sec: number; path: string };
-
-export interface ExtractFramesResponse {
-  job_id: string;
-  frame_interval: number;
-  fps: number;
-  total_video_frames: number;
-  duration_sec: number;
-  frames_extracted: number;
-  output_dir: string;
-  frames: FrameInfo[];
-}
 
 export interface ProcessResponse {
   job_id: string;
@@ -141,15 +126,6 @@ function callApi<T>(
 
 // ── Image helper ──────────────────────────────────────────────────────────────
 
-/**
- * Fetch a motion-service image endpoint and return a URL.
- *
- * RunPod mode  → decodes base64 response and returns a blob URL.
- *               Caller must revoke via URL.revokeObjectURL() when done.
- *
- * Direct mode  → returns a plain HTTP URL; no fetch is performed.
- *               URL.revokeObjectURL() on it is a safe no-op.
- */
 export async function fetchMotionImageUrl(endpoint: string): Promise<string> {
   if (!IS_RUNPOD) {
     return `${MOTION_API_BASE_URL}${endpoint}`;
@@ -164,40 +140,12 @@ export async function fetchMotionImageUrl(endpoint: string): Promise<string> {
 
 // ── API calls ─────────────────────────────────────────────────────────────────
 
-/** POST /api/video/presigned-upload → { presigned_url, object_key }
- *  Always calls Railway backend directly, never goes through RunPod. */
-export async function getPresignedUploadUrl(
-  filename: string,
-  contentType: string,
-): Promise<{ presigned_url: string; object_key: string }> {
-  const base = BACKEND_URL || MOTION_API_BASE_URL;
-  const resp = await fetch(`${base}/api/video/presigned-upload`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filename, content_type: contentType || 'application/octet-stream' }),
-  });
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({})) as { message?: string; detail?: string };
-    throw new Error(err.message ?? err.detail ?? `presigned-upload HTTP ${resp.status}`);
-  }
-  return resp.json();
-}
-
-/** POST /api/video/extract-frames with R2 key */
-export function extractFramesFromR2(r2Key: string, n: number): Promise<ExtractFramesResponse> {
-  return callApi<ExtractFramesResponse>('/api/video/extract-frames', 'POST', { r2_key: r2Key, n });
-}
-
-/** GET /api/video/frame/:jobId/:frameIndex → URL (blob or direct) */
-export function getFrameImageUrl(jobId: string, frameIndex: number, width?: number): Promise<string> {
-  const qs = width ? `?w=${width}` : '';
-  return fetchMotionImageUrl(`/api/video/frame/${jobId}/${frameIndex}${qs}`);
-}
-
-/** POST /api/video/process */
+/** POST /api/video/process
+ *  frameData: raw base64 JPEG strings (no data: prefix), one per framePath */
 export function processComposite(params: {
   jobId: string;
   framePaths: string[];
+  frameData: string[];
   personColor: string;
   backgroundColor: string;
   outlineThickness: number;
@@ -213,6 +161,7 @@ export function processComposite(params: {
     mode:              params.mode,
   };
   if (params.pointCoords) body['point_coords'] = JSON.stringify(params.pointCoords);
+  if (params.frameData.length > 0) body['frame_data'] = JSON.stringify(params.frameData);
   return callApi<ProcessResponse>('/api/video/process', 'POST', body);
 }
 

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
-import { getFrameImageUrl } from '../../lib/motionApi';
 
 const MAX_POINTS = 3;
 const DOT_COLORS = ['#FF5A1F', '#3B82F6', '#3B82F6'] as const;
@@ -16,36 +15,10 @@ export default function MotionPointSelectPage() {
 
   const [jobId, setJobId] = useState<string | null>(null);
   const [selectedFrames, setSelectedFrames] = useState<number[]>([]);
+  const [capturedFrameData, setCapturedFrameData] = useState<string[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [points, setPoints] = useState<Map<number, XY[]>>(new Map());
   const imgRef = useRef<HTMLImageElement>(null);
-
-  // blob URL cache: frameIndex → object URL
-  const [frameSrcs, setFrameSrcs] = useState<Record<number, string>>({});
-  const [loadedFrames, setLoadedFrames] = useState<Record<number, boolean>>({});
-  const fetchingFrames = useRef<Set<number>>(new Set());
-  const frameSrcsRef = useRef<Record<number, string>>({});
-
-  // Revoke blob URLs on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(frameSrcsRef.current).forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, []);
-
-  function ensureFrameSrc(jid: string, frameIndex: number) {
-    if (frameSrcsRef.current[frameIndex] !== undefined) return;
-    if (fetchingFrames.current.has(frameIndex)) return;
-
-    fetchingFrames.current.add(frameIndex);
-    getFrameImageUrl(jid, frameIndex, 800)
-      .then((url) => {
-        frameSrcsRef.current[frameIndex] = url;
-        setFrameSrcs((prev) => ({ ...prev, [frameIndex]: url }));
-      })
-      .catch(() => { /* show empty img on error */ })
-      .finally(() => { fetchingFrames.current.delete(frameIndex); });
-  }
 
   useEffect(() => {
     const id = sessionStorage.getItem('motionJobId');
@@ -55,7 +28,12 @@ export default function MotionPointSelectPage() {
     try {
       const raw = sessionStorage.getItem('motionSelectedFrames');
       if (raw) setSelectedFrames(JSON.parse(raw) as number[]);
-    } catch { /* ignore */ }
+    } catch { /**/ }
+
+    try {
+      const raw = sessionStorage.getItem('motionSelectedFrameData');
+      if (raw) setCapturedFrameData(JSON.parse(raw) as string[]);
+    } catch { /**/ }
 
     try {
       const coordsRaw = sessionStorage.getItem('motionPointCoords');
@@ -65,23 +43,8 @@ export default function MotionPointSelectPage() {
         for (const entry of saved) map.set(entry.frame_index, entry.points);
         setPoints(map);
       }
-    } catch { /* ignore */ }
+    } catch { /**/ }
   }, [router]);
-
-  // Fetch blob URLs for current frame and all thumbnails whenever jobId or frames change
-  useEffect(() => {
-    if (!jobId || selectedFrames.length === 0) return;
-    selectedFrames.forEach((fi) => ensureFrameSrc(jobId, fi));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jobId, selectedFrames.join(',')]);
-
-  // Also fetch current frame eagerly on navigation between frames
-  useEffect(() => {
-    if (!jobId || selectedFrames.length === 0) return;
-    const fi = selectedFrames[currentIdx];
-    if (fi !== undefined) ensureFrameSrc(jobId, fi);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIdx, jobId]);
 
   if (!jobId || selectedFrames.length === 0) return null;
 
@@ -90,6 +53,11 @@ export default function MotionPointSelectPage() {
   const currentPoints = points.get(currentFrameIndex) ?? [];
   const isFull = currentPoints.length >= MAX_POINTS;
   const allPointed = selectedFrames.every((fi) => (points.get(fi)?.length ?? 0) > 0);
+
+  function frameSrc(slotIdx: number): string {
+    const b64 = capturedFrameData[slotIdx];
+    return b64 ? `data:image/jpeg;base64,${b64}` : '';
+  }
 
   function handleImageClick(e: React.MouseEvent<HTMLDivElement>) {
     if (isFull) return;
@@ -174,18 +142,14 @@ export default function MotionPointSelectPage() {
               className="relative mx-3 mb-3 overflow-hidden rounded-[14px] bg-[#F5F5F5] select-none min-h-[200px]"
               style={{ cursor: isFull ? 'default' : 'crosshair' }}
             >
-              {(!frameSrcs[currentFrameIndex] || !loadedFrames[currentFrameIndex]) && (
-                <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 bg-[length:200%_100%]" />
-              )}
               <div onClick={handleImageClick} className="relative w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   ref={imgRef}
-                  src={frameSrcs[currentFrameIndex] ?? ''}
+                  src={frameSrc(currentIdx)}
                   alt={`Frame ${currentFrameIndex}`}
-                  className={`block w-full h-auto transition-opacity duration-300 ${loadedFrames[currentFrameIndex] ? 'opacity-100' : 'opacity-0'}`}
+                  className="block w-full h-auto"
                   draggable={false}
-                  onLoad={() => setLoadedFrames((prev) => ({ ...prev, [currentFrameIndex]: true }))}
                 />
                 {currentPoints.map((p, i) => (
                   <button
@@ -224,15 +188,11 @@ export default function MotionPointSelectPage() {
                       ].join(' ')}
                       style={{ aspectRatio: '1 / 1', maxWidth: 56 }}
                     >
-                      {(!frameSrcs[fi] || !loadedFrames[fi]) && (
-                        <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 bg-[length:200%_100%]" />
-                      )}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={frameSrcs[fi] ?? ''}
+                        src={frameSrc(i)}
                         alt={`Frame ${fi}`}
-                        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${loadedFrames[fi] ? 'opacity-100' : 'opacity-0'}`}
-                        onLoad={() => setLoadedFrames((prev) => ({ ...prev, [fi]: true }))}
+                        className="absolute inset-0 h-full w-full object-cover"
                       />
                       {count > 0 && (
                         <div className="absolute bottom-1 right-1 h-2.5 w-2.5 rounded-full bg-[#FF5A1F] shadow-[0_0_0_1.5px_white]" />

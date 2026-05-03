@@ -342,7 +342,7 @@
     "title": "UPLOAD VIDEO OR PHOTO",
     "subtitle": "Drop a short clip or photo and we'll prepare it for compositing.",
     "dropzone": {
-      "title": "Drop video or photo here, or click to browse",
+      "title": "Drop video here, or click to browse",
       "subtitle": "Supported: {formats} · Max {max} MB · Videos up to 60 seconds"
     },
     "changeFile": "Change file",
@@ -370,7 +370,7 @@
       "uploadAnother": "Upload another video"
     },
     "errors": {
-      "invalidFormat": "Only .mp4, .mov, .avi, .jpg, .jpeg, and .png files are supported.",
+      "invalidFormat": "Only .mp4 and .mov files are supported.",
       "tooLarge": "File must be {max} MB or less.",
       "tooLong": "Video must be {max} seconds or less.",
       "uploadFailed": "Upload failed. Please try again.",

@@ -6,7 +6,6 @@ import {
   processComposite,
   getJobStatus,
   getLayerImageUrl,
-  getFrameImageUrl,
   type LayerMeta,
 } from '../../lib/motionApi';
 
@@ -58,6 +57,7 @@ export default function MotionCompositePage() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [selectedFrames, setSelectedFrames] = useState<number[]>([]);
   const [selectedFramePaths, setSelectedFramePaths] = useState<string[]>([]);
+  const [capturedFrameData, setCapturedFrameData] = useState<string[]>([]);
   const [framesMeta, setFramesMeta] = useState<FrameMeta[]>([]);
   const [pointCoords, setPointCoords] = useState<{ frame_index: number; points: { x: number; y: number }[] }[]>([]);
   const [processState, setProcessState] = useState<ProcessState>({ status: 'idle' });
@@ -66,35 +66,16 @@ export default function MotionCompositePage() {
   const [activeLayer, setActiveLayer] = useState<number | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // blob URL caches
-  const [frameSrcs, setFrameSrcs] = useState<Record<number, string>>({});
-  const [loadedFrames, setLoadedFrames] = useState<Record<number, boolean>>({});
   const [layerSrcs, setLayerSrcs] = useState<Record<number, string>>({});
-  const frameSrcsRef = useRef<Record<number, string>>({});
   const layerSrcsRef = useRef<Record<number, string>>({});
-  const fetchingFrames = useRef<Set<number>>(new Set());
   const fetchingLayers = useRef<Set<number>>(new Set());
 
-  // Revoke blob URLs on unmount
+  // Revoke layer blob URLs on unmount
   useEffect(() => {
     return () => {
-      Object.values(frameSrcsRef.current).forEach((url) => URL.revokeObjectURL(url));
       Object.values(layerSrcsRef.current).forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
-
-  function ensureFrameSrc(jid: string, frameIndex: number) {
-    if (frameSrcsRef.current[frameIndex] !== undefined) return;
-    if (fetchingFrames.current.has(frameIndex)) return;
-    fetchingFrames.current.add(frameIndex);
-    getFrameImageUrl(jid, frameIndex)
-      .then((url) => {
-        frameSrcsRef.current[frameIndex] = url;
-        setFrameSrcs((prev) => ({ ...prev, [frameIndex]: url }));
-      })
-      .catch(() => {})
-      .finally(() => { fetchingFrames.current.delete(frameIndex); });
-  }
 
   function ensureLayerSrc(jid: string, index: number) {
     if (layerSrcsRef.current[index] !== undefined) return;
@@ -144,6 +125,7 @@ export default function MotionCompositePage() {
     setJobId(id);
     try { const r = sessionStorage.getItem('motionSelectedFrames'); if (r) setSelectedFrames(JSON.parse(r) as number[]); } catch { /**/ }
     try { const r = sessionStorage.getItem('motionSelectedFramePaths'); if (r) setSelectedFramePaths(JSON.parse(r) as string[]); } catch { /**/ }
+    try { const r = sessionStorage.getItem('motionSelectedFrameData'); if (r) setCapturedFrameData(JSON.parse(r) as string[]); } catch { /**/ }
     try { const r = sessionStorage.getItem('motionFramesMeta'); if (r) setFramesMeta(JSON.parse(r) as FrameMeta[]); } catch { /**/ }
     try { const r = sessionStorage.getItem('motionPointCoords'); if (r) setPointCoords(JSON.parse(r) as { frame_index: number; points: { x: number; y: number }[] }[]); } catch { /**/ }
     try {
@@ -160,18 +142,10 @@ export default function MotionCompositePage() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [router]);
 
-  // Fetch frame thumbnail blob URLs
-  useEffect(() => {
-    if (!jobId || selectedFrames.length === 0) return;
-    selectedFrames.forEach((fi) => ensureFrameSrc(jobId, fi));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jobId, selectedFrames.join(',')]);
-
   // Fetch layer blob URLs when processing succeeds
   useEffect(() => {
     if (processState.status !== 'success') return;
     const { jobId: jid, layers } = processState;
-    // Reset previous layer cache
     Object.values(layerSrcsRef.current).forEach((url) => URL.revokeObjectURL(url));
     layerSrcsRef.current = {};
     fetchingLayers.current.clear();
@@ -258,6 +232,7 @@ export default function MotionCompositePage() {
       const result = await processComposite({
         jobId,
         framePaths: selectedFramePaths,
+        frameData: capturedFrameData,
         personColor: '#ffffff',
         backgroundColor: '#000000',
         outlineThickness: 3,
@@ -335,7 +310,6 @@ export default function MotionCompositePage() {
         const layer = layers[i]!;
         const tr = transforms[i] ?? DEFAULT_TRANSFORM;
 
-        // Use cached blob URL; fall back to fresh fetch if not ready
         const src = layerSrcsRef.current[i] ?? await getLayerImageUrl(jid, i);
         const img = new Image();
         await new Promise<void>(resolve => {
@@ -400,16 +374,11 @@ export default function MotionCompositePage() {
                   {displayFrames.map((frame) => (
                     <div key={frame.index} className="flex shrink-0 flex-col items-center gap-1.5">
                       <div className="relative h-20 w-28 overflow-hidden rounded-[10px] bg-neutral-100">
-                        {(!frameSrcs[frame.index] || !loadedFrames[frame.index]) && (
-                          <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 bg-[length:200%_100%]" />
-                        )}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={frameSrcs[frame.index] ?? ''}
+                          src={capturedFrameData[frame.index] ? `data:image/jpeg;base64,${capturedFrameData[frame.index]}` : ''}
                           alt={`Frame ${frame.index}`}
-                          className={`h-full w-full object-cover transition-opacity duration-300 ${loadedFrames[frame.index] ? 'opacity-100' : 'opacity-0'}`}
-                          loading="lazy"
-                          onLoad={() => setLoadedFrames((prev) => ({ ...prev, [frame.index]: true }))}
+                          className="h-full w-full object-cover"
                         />
                       </div>
                       <span className="text-[10px] text-neutral-400 font-mono tabular-nums">
@@ -621,4 +590,3 @@ export default function MotionCompositePage() {
     </Layout>
   );
 }
-

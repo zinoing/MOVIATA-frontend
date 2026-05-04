@@ -6,7 +6,6 @@ const MAPTILER_API_KEY = process.env.NEXT_PUBLIC_MAPTILER_API_KEY ?? '';
 
 export function buildContourStyle(shirtColor: 'white' | 'black' = 'white'): StyleSpecification {
   const isDark = shirtColor === 'black';
-  const background = isDark ? '#0d0d0d' : '#ffffff';
   const lineColor = isDark ? '#ffffff' : '#1a1a1a';
   const lineColorIndex = isDark ? '#ffffff' : '#000000';
 
@@ -24,7 +23,7 @@ export function buildContourStyle(shirtColor: 'white' | 'black' = 'white'): Styl
         id: 'background',
         type: 'background',
         paint: {
-          'background-color': background,
+          'background-color': 'rgba(0,0,0,0)',
         },
       },
       // ── 가는 선: nth_line 0, 1, 2 (가장 세밀한 등고선)
@@ -112,8 +111,8 @@ function isCityLabelLayer(layer: any) {
 export function buildVectorMonochromeStyle(): StyleSpecification {
   const flavor = {
     ...namedFlavor('light'),
-    background: '#f4f4f1',
-    earth: '#f4f4f1',
+    background: 'rgba(0,0,0,0)',
+    earth: 'rgba(0,0,0,0)',
     park_a: '#eceee8',
     park_b: '#eceee8',
     water: '#e9ece8',

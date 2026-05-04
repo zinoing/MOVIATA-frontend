@@ -556,16 +556,14 @@ export default function ActivityMap({
         aspectRatio: '1 / 1',
         overflow: 'hidden',
         margin: '0 auto',
-        background: (showContours || !showMap)
-          ? 'transparent'
-          : shirtColor === 'black' ? '#000' : '#fff',
+        background: 'transparent',
       }}
     >
       <div
         style={{
           width: '100%',
           height: '100%',
-          background: (showContours || !showMap) ? 'transparent' : undefined,
+          background: 'transparent',
         }}
       >
         <div

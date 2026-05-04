@@ -70,8 +70,8 @@ export default function ConfirmPage() {
   };
 
   const handleBackToDesign = () => {
+    sessionStorage.setItem('design-return-from-confirm', '1');
     if (config.activityId === 'motion') {
-      sessionStorage.setItem('design-return-from-confirm', '1');
       void router.push('/motion/design');
     } else {
       void router.push(`/design/${config.activityId}`);

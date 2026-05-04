@@ -91,6 +91,7 @@ export default function ConfirmPage() {
 
     const formData = new FormData();
     formData.append('image', blob, 'design.png');
+    formData.append('designType', config.activityId === 'motion' ? 'motion' : 'route');
 
     const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api/v1', '') ?? 'http://localhost:4000';
     const res = await fetch(`${apiBase}/api/orders/capture`, {

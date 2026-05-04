@@ -68,6 +68,8 @@ async function inlineImages(el: HTMLElement): Promise<Map<HTMLImageElement, stri
   return saved;
 }
 
+import { POSTER_W, POSTER_H } from './dimensions';
+
 export async function capturePosterCard(
   el: HTMLElement,
   mapDataUrl: string | null,
@@ -97,8 +99,8 @@ export async function capturePosterCard(
   const mapRelY = mapRect ? mapRect.y - cardRect.y : 0;
   const mapW = mapRect?.width ?? 0;
   const mapH = mapRect?.height ?? 0;
-  const cardW = Math.round(cardRect.width);
-  const cardH = Math.round(cardRect.height);
+  const cardW = POSTER_W;
+  const cardH = POSTER_H;
 
   // Step 1: hide map container FIRST so MapLibre cannot receive resize events
   // when we later change captureTarget's position

@@ -11,6 +11,7 @@ import { createProfileUser, dedupeProfileUsers } from '../../lib/profileUsers';
 import { useDesignConfig } from '../../context/DesignConfigContext';
 import { buildDesignConfig } from '../../lib/poster/buildDesignConfig';
 import { capturePosterCard } from '../../lib/poster/capturePosterCard';
+import { POSTER_W, POSTER_H } from '../../lib/poster/dimensions';
 import type { ProfileUser } from '../../types/profile';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -37,8 +38,8 @@ async function captureMotionCard(el: HTMLElement, compositeDataUrl: string | nul
   // capturePosterCard uses el.firstElementChild for sizing measurements
   const captureTarget = (el.firstElementChild as HTMLElement | null) ?? el;
   const cardRect = captureTarget.getBoundingClientRect();
-  const cardW = Math.round(cardRect.width);
-  const cardH = Math.round(cardRect.height);
+  const cardW = POSTER_W;
+  const cardH = POSTER_H;
 
   const compositeImg = el.querySelector<HTMLImageElement>('img[alt="Motion composite"]');
 
@@ -153,7 +154,7 @@ function MotionPosterCard({
 
   return (
     <div
-      className={`w-[428px] max-w-full mx-auto rounded-[32px] overflow-hidden px-6 pt-6 pb-8 shadow-[0_8px_40px_rgba(0,0,0,0.12)] ${cardClass}`}
+      className={`w-[428px] h-[760px] max-w-full mx-auto rounded-[32px] overflow-hidden px-6 pt-6 pb-8 shadow-[0_8px_40px_rgba(0,0,0,0.12)] ${cardClass}`}
     >
       {/* Instagram profiles */}
       <div

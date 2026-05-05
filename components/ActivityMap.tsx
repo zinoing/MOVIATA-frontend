@@ -124,7 +124,7 @@ function getRouteColorValue(routeColor: RouteColor) {
 // ─── end-pin SVG 이미지 생성 헬퍼 ─────────────────────────────────────────────
 // setupMapLayers(초기 등록)과 applyStyleUpdates(색상 교체) 양쪽에서 공유합니다.
 function buildEndPinImage(color: string): { img: HTMLImageElement; dpr: number } {
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = 3; // 맵 pixelRatio와 일치시켜 업스케일 블러 방지
   const pinW = Math.round(27 * dpr);
   const pinH = Math.round(16 * dpr);
   const svg = `<svg width="${pinW}" height="${pinH}" viewBox="0 0 30 18" xmlns="http://www.w3.org/2000/svg">

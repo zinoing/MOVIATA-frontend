@@ -20,10 +20,10 @@ const sizeGuideMap: Record<
     sleeve: string;
   }
 > = {
-  S: { length: '68', shoulder: '45', chest: '49', sleeve: '21' },
-  M: { length: '71', shoulder: '47', chest: '52', sleeve: '22' },
-  L: { length: '74', shoulder: '49', chest: '55', sleeve: '23' },
-  XL: { length: '77', shoulder: '51', chest: '58', sleeve: '24' },
+  S: { length: '66', shoulder: '44', chest: '49', sleeve: '19' },
+  M: { length: '70', shoulder: '47', chest: '52', sleeve: '20' },
+  L: { length: '74', shoulder: '50', chest: '55', sleeve: '22' },
+  XL: { length: '78', shoulder: '53', chest: '58', sleeve: '24' },
 };
 
 export default function ConfirmPage() {

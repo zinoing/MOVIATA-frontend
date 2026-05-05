@@ -15,6 +15,7 @@ export default function CollectionsPage() {
   const [items, setItems] = useState<CollectionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<CollectionItem | null>(null);
 
   useEffect(() => {
     const apiBase =
@@ -32,6 +33,14 @@ export default function CollectionsPage() {
         setError((err as Error).message);
         setLoading(false);
       });
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelected(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   return (
@@ -68,11 +77,13 @@ export default function CollectionsPage() {
           )}
 
           {!loading && !error && items.length > 0 && (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {items.map((item) => (
-                <div
+                <button
                   key={item.fileName}
-                  className="overflow-hidden rounded-[24px] border border-neutral-200 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)]"
+                  type="button"
+                  onClick={() => setSelected(item)}
+                  className="overflow-hidden rounded-[16px] border border-neutral-200 bg-white text-left shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(0,0,0,0.10)]"
                 >
                   <div className="aspect-square bg-neutral-100">
                     <img
@@ -81,18 +92,48 @@ export default function CollectionsPage() {
                       className="h-full w-full object-cover"
                     />
                   </div>
-                  <div className="px-5 py-4">
-                    <p className="truncate text-sm font-semibold text-neutral-950">
+                  <div className="px-3 py-3">
+                    <p className="truncate text-xs font-semibold text-neutral-950">
                       {item.title || '—'}
                     </p>
-                    <p className="mt-1 text-xs text-neutral-400">{item.date}</p>
+                    <p className="mt-0.5 text-[11px] text-neutral-400">{item.date}</p>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Lightbox */}
+      {selected && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="relative max-h-[90vh] max-w-[90vw]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={selected.imageUrl}
+              alt={selected.title || selected.fileName}
+              className="max-h-[80vh] max-w-[85vw] rounded-[16px] object-contain shadow-2xl"
+            />
+            <div className="mt-3 text-center">
+              <p className="text-sm font-semibold text-white">{selected.title || '—'}</p>
+              <p className="mt-0.5 text-xs text-white/60">{selected.date}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              className="absolute -right-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm font-semibold text-neutral-900 shadow-lg transition hover:bg-neutral-100"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

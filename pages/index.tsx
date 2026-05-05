@@ -93,15 +93,23 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="relative z-30 mt-12 flex flex-col items-center">
-              <Link
-                href="/activity-type"
-                className="inline-flex min-w-[220px] items-center justify-center rounded-[14px] bg-neutral-950 px-8 py-4 text-base font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.20)] transition hover:-translate-y-0.5 hover:bg-[#FF5A1F]"
-              >
-                {t('cta.button')}
-              </Link>
+            <div className="relative z-30 mt-12 flex flex-col items-center gap-4">
+              <div className="flex flex-col items-center gap-3 sm:flex-row">
+                <Link
+                  href="/activity-type"
+                  className="inline-flex min-w-[220px] items-center justify-center rounded-[14px] bg-neutral-950 px-8 py-4 text-base font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.20)] transition hover:-translate-y-0.5 hover:bg-[#FF5A1F]"
+                >
+                  {t('cta.button')}
+                </Link>
+                <Link
+                  href="/collections"
+                  className="inline-flex min-w-[220px] items-center justify-center rounded-[14px] border border-neutral-200 bg-white px-8 py-4 text-base font-semibold text-neutral-900 shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition hover:-translate-y-0.5 hover:border-neutral-400"
+                >
+                  {t('cta.collections')}
+                </Link>
+              </div>
 
-              <p className="mt-5 text-sm italic tracking-[0.02em] text-neutral-400 md:text-base">
+              <p className="text-sm italic tracking-[0.02em] text-neutral-400 md:text-base">
                 {t('cta.tagline')}
               </p>
             </div>

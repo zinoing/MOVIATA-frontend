@@ -33,6 +33,7 @@
     },
     "cta": {
       "button": "디자인 시작하기",
+      "collections": "컬랙션 구경하기",
       "tagline": "당신의 발걸음에서 스타일까지."
     }
   },
@@ -371,6 +372,15 @@
       "uploadFailed": "업로드에 실패했습니다. 다시 시도해주세요.",
       "networkError": "네트워크 오류. 처리 서비스가 실행 중인지 확인하세요.",
       "parseFailed": "서버에서 예상치 못한 응답을 받았습니다."
+    }
+  },
+  "collections": {
+    "title": "컬랙션",
+    "subtitle": "캡처되고 저장된 디자인들.",
+    "loading": "컬랙션 불러오는 중…",
+    "empty": {
+      "heading": "아직 컬랙션이 없습니다",
+      "description": "완성된 디자인이 여기에 표시됩니다."
     }
   },
   "layout": {

@@ -33,6 +33,7 @@
     },
     "cta": {
       "button": "Start Your Design",
+      "collections": "Browse Collections",
       "tagline": "From your stride to your style."
     }
   },
@@ -376,6 +377,15 @@
       "uploadFailed": "Upload failed. Please try again.",
       "networkError": "Network error. Is the processing service running?",
       "parseFailed": "Unexpected response from server."
+    }
+  },
+  "collections": {
+    "title": "Collections",
+    "subtitle": "Designs captured and saved.",
+    "loading": "Loading collections…",
+    "empty": {
+      "heading": "No collections yet",
+      "description": "Completed designs will appear here."
     }
   },
   "layout": {

@@ -8,6 +8,7 @@ interface CollectionItem {
   title: string;
   date: string;
   time: string;
+  shirtColor: 'white' | 'black';
 }
 
 export default function CollectionsPage() {
@@ -115,11 +116,15 @@ export default function CollectionsPage() {
             className="relative max-h-[90vh] max-w-[90vw]"
             onClick={(e) => e.stopPropagation()}
           >
-            <img
-              src={selected.imageUrl}
-              alt={selected.title || selected.fileName}
-              className="max-h-[80vh] max-w-[85vw] rounded-[16px] object-contain shadow-2xl"
-            />
+            <div
+              className={`rounded-[16px] shadow-2xl ${selected.shirtColor === 'white' ? 'bg-white' : 'bg-black'}`}
+            >
+              <img
+                src={selected.imageUrl}
+                alt={selected.title || selected.fileName}
+                className="max-h-[80vh] max-w-[85vw] rounded-[16px] object-contain"
+              />
+            </div>
             <div className="mt-3 text-center">
               <p className="text-sm font-semibold text-white">{selected.title || '—'}</p>
               <p className="mt-0.5 text-xs text-white/60">{selected.date}</p>

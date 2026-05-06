@@ -93,7 +93,7 @@ export default function CollectionsPage() {
             const filtered = q
               ? items.filter(
                   (item) =>
-                    item.title.toLowerCase().includes(q) || item.date.includes(q),
+                    item.title.toLowerCase().includes(q),
                 )
               : items;
             return filtered.length === 0 ? (

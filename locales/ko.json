@@ -378,7 +378,7 @@
     "title": "컬랙션",
     "subtitle": "캡처되고 저장된 디자인들.",
     "loading": "컬랙션 불러오는 중…",
-    "searchPlaceholder": "제목 또는 날짜로 검색",
+    "searchPlaceholder": "제목으로 검색",
     "noResults": "검색 결과가 없습니다.",
     "empty": {
       "heading": "아직 컬랙션이 없습니다",

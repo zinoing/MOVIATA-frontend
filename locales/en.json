@@ -383,7 +383,7 @@
     "title": "Collections",
     "subtitle": "Designs captured and saved.",
     "loading": "Loading collections…",
-    "searchPlaceholder": "Search by title or date",
+    "searchPlaceholder": "Search by title",
     "noResults": "No results found.",
     "empty": {
       "heading": "No collections yet",

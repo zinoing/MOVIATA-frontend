@@ -17,6 +17,7 @@ export default function CollectionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<CollectionItem | null>(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     const apiBase =
@@ -48,7 +49,7 @@ export default function CollectionsPage() {
     <Layout title={`${t('title')} — MOVIATA`}>
       <div className="min-h-screen bg-white px-6 py-12 md:px-10">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10">
+          <div className="mb-8">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-neutral-400">
               MOVIATA
             </p>
@@ -56,6 +57,16 @@ export default function CollectionsPage() {
               {t('title')}
             </h1>
             <p className="mt-3 text-sm text-neutral-500">{t('subtitle')}</p>
+          </div>
+
+          <div className="mb-6">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('searchPlaceholder')}
+              className="w-full max-w-sm rounded-[12px] border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 outline-none focus:border-neutral-400 focus:bg-white"
+            />
           </div>
 
           {loading && (
@@ -77,9 +88,21 @@ export default function CollectionsPage() {
             </div>
           )}
 
-          {!loading && !error && items.length > 0 && (
+          {!loading && !error && items.length > 0 && (() => {
+            const q = query.trim().toLowerCase();
+            const filtered = q
+              ? items.filter(
+                  (item) =>
+                    item.title.toLowerCase().includes(q) || item.date.includes(q),
+                )
+              : items;
+            return filtered.length === 0 ? (
+              <div className="flex items-center justify-center py-24">
+                <p className="text-sm text-neutral-400">{t('noResults')}</p>
+              </div>
+            ) : (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {items.map((item) => (
+              {filtered.map((item) => (
                 <button
                   key={item.fileName}
                   type="button"
@@ -102,7 +125,8 @@ export default function CollectionsPage() {
                 </button>
               ))}
             </div>
-          )}
+            );
+          })()}
         </div>
       </div>
 

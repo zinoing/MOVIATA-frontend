@@ -378,6 +378,8 @@
     "title": "コレクション",
     "subtitle": "キャプチャされ保存されたデザイン。",
     "loading": "コレクションを読み込み中…",
+    "searchPlaceholder": "タイトルまたは日付で検索",
+    "noResults": "検索結果がありません。",
     "empty": {
       "heading": "まだコレクションがありません",
       "description": "完成したデザインがここに表示されます。"

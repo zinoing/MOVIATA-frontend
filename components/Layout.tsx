@@ -126,6 +126,23 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
         <div className="pt-[76px] sm:pt-11">
           {children}
         </div>
+
+        <footer className="border-t border-black/[0.06] px-6 py-8 text-center text-xs text-neutral-400">
+          <p className="mb-2 flex flex-wrap justify-center gap-x-3 gap-y-1">
+            <span>{t('footer.copyright')}</span>
+            <span className="text-neutral-300">|</span>
+            <span>{t('footer.terms')}</span>
+            <span className="text-neutral-300">|</span>
+            <span>{t('footer.privacy')}</span>
+          </p>
+          <div className="space-y-0.5">
+            <p>{t('footer.bizNumber')}: 188-16-02745</p>
+            <p>{t('footer.ceo')}: 조진호</p>
+            <p>{t('footer.address')}: 서울시 한강대로 77길 15</p>
+            <p>{t('footer.support')}: 카카오톡 채널 MOVIATA</p>
+            <p>{t('footer.mailOrder')}: TBU</p>
+          </div>
+        </footer>
       </main>
     </>
   );

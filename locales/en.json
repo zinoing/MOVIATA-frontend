@@ -393,6 +393,16 @@
   "layout": {
     "langEn": "EN",
     "langKo": "한국어",
-    "langJa": "日本語"
+    "langJa": "日本語",
+    "footer": {
+      "copyright": "© 2025 MOVIATA",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "bizNumber": "Business Registration No.",
+      "ceo": "CEO",
+      "address": "Address",
+      "support": "Customer Support",
+      "mailOrder": "Mail Order Business No."
+    }
   }
 }

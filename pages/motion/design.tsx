@@ -345,12 +345,15 @@ export default function MotionDesignPage() {
       const d = imageData.data;
       const isDark = editor.shirtColor === 'black';
       for (let i = 0; i < d.length; i += 4) {
-        if ((d[i] ?? 0) < 30 && (d[i + 1] ?? 0) < 30 && (d[i + 2] ?? 0) < 30) {
+        if ((d[i + 3] ?? 0) === 0) continue;
+        const r = d[i] ?? 0;
+        const g = d[i + 1] ?? 0;
+        const b = d[i + 2] ?? 0;
+        // White/near-white pixels are the background — make transparent
+        if (r > 225 && g > 225 && b > 225) {
           d[i + 3] = 0;
         } else {
-          const r = d[i] ?? 0;
-          const g = d[i + 1] ?? 0;
-          const b = d[i + 2] ?? 0;
+          // Dark pixels are halftone dots — convert color based on shirt
           const isOrange = r > 150 && r > g * 1.5 && r > b * 2;
           if (!isOrange) {
             if (isDark) {

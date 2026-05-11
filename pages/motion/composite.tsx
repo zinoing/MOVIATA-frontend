@@ -395,8 +395,6 @@ export default function MotionCompositePage() {
       cvs.width = longer;
       cvs.height = longer;
       const ctx = cvs.getContext('2d')!;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, longer, longer);
 
       for (let i = 0; i < layers.length; i++) {
         const layer = layers[i]!;
@@ -526,7 +524,7 @@ export default function MotionCompositePage() {
                       {/* Canvas */}
                       <div
                         ref={containerRef}
-                        className="relative w-full select-none overflow-hidden rounded-[18px] bg-white"
+                        className="relative w-full select-none overflow-hidden rounded-[18px] bg-white border border-neutral-200"
                         style={{ aspectRatio: '1 / 1', touchAction: 'none' }}
                         onMouseDown={() => setActiveLayer(null)}
                         onTouchStart={() => setActiveLayer(null)}

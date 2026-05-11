@@ -283,7 +283,7 @@ export default function MotionCompositePage() {
         jobId,
         framePaths: selectedFramePaths,
         frameData: capturedFrameData,
-        personColor: '#ffffff',
+        personColor: '#000000',
         backgroundColor: '#000000',
         outlineThickness: 3,
         mode: 'ghost',
@@ -395,7 +395,7 @@ export default function MotionCompositePage() {
       cvs.width = longer;
       cvs.height = longer;
       const ctx = cvs.getContext('2d')!;
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, longer, longer);
 
       for (let i = 0; i < layers.length; i++) {
@@ -407,6 +407,7 @@ export default function MotionCompositePage() {
         await new Promise<void>(resolve => {
           img.onload = () => resolve();
           img.onerror = () => resolve();
+          img.crossOrigin = 'anonymous';
           img.src = src;
         });
 
@@ -525,7 +526,7 @@ export default function MotionCompositePage() {
                       {/* Canvas */}
                       <div
                         ref={containerRef}
-                        className="relative w-full select-none overflow-hidden rounded-[18px] bg-black"
+                        className="relative w-full select-none overflow-hidden rounded-[18px] bg-white"
                         style={{ aspectRatio: '1 / 1', touchAction: 'none' }}
                         onMouseDown={() => setActiveLayer(null)}
                         onTouchStart={() => setActiveLayer(null)}

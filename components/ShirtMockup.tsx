@@ -111,7 +111,7 @@ export default function ShirtMockup({
                 top: '10%',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                width: '45%',
+                width: '40%',
                 height: 'auto',
                 display: 'block',
                 objectFit: 'contain',

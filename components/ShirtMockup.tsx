@@ -108,10 +108,10 @@ export default function ShirtMockup({
               draggable={false}
               className="pointer-events-none absolute select-none"
               style={{
-                top: '20%',
+                top: '10%',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                width: '35%',
+                width: '45%',
                 height: 'auto',
                 display: 'block',
                 objectFit: 'contain',

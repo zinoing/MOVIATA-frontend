@@ -318,7 +318,7 @@
   "motionPointSelect": {
     "label": "MOTION",
     "title": "SELECT POINTS",
-    "subtitle": "Click the person first, then up to 2 object points. Click a dot to remove it.",
+    "subtitle": "Click to mark the person's position. Click the dot to remove it.",
     "personPointLabel": "1st — Person",
     "objectPointLabel": "2nd & 3rd — Object",
     "frameCounter": "{current} / {total}",

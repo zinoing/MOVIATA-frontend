@@ -313,7 +313,7 @@
   "motionPointSelect": {
     "label": "MOTION",
     "title": "ポイント選択",
-    "subtitle": "人物を先にクリックし、続けてオブジェクトを最大2か所クリックしてください。点をクリックすると削除されます。",
+    "subtitle": "人物の位置をクリックしてください。点をクリックすると削除されます。",
     "personPointLabel": "1点目 — 人物",
     "objectPointLabel": "2・3点目 — オブジェクト",
     "frameCounter": "{current} / {total}",

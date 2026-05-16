@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
 
-const MAX_POINTS = 3;
-const DOT_COLORS = ['#FF5A1F', '#3B82F6', '#3B82F6'] as const;
+const MAX_POINTS = 1;
+const DOT_COLOR = '#FF5A1F';
 
 type XY = { x: number; y: number };
 
@@ -88,7 +88,7 @@ export default function MotionPointSelectPage() {
         if (!pts || pts.length === 0) return null;
         return {
           frame_index: fi,
-          points: pts.map((p, i) => ({ ...p, type: i === 0 ? 'person' : 'object' })),
+          points: pts.map((p) => ({ ...p, type: 'person' })),
         };
       })
       .filter((c): c is NonNullable<typeof c> => c !== null);
@@ -111,17 +111,6 @@ export default function MotionPointSelectPage() {
             </h1>
             <p className="mt-4 text-sm leading-7 text-neutral-500">{t('subtitle')}</p>
 
-            {/* Color legend */}
-            <div className="mt-4 flex items-center justify-center gap-5 text-xs text-neutral-500">
-              <span className="flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 rounded-full bg-[#FF5A1F]" />
-                {t('personPointLabel')}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 rounded-full bg-[#3B82F6]" />
-                {t('objectPointLabel')}
-              </span>
-            </div>
           </div>
 
           {/* Card */}
@@ -162,8 +151,8 @@ export default function MotionPointSelectPage() {
                       left: `${p.x * 100}%`,
                       top: `${p.y * 100}%`,
                       transform: 'translate(-50%, -50%)',
-                      backgroundColor: DOT_COLORS[i],
-                      boxShadow: `0 0 0 2px white, 0 0 0 3.5px ${DOT_COLORS[i]}`,
+                      backgroundColor: DOT_COLOR,
+                      boxShadow: `0 0 0 2px white, 0 0 0 3.5px ${DOT_COLOR}`,
                     }}
                     className="h-5 w-5 rounded-full transition hover:scale-110 focus:outline-none"
                   />

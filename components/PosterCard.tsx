@@ -109,9 +109,9 @@ export default function PosterCard({
     ? 'font-serif text-[1.3rem] font-bold leading-[1.08] tracking-[-0.01em] uppercase'
     : 'font-serif text-[2.35rem] font-bold leading-[1.02] tracking-[-0.02em] uppercase';
 
-  const locationClass = `text-[15px] font-medium tracking-[0em] ${tertiaryTextClass}`;
+  const locationClass = `font-garamond text-[15px] font-medium tracking-[0.1em] ${tertiaryTextClass}`;
 
-  const dateClass = `text-[15px] font-medium uppercase tracking-[0em] ${tertiaryTextClass}`;
+  const dateClass = `font-garamond text-[15px] font-medium uppercase tracking-[0.1em] ${tertiaryTextClass}`;
 
   const statLabelClass = compact
     ? `mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em] ${tertiaryTextClass}`

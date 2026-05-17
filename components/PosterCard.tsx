@@ -100,6 +100,7 @@ export default function PosterCard({
 
   const primaryTextClass = isDark ? 'text-[#EDE8DC]' : 'text-[#1A1A1A]';
   const tertiaryTextClass = isDark ? 'text-[#EDE8DC] font-medium' : 'text-[#1A1A1A] font-semibold';
+  const tertiaryColorClass = isDark ? 'text-[#EDE8DC]' : 'text-[#1A1A1A]';
 
   const wrapperClass = compact
     ? `w-full aspect-[3/5] rounded-[24px] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.10)] ${cardClass}`
@@ -109,9 +110,9 @@ export default function PosterCard({
     ? 'font-serif text-[1.3rem] font-bold leading-[1.08] tracking-[-0.01em] uppercase'
     : 'font-serif text-[2.35rem] font-bold leading-[1.02] tracking-[-0.02em] uppercase';
 
-  const locationClass = `font-garamond text-[15px] font-medium tracking-[0.1em] ${tertiaryTextClass}`;
+  const locationClass = `font-garamond text-[15px] font-medium tracking-[0.1em] ${tertiaryColorClass}`;
 
-  const dateClass = `font-garamond text-[15px] font-medium uppercase tracking-[0.1em] ${tertiaryTextClass}`;
+  const dateClass = `font-garamond text-[15px] font-medium uppercase tracking-[0.1em] ${tertiaryColorClass}`;
 
   const statLabelClass = compact
     ? `mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em] ${tertiaryTextClass}`

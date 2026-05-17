@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1029.0",
+    "@portone/browser-sdk": "^0.1.6",
     "@protomaps/basemaps": "^5.7.2",
     "clsx": "^2.1.1",
     "dom-to-image-more": "^3.7.2",

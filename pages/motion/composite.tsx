@@ -402,12 +402,13 @@ export default function MotionCompositePage() {
 
         const src = layerSrcsRef.current[i] ?? await getLayerImageUrl(jid, i);
         const img = new Image();
-        await new Promise<void>(resolve => {
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-          img.crossOrigin = 'anonymous';
+        const loaded = await new Promise<boolean>(resolve => {
+          img.onload = () => resolve(img.naturalWidth > 0);
+          img.onerror = () => resolve(false);
           img.src = src;
         });
+
+        if (!loaded) continue;
 
         const cx = frameOffsetX + layer.x + layer.w / 2 + tr.dx / displayScale;
         const cy = frameOffsetY + layer.y + layer.h / 2 + tr.dy / displayScale;

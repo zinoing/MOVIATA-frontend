@@ -128,7 +128,10 @@ function callApi<T>(
 
 export async function fetchMotionImageUrl(endpoint: string): Promise<string> {
   if (!IS_RUNPOD) {
-    return `${MOTION_API_BASE_URL}${endpoint}`;
+    const resp = await fetch(`${MOTION_API_BASE_URL}${endpoint}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const blob = await resp.blob();
+    return URL.createObjectURL(blob);
   }
   const payload = await callRunPod<ImagePayload>({ endpoint, method: 'GET' });
   const binary = atob(payload.data);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
+import PortOne from '@portone/browser-sdk/v2';
 import Layout from '../components/Layout';
 import ShirtMockup from '../components/ShirtMockup';
 import { useDesignConfig } from '../context/DesignConfigContext';
@@ -8,18 +9,13 @@ import { useDesignConfig } from '../context/DesignConfigContext';
 type ProductSize = 'S' | 'M' | 'L' | 'XL';
 type ProductColor = 'white' | 'black';
 type CartItem = { id: number; size: ProductSize; qty: number };
+type PaymentMethod = 'kakaopay' | 'card';
+
+const PENDING_CARD_KEY = 'moviata-pending-card-payment';
 
 const sizeOptions: ProductSize[] = ['S', 'M', 'L', 'XL'];
 
-const sizeGuideMap: Record<
-  ProductSize,
-  {
-    length: string;
-    shoulder: string;
-    chest: string;
-    sleeve: string;
-  }
-> = {
+const sizeGuideMap: Record<ProductSize, { length: string; shoulder: string; chest: string; sleeve: string }> = {
   S: { length: '66', shoulder: '44', chest: '49', sleeve: '19' },
   M: { length: '70', shoulder: '47', chest: '52', sleeve: '20' },
   L: { length: '74', shoulder: '50', chest: '55', sleeve: '22' },
@@ -28,18 +24,83 @@ const sizeGuideMap: Record<
 
 export default function ConfirmPage() {
   const router = useRouter();
-  const { config, posterSnapshot } = useDesignConfig();
+  const { config, posterSnapshot, isHydrated } = useDesignConfig();
   const [cartItems, setCartItems] = useState<CartItem[]>([{ id: Date.now(), size: 'M', qty: 1 }]);
-  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle');
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
+  const [paymentState, setPaymentState] = useState<'idle' | 'paying' | 'error'>('idle');
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [modalMethod, setModalMethod] = useState<PaymentMethod | null>(null);
+  const [buyerName, setBuyerName] = useState('');
+  const [buyerEmail, setBuyerEmail] = useState('');
+  const [buyerPhone, setBuyerPhone] = useState('');
   const t = useTranslations('confirm');
 
+  const UNIT_PRICE = 30000;
+  const totalQty = cartItems.reduce((sum, item) => sum + item.qty, 0);
+  const totalAmount = totalQty * UNIT_PRICE;
+
+  // 디자인 페이지 리다이렉트
   useEffect(() => {
-    if (!config || !posterSnapshot) {
+    if (!isHydrated || !router.isReady) return;
+    if (config && posterSnapshot) return;
+    if (router.query.paymentId) return; // 카드 모바일 리다이렉트 복귀
+
+    if (!config) {
       void router.replace('/strava/activities');
+    } else {
+      void router.replace(
+        config.activityId === 'motion' ? '/motion/design' : `/design/${config.activityId}`,
+      );
     }
-  }, [config, posterSnapshot, router]);
+  }, [isHydrated, router.isReady, config, posterSnapshot, router]);
+
+  // 카드 결제 모바일 리다이렉트 복귀 처리
+  useEffect(() => {
+    if (!router.isReady) return;
+    const { paymentId, code, message } = router.query;
+    if (typeof paymentId !== 'string') return;
+
+    if (code) {
+      setPaymentError(typeof message === 'string' ? message : '결제가 취소되었습니다.');
+      setPaymentState('error');
+      void router.replace('/confirm', undefined, { shallow: true });
+      return;
+    }
+
+    const pendingRaw = sessionStorage.getItem(PENDING_CARD_KEY);
+    if (!pendingRaw) return;
+    const pending = JSON.parse(pendingRaw) as { paymentId: string; imageUrl: string; cartItems: CartItem[] };
+    sessionStorage.removeItem(PENDING_CARD_KEY);
+
+    setPaymentState('paying');
+    fetch('/api/payments/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paymentId: pending.paymentId, imageUrl: pending.imageUrl, cartItems: pending.cartItems }),
+    })
+      .then((res) => { if (!res.ok) throw new Error('결제 검증에 실패했습니다.'); })
+      .then(() => { void router.push('/order/complete'); })
+      .catch((err: Error) => {
+        setPaymentError(err.message);
+        setPaymentState('error');
+        void router.replace('/confirm', undefined, { shallow: true });
+      });
+  }, [router.isReady]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!isHydrated || !router.isReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <p className="text-sm text-neutral-500">{t('redirecting')}</p>
+      </div>
+    );
+  }
+
+  if (router.query.paymentId) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <p className="text-sm text-neutral-500">결제 결과 확인 중...</p>
+      </div>
+    );
+  }
 
   if (!config || !posterSnapshot) {
     return (
@@ -114,21 +175,90 @@ export default function ConfirmPage() {
     return data.imageUrl;
   };
 
-  const handleBuyNow = async () => {
-    if (uploadState === 'uploading') return;
+  const handlePayment = async (method: PaymentMethod) => {
+    if (paymentState === 'paying') return;
 
-    setUploadState('uploading');
-    setUploadError(null);
+    if (!buyerName.trim()) { setPaymentError('이름을 입력해주세요.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) { setPaymentError('올바른 이메일을 입력해주세요.'); return; }
+    if (!/^01[0-9]{8,9}$/.test(buyerPhone.replace(/-/g, ''))) { setPaymentError('올바른 전화번호를 입력해주세요. (예: 01012345678)'); return; }
+
+    setPaymentState('paying');
+    setPaymentError(null);
+
+    let imageUrl: string;
+    try {
+      imageUrl = await uploadDesignImage();
+    } catch (err) {
+      setPaymentError((err as Error).message);
+      setPaymentState('error');
+      return;
+    }
+
+    const paymentId = crypto.randomUUID();
+    const customer = { fullName: buyerName, email: buyerEmail, phoneNumber: buyerPhone };
+
+    if (method === 'card') {
+      sessionStorage.setItem(PENDING_CARD_KEY, JSON.stringify({ paymentId, imageUrl, cartItems }));
+    }
+
+    const paymentRequest =
+      method === 'kakaopay'
+        ? {
+            storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
+            channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY_KAKAO!,
+            paymentId,
+            orderName: '커스텀 티셔츠',
+            totalAmount,
+            currency: 'KRW',
+            payMethod: 'EASY_PAY',
+            easyPay: { easyPayProvider: 'KAKAOPAY' },
+            customer,
+          }
+        : {
+            storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
+            channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY_CARD!,
+            paymentId,
+            orderName: '커스텀 티셔츠',
+            totalAmount,
+            currency: 'KRW',
+            payMethod: 'CARD',
+            redirectUrl: `${window.location.origin}/confirm`,
+            customer,
+          };
+
+    const response = await PortOne.requestPayment(
+      paymentRequest as Parameters<typeof PortOne.requestPayment>[0],
+    );
+
+    // 카드 모바일: requestPayment가 resolve되지 않고 리다이렉트됨
+    if (response === undefined) return;
+
+    if (response.code !== undefined) {
+      if (method === 'card') sessionStorage.removeItem(PENDING_CARD_KEY);
+      setPaymentError(response.message ?? '결제가 취소되었습니다.');
+      setPaymentState('error');
+      return;
+    }
 
     try {
-      const imageUrl = await uploadDesignImage();
-      setCapturedImageUrl(imageUrl);
-      setUploadState('done');
-      // TODO: 결제 연동 — imageUrl을 결제 플로우에 전달
+      const verifyRes = await fetch('/api/payments/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId, imageUrl, cartItems }),
+      });
+      if (!verifyRes.ok) throw new Error('결제 검증에 실패했습니다.');
     } catch (err) {
-      setUploadError((err as Error).message);
-      setUploadState('error');
+      setPaymentError((err as Error).message);
+      setPaymentState('error');
+      return;
     }
+
+    void router.push('/order/complete');
+  };
+
+  const openModal = (method: PaymentMethod) => {
+    setPaymentError(null);
+    setModalMethod(method);
   };
 
   return (
@@ -306,7 +436,6 @@ export default function ConfirmPage() {
                 key={item.id}
                 className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3"
               >
-                {/* 사이즈 선택 */}
                 <select
                   value={item.size}
                   onChange={(e) => updateCartSize(item.id, e.target.value as ProductSize)}
@@ -317,7 +446,6 @@ export default function ConfirmPage() {
                   ))}
                 </select>
 
-                {/* 수량 */}
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -338,12 +466,10 @@ export default function ConfirmPage() {
                   </button>
                 </div>
 
-                {/* 소계 */}
                 <span className="ml-auto text-sm font-medium text-neutral-900">
-                  TBU
+                  {(item.qty * UNIT_PRICE).toLocaleString()}원
                 </span>
 
-                {/* 삭제 */}
                 {cartItems.length > 1 && (
                   <button
                     type="button"
@@ -365,12 +491,12 @@ export default function ConfirmPage() {
             </button>
           </div>
 
-          <div className="mt-8 rounded-[28px] bg-neutral-50 px-5 py-5">
+          <div className="mt-5 rounded-[28px] bg-neutral-50 px-5 py-5">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-sm text-neutral-500">{t('total')}</p>
                 <p className="mt-1 text-[32px] font-semibold tracking-[-0.03em] text-neutral-950">
-                  TBU
+                  {totalAmount.toLocaleString()}원
                 </p>
               </div>
 
@@ -383,45 +509,107 @@ export default function ConfirmPage() {
 
             <button
               type="button"
-              onClick={handleBuyNow}
-              disabled={uploadState === 'uploading'}
-              className="mt-5 w-full rounded-2xl bg-black py-4 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50"
+              onClick={() => openModal('kakaopay')}
+              disabled={paymentState === 'paying'}
+              className="mt-5 w-full rounded-2xl bg-yellow-400 py-4 text-sm font-semibold text-neutral-900 transition hover:bg-yellow-300 disabled:opacity-50"
             >
-              {uploadState === 'uploading' ? t('uploading') : t('buyNow')}
+              {paymentState === 'paying' ? '결제 처리 중...' : 'KakaoPay로 결제하기'}
             </button>
 
-            {uploadState === 'error' && uploadError && (
-              <p className="mt-2 text-center text-xs text-red-500">{uploadError}</p>
+            {paymentState === 'error' && paymentError && (
+              <p className="mt-2 text-center text-xs text-red-500">{paymentError}</p>
             )}
 
-            {uploadState === 'done' && capturedImageUrl && (
-              <p className="mt-2 text-center text-xs text-green-600">{t('uploadDone')}</p>
-            )}
-
-            <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <button
                 type="button"
-                className="rounded-2xl bg-yellow-400 py-3 text-sm font-medium text-neutral-900"
-              >
-                KakaoPay
-              </button>
-              <button
-                type="button"
-                className="rounded-2xl bg-green-500 py-3 text-sm font-medium text-white"
+                disabled
+                className="rounded-2xl bg-green-500 py-3 text-sm font-medium text-white opacity-40"
               >
                 NaverPay
               </button>
               <button
                 type="button"
-                className="rounded-2xl bg-neutral-200 py-3 text-sm font-medium text-neutral-900"
+                onClick={() => openModal('card')}
+                disabled={paymentState === 'paying'}
+                className="rounded-2xl bg-neutral-200 py-3 text-sm font-medium text-neutral-900 transition hover:bg-neutral-300 disabled:opacity-50"
               >
-                Card
+                카드 결제
               </button>
             </div>
           </div>
         </aside>
       </div>
     </div>
+
+      {modalMethod && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5"
+          onClick={() => setModalMethod(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-[28px] bg-white px-6 py-7 shadow-[0_24px_60px_rgba(0,0,0,0.18)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-semibold tracking-[-0.02em] text-neutral-950">
+              구매자 정보 입력
+            </h2>
+            <p className="mt-1 text-sm text-neutral-500">
+              {modalMethod === 'kakaopay' ? '카카오페이' : '카드'} 결제에 사용됩니다.
+            </p>
+
+            <div className="mt-5 space-y-3">
+              <input
+                type="text"
+                placeholder="이름"
+                value={buyerName}
+                onChange={(e) => setBuyerName(e.target.value)}
+                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+              />
+              <input
+                type="email"
+                placeholder="이메일"
+                value={buyerEmail}
+                onChange={(e) => setBuyerEmail(e.target.value)}
+                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+              />
+              <input
+                type="tel"
+                placeholder="전화번호 (예: 01012345678)"
+                value={buyerPhone}
+                onChange={(e) => setBuyerPhone(e.target.value)}
+                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+              />
+            </div>
+
+            {paymentState === 'error' && paymentError && (
+              <p className="mt-3 text-center text-xs text-red-500">{paymentError}</p>
+            )}
+
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setModalMethod(null)}
+                className="flex-1 rounded-2xl border border-neutral-200 py-3 text-sm font-medium text-neutral-600 transition hover:bg-neutral-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => void handlePayment(modalMethod)}
+                disabled={paymentState === 'paying'}
+                className={`flex-1 rounded-2xl py-3 text-sm font-semibold transition disabled:opacity-50 ${
+                  modalMethod === 'kakaopay'
+                    ? 'bg-yellow-400 text-neutral-900 hover:bg-yellow-300'
+                    : 'bg-neutral-900 text-white hover:bg-neutral-700'
+                }`}
+              >
+                {paymentState === 'paying' ? '처리 중...' : '결제하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

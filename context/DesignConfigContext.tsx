@@ -31,6 +31,7 @@ type SaveDraftInput = {
 type DesignConfigContextValue = {
   config: Readonly<DesignConfig> | null;
   posterSnapshot: string | null;
+  isHydrated: boolean;
   saveDraft: (input: SaveDraftInput) => void;
   clearDraft: () => void;
   /** confirm → design 복귀 시 editor + map view state 복원 후 null 반환 (한 번만 소비) */
@@ -44,23 +45,25 @@ export function DesignConfigProvider({ children }: { children: React.ReactNode }
     config: null,
     posterSnapshot: null,
   });
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-
-      const parsed = JSON.parse(raw) as PersistedDraftState;
-
-      setDraft((prev) => ({
-        ...prev,
-        config: parsed?.config ?? null,
-      }));
+      if (raw) {
+        const parsed = JSON.parse(raw) as PersistedDraftState;
+        setDraft((prev) => ({
+          ...prev,
+          config: parsed?.config ?? null,
+        }));
+      }
     } catch (error) {
       console.error('Failed to restore draft:', error);
       sessionStorage.removeItem(STORAGE_KEY);
+    } finally {
+      setIsHydrated(true);
     }
   }, []);
 
@@ -125,11 +128,12 @@ export function DesignConfigProvider({ children }: { children: React.ReactNode }
     () => ({
       config: draft.config,
       posterSnapshot: draft.posterSnapshot,
+      isHydrated,
       saveDraft,
       clearDraft,
       consumeEditorSnapshot,
     }),
-    [draft, saveDraft, clearDraft, consumeEditorSnapshot],
+    [draft, isHydrated, saveDraft, clearDraft, consumeEditorSnapshot],
   );
 
   return (

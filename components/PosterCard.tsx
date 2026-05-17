@@ -26,6 +26,8 @@ type Props = {
   onMapViewStateChange?: (viewState: FixedMapViewState) => void;
   onMapCanvas?: (canvas: HTMLCanvasElement) => void;
   initialMapViewState?: FixedMapViewState | null;
+  mapSlot?: React.ReactNode;
+  titleFallback?: string;
 };
 
 export default function PosterCard({
@@ -49,6 +51,8 @@ export default function PosterCard({
   onMapViewStateChange,
   onMapCanvas,
   initialMapViewState = null,
+  mapSlot,
+  titleFallback = 'Untitled Route',
 }: Props) {
   const isDark = shirtColor === 'black';
   const hasLocation = Boolean(location?.trim());
@@ -95,7 +99,6 @@ export default function PosterCard({
     : 'bg-white text-neutral-900';
 
   const primaryTextClass = isDark ? 'text-[#EDE8DC]' : 'text-[#1A1A1A]';
-  const secondaryTextClass = isDark ? 'text-[#EDE8DC] font-medium' : 'text-[#1A1A1A] font-semibold';
   const tertiaryTextClass = isDark ? 'text-[#EDE8DC] font-medium' : 'text-[#1A1A1A] font-semibold';
 
   const wrapperClass = compact
@@ -106,13 +109,9 @@ export default function PosterCard({
     ? 'font-serif text-[1.3rem] font-bold leading-[1.08] tracking-[-0.01em] uppercase'
     : 'font-serif text-[2.35rem] font-bold leading-[1.02] tracking-[-0.02em] uppercase';
 
-  const locationClass = compact
-    ? `text-[13px] tracking-[0.14em] ${secondaryTextClass}`
-    : `text-[13px] tracking-[0.18em] ${secondaryTextClass}`;
+  const locationClass = `text-[15px] font-medium tracking-[0em] ${tertiaryTextClass}`;
 
-  const dateClass = compact
-    ? `text-[13px] tracking-[0.12em] uppercase ${secondaryTextClass}`
-    : `text-[13px] tracking-[0.16em] uppercase ${secondaryTextClass}`;
+  const dateClass = `text-[15px] font-medium uppercase tracking-[0em] ${tertiaryTextClass}`;
 
   const statLabelClass = compact
     ? `mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em] ${tertiaryTextClass}`
@@ -165,7 +164,7 @@ export default function PosterCard({
           className={`${titleClass} ${primaryTextClass} text-center`}
           style={{ whiteSpace: 'normal' }}
         >
-          {(title || 'Untitled Route').split('\n').map((line, i) => (
+          {(title || titleFallback).split('\n').map((line, i) => (
             <span key={i} style={{ display: 'block' }}>
               {line}
             </span>
@@ -176,9 +175,9 @@ export default function PosterCard({
           hasLocation ? (
             <div className={`${compact ? 'mt-3' : 'mt-7'} ${contentWidthClass}`}>
               <div className="flex items-center justify-between gap-6">
-                <span className={`${locationClass} text-left`}>{location}</span>
+                <span className={`${locationClass} ml-12 text-left`}>{location}</span>
                 {hasDate ? (
-                  <span className={`${dateClass} text-right`}>{date}</span>
+                  <span className={`${dateClass} mr-12 text-right`}>{date}</span>
                 ) : <span />}
               </div>
             </div>
@@ -194,7 +193,7 @@ export default function PosterCard({
 
       <div className={compact ? 'mt-3 flex justify-center' : 'mt-5 flex justify-center'}>
         <div className={compact ? 'w-full max-w-[312px]' : 'w-full max-w-[380px]'}>
-          {coordinates.length > 1 ? (
+          {mapSlot ?? (coordinates.length > 1 ? (
             <ActivityMap
               coordinates={coordinates}
               shirtColor={shirtColor}
@@ -219,7 +218,7 @@ export default function PosterCard({
                 Route unavailable
               </span>
             </div>
-          )}
+          ))}
         </div>
       </div>
 

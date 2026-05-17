@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
 import DesignSettingsPanel, { type DesignEditorState } from '../../components/DesignSettingsPanel';
 import FriendPickerModal from '../../components/FriendPickerModal';
-import ProfileGroup from '../../components/ProfileGroup';
+import PosterCard from '../../components/PosterCard';
 import { addManualProfileUser } from '../../lib/design/friends';
 import { useInstagramProfile } from '../../hooks/useInstagramProfile';
 import { createProfileUser, dedupeProfileUsers } from '../../lib/profileUsers';
@@ -12,14 +12,19 @@ import { useDesignConfig } from '../../context/DesignConfigContext';
 import { buildDesignConfig } from '../../lib/poster/buildDesignConfig';
 import { capturePosterCard } from '../../lib/poster/capturePosterCard';
 import { POSTER_W, POSTER_H } from '../../lib/poster/dimensions';
-import type { ProfileUser } from '../../types/profile';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => resolve(img);
+    img.onload = () => {
+      if (img.naturalWidth === 0) {
+        reject(new Error('Image loaded in broken state'));
+      } else {
+        resolve(img);
+      }
+    };
     img.onerror = reject;
     img.src = src;
   });
@@ -75,192 +80,6 @@ async function captureMotionCard(el: HTMLElement, compositeDataUrl: string | nul
   } finally {
     compositeImg.style.visibility = savedVisibility;
   }
-}
-
-// ─── Motion Poster Card ───────────────────────────────────────────────────────
-
-type MotionPosterCardProps = {
-  compositeImage: string | null;
-  title: string;
-  date: string;
-  location: string;
-  distance: string;
-  elevation: string;
-  duration: string;
-  shirtColor: 'white' | 'black';
-  instagramEnabled: boolean;
-  instagramId: string;
-  selectedUsers: ProfileUser[];
-  onRemoveUser?: (userId: string) => void;
-};
-
-function MotionPosterCard({
-  compositeImage,
-  title,
-  date,
-  location,
-  distance,
-  elevation,
-  duration,
-  shirtColor,
-  instagramEnabled,
-  instagramId,
-  selectedUsers,
-}: MotionPosterCardProps) {
-  const isDark = shirtColor === 'black';
-  const hasLocation = Boolean(location?.trim());
-  const hasDate = Boolean(date?.trim());
-  const distanceValue = distance?.replace(/\s*[a-zA-Z]+$/, '') || '-';
-
-  function formatWithCommas(value?: string) {
-    if (!value || value === '-') return '-';
-    const [integer, decimal] = value.split('.');
-    const formatted = integer!.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return decimal !== undefined ? `${formatted}.${decimal}` : formatted;
-  }
-
-  const instagramUsers = useMemo(() => {
-    if (!instagramEnabled) return [];
-    if (selectedUsers.length > 0) {
-      const deduped = dedupeProfileUsers(selectedUsers);
-      const hasPrimary = deduped.some((u) => u.isPrimary);
-      if (!hasPrimary && instagramId) {
-        return dedupeProfileUsers([
-          createProfileUser('manual', instagramId, '', true),
-          ...deduped,
-        ]);
-      }
-      return deduped;
-    }
-    if (instagramId) {
-      return dedupeProfileUsers([createProfileUser('manual', instagramId, '', true)]);
-    }
-    return [];
-  }, [instagramEnabled, instagramId, selectedUsers]);
-
-  const cardClass = isDark ? 'bg-[#090b10] text-white' : 'bg-white text-neutral-900';
-  const primaryTextClass = isDark ? 'text-[#EDE8DC]' : 'text-[#1A1A1A]';
-  const secondaryTextClass = isDark ? 'text-[#EDE8DC] font-medium' : 'text-[#1A1A1A] font-semibold';
-
-  const hasDistance = Boolean(distanceValue && distanceValue !== '-');
-  const hasElevation = Boolean(elevation && elevation !== '-');
-  const hasDuration = Boolean(duration && duration !== '-');
-  const stats = [
-    hasDistance && { key: 'distance', value: formatWithCommas(distanceValue), label: 'KM' },
-    hasElevation && { key: 'elevation', value: `${formatWithCommas(elevation)}m`, label: 'ELEV GAIN' },
-    hasDuration && { key: 'duration', value: duration, label: 'TIME' },
-  ].filter(Boolean) as { key: string; value: string; label: string }[];
-  const justifyClass = stats.length === 1 ? 'justify-center' : stats.length === 2 ? 'justify-around' : 'justify-between';
-
-  return (
-    <div
-      className={`w-[428px] h-[760px] max-w-full mx-auto rounded-[32px] overflow-hidden px-6 pt-6 pb-8 shadow-[0_8px_40px_rgba(0,0,0,0.12)] ${cardClass}`}
-    >
-      {/* Instagram profiles */}
-      <div
-        style={{
-          height: 52,
-          overflow: 'hidden',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          marginBottom: instagramEnabled ? 20 : 0,
-        }}
-      >
-        {instagramEnabled && (
-          <div style={{ width: '100%', maxWidth: 380 }}>
-            <ProfileGroup users={instagramUsers} compact={false} isDark={isDark} />
-          </div>
-        )}
-      </div>
-
-      {/* Title */}
-      <div className="mt-3 flex min-h-[30px] flex-col items-center text-center">
-        <h1
-          className={`font-serif text-[2.35rem] font-bold leading-[1.02] tracking-[-0.02em] uppercase text-center ${primaryTextClass}`}
-          style={{ whiteSpace: 'normal' }}
-        >
-          {(title || '').split('\n').map((line, i) => (
-            <span key={i} style={{ display: 'block' }}>{line}</span>
-          ))}
-        </h1>
-
-        {(hasLocation || hasDate) && (
-          hasLocation ? (
-            <div className="mt-7 mx-auto w-full max-w-[380px]">
-              <div className="flex items-center justify-between gap-6">
-                <span className={`text-[13px] tracking-[0.18em] text-left ${secondaryTextClass}`}>{location}</span>
-                {hasDate && <span className={`text-[13px] tracking-[0.16em] uppercase text-right ${secondaryTextClass}`}>{date}</span>}
-              </div>
-            </div>
-          ) : (
-            <div className="mt-7">
-              {hasDate && <span className={`text-[13px] tracking-[0.16em] uppercase ${secondaryTextClass}`}>{date}</span>}
-            </div>
-          )
-        )}
-      </div>
-
-      {/* Composite image */}
-      <div className="mt-5 flex justify-center">
-        <div className="w-full max-w-[380px]">
-          {compositeImage ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={compositeImage}
-              alt="Motion composite"
-              className="w-full rounded-[18px]"
-              style={{ display: 'block' }}
-            />
-          ) : (
-            <div
-              className={`flex aspect-square items-center justify-center rounded-[18px] border ${
-                isDark ? 'border-neutral-700 bg-black text-neutral-500' : 'border-neutral-200 bg-white text-neutral-400'
-              }`}
-            >
-              <span className="text-xs">No composite image</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Logo */}
-      <div className="mt-6 flex justify-center">
-        <span
-          style={{
-            fontFamily: '"Inter", system-ui, sans-serif',
-            fontWeight: 700,
-            fontSize: '18px',
-            letterSpacing: '-0.03em',
-            color: isDark ? '#EDE8DC' : '#1A1A1A',
-            userSelect: 'none',
-          }}
-        >
-          MOVIATA
-        </span>
-      </div>
-
-      {/* Stats */}
-      {stats.length > 0 && (
-        <div className="mt-3">
-          <div className="mx-auto w-full max-w-[380px]">
-            <div className={`flex items-center ${justifyClass}`}>
-              {stats.map((stat) => (
-                <div key={stat.key} className="min-w-0 flex-1 text-center">
-                  <p className={`mt-1.5 text-[1.45rem] font-bold leading-none tracking-[-0.03em] ${primaryTextClass}`}>
-                    {stat.value}
-                  </p>
-                  <p className={`mt-1 text-[10px] font-medium uppercase tracking-[0.24em] ${secondaryTextClass}`}>
-                    {stat.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -333,8 +152,12 @@ export default function MotionDesignPage() {
     if (!compositeImage) { setProcessedComposite(null); return; }
     let cancelled = false;
     const img = document.createElement('img');
+    img.onerror = () => {
+      if (!cancelled) setProcessedComposite(compositeImage);
+    };
     img.onload = () => {
       if (cancelled) return;
+      if (img.naturalWidth === 0) { setProcessedComposite(compositeImage); return; }
       const canvas = document.createElement('canvas');
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
@@ -521,8 +344,8 @@ export default function MotionDesignPage() {
           <div className="mx-auto grid w-full max-w-[1440px] gap-4 lg:gap-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:px-8 xl:grid-cols-[minmax(0,1fr)_460px]">
             <div className="lg:sticky lg:top-8 flex min-h-[50dvh] lg:min-h-[720px] self-start flex-col items-center justify-center lg:rounded-[20px] lg:border lg:border-neutral-200 bg-[#F2F2F7] py-6 lg:p-10">
               <div id="poster-card" className="relative w-[420px] max-w-full mx-auto">
-                <MotionPosterCard
-                  compositeImage={processedComposite}
+                <PosterCard
+                  coordinates={[]}
                   title={editor.title}
                   date={editor.date}
                   location={editor.location}
@@ -530,10 +353,34 @@ export default function MotionDesignPage() {
                   elevation={editor.elevation}
                   duration={editor.time}
                   shirtColor={editor.shirtColor}
+                  routeColor="red"
+                  showMap={false}
+                  showRoutePoints={false}
+                  showContours={false}
                   instagramEnabled={editor.instagramEnabled}
                   instagramId={editor.myInstagramId}
                   selectedUsers={editor.selectedUsers}
                   onRemoveUser={handleRemoveUser}
+                  titleFallback=""
+                  mapSlot={
+                    processedComposite ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={processedComposite}
+                        alt="Motion composite"
+                        className="w-full rounded-[18px]"
+                        style={{ display: 'block' }}
+                      />
+                    ) : (
+                      <div className={`flex aspect-square items-center justify-center rounded-[18px] border ${
+                        editor.shirtColor === 'black'
+                          ? 'border-neutral-700 bg-black text-neutral-500'
+                          : 'border-neutral-200 bg-white text-neutral-400'
+                      }`}>
+                        <span className="text-xs">No composite image</span>
+                      </div>
+                    )
+                  }
                 />
               </div>
             </div>

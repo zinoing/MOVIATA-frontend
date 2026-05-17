@@ -171,7 +171,7 @@ export async function capturePosterCard(
     // Draw Layer 1: card UI
     const uiImg = await new Promise<HTMLImageElement>((resolve, reject) => {
       const img = new Image();
-      img.onload = () => resolve(img);
+      img.onload = () => img.naturalWidth === 0 ? reject(new Error('UI image broken')) : resolve(img);
       img.onerror = reject;
       img.src = uiPng;
     });
@@ -181,7 +181,7 @@ export async function capturePosterCard(
     if (effectiveMapDataUrl && mapRect) {
       const mapImg = await new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
-        img.onload = () => resolve(img);
+        img.onload = () => img.naturalWidth === 0 ? reject(new Error('Map image broken')) : resolve(img);
         img.onerror = reject;
         img.src = effectiveMapDataUrl;
       });

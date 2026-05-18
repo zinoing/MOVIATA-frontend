@@ -179,9 +179,9 @@ function ElevationScrubber({
     <div>
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-neutral-900">Endpoint</p>
-        {peakPct != null && (
+        {peakIndex != null && elevations != null && elevations.length > 0 && (
           <span className="text-xs text-neutral-400">
-            Peak {Math.round(peakPct)}%
+            Peak {Math.round(Math.max(...elevations)).toLocaleString()}m
           </span>
         )}
       </div>

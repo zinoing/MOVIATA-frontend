@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import maplibregl, {
+  GeoJSONSource,
   LngLatBoundsLike,
   Map as MapLibreMap,
 } from 'maplibre-gl';
@@ -423,6 +424,9 @@ export default function ActivityMap({
     };
   }, [coordinates, endpointIndex]);
 
+  const pointFeaturesRef = useRef(pointFeatures);
+  useEffect(() => { pointFeaturesRef.current = pointFeatures; }, [pointFeatures]);
+
   // ─── Effect 1: 맵 재생성 ───────────────────────────────────────────────────
   // coordinates / shirtColor / showContours 변경 시에만 실행.
   // routeColor / showMap / showRoutePoints / 콜백은 의존성에서 제거.
@@ -463,7 +467,7 @@ export default function ActivityMap({
       setupMapLayers(
         map,
         routeFeature,
-        pointFeatures,
+        pointFeaturesRef.current,
         routeColor,
         shirtColor,
         showMap,
@@ -519,9 +523,9 @@ export default function ActivityMap({
       mapRef.current = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coordinates, routeFeature, pointFeatures, shirtColor, showContours]);
+  }, [coordinates, routeFeature, shirtColor, showContours]);
   //  ^ shirtColor/showContours는 맵 스타일 자체를 바꾸므로 재생성 필요.
-  //    routeColor/showMap/showRoutePoints는 아래 Effect 2에서 처리.
+  //    routeColor/showMap/showRoutePoints는 Effect 2에서, pointFeatures는 Effect 3에서 처리.
 
   // ─── Effect 2: 스타일만 업데이트 (맵 재생성 없음) ─────────────────────────
   // routeColor / showMap / showRoutePoints 변경 시 setPaintProperty 등으로 직접 적용.
@@ -552,6 +556,13 @@ export default function ActivityMap({
     applyStyleUpdates(map, routeColor, shirtColor, showMap, showRoutePoints, showContours);
     emitAfterIdle();
   }, [routeColor, showMap, showRoutePoints, showContours, shirtColor]);
+
+  // ─── Effect 3: endpoint 마커 위치만 업데이트 (맵 재생성 없음) ──────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+    (map.getSource('route-points') as GeoJSONSource | undefined)?.setData(pointFeatures);
+  }, [pointFeatures]);
 
   return (
     <div

@@ -143,6 +143,7 @@ export async function capturePosterCard(
     h1.style.whiteSpace = 'normal';
   }
 
+  await document.fonts.load('500 15px "EB Garamond"').catch(() => {});
   await document.fonts.ready;
 
   // Step 4: pre-fetch all avatar <img> srcs and replace with base64 data URLs.

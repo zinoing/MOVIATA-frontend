@@ -41,6 +41,11 @@ type DesignSettingsPanelProps = {
   isGeneratingSnapshot?: boolean;
   onConfirm: () => void;
   activityType: 'path' | 'motion' | null;
+  endpointIndex?: number;
+  peakIndex?: number | null;
+  coordinateCount?: number;
+  elevations?: number[] | null;
+  onEndpointIndexChange?: (i: number) => void;
 };
 
 function updateField<K extends keyof DesignEditorState>(
@@ -121,6 +126,120 @@ function detectTitleWraps(rawTitle: string): string {
   return `${line1}\n${words.slice(wrapAt).join(' ')}`;
 }
 
+function ElevationScrubber({
+  coordinateCount,
+  endpointIndex,
+  peakIndex,
+  elevations,
+  onEndpointIndexChange,
+  disabled = false,
+}: {
+  coordinateCount: number;
+  endpointIndex: number;
+  peakIndex: number | null;
+  elevations: number[] | null;
+  onEndpointIndexChange: (i: number) => void;
+  disabled?: boolean;
+}) {
+  const chartW = 300;
+  const chartH = 52;
+  const padY = 7;
+
+  const endPct = coordinateCount > 1 ? (endpointIndex / (coordinateCount - 1)) * 100 : 100;
+  const peakPct = peakIndex != null && coordinateCount > 1
+    ? (peakIndex / (coordinateCount - 1)) * 100
+    : null;
+
+  let fillPath = '';
+  let dotY = padY;
+
+  if (elevations && elevations.length >= 2) {
+    const minE = Math.min(...elevations);
+    const maxE = Math.max(...elevations);
+    const range = maxE - minE || 1;
+    const pts = elevations.map((e, i) => {
+      const x = (i / (elevations.length - 1)) * chartW;
+      const y = chartH - padY - ((e - minE) / range) * (chartH - padY * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    fillPath = `M0,${chartH} L${pts.join(' L')} L${chartW},${chartH} Z`;
+
+    const sampledIdx = Math.round((endPct / 100) * (elevations.length - 1));
+    const e = elevations[Math.min(sampledIdx, elevations.length - 1)] ?? minE;
+    dotY = chartH - padY - ((e - minE) / range) * (chartH - padY * 2);
+  } else {
+    const flatY = chartH * 0.55;
+    fillPath = `M0,${flatY} L${chartW},${flatY} L${chartW},${chartH} L0,${chartH} Z`;
+    dotY = flatY;
+  }
+
+  const scrubX = (endPct / 100) * chartW;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-neutral-900">Endpoint</p>
+        {peakPct != null && (
+          <span className="text-xs text-neutral-400">
+            Peak {Math.round(peakPct)}%
+          </span>
+        )}
+      </div>
+
+      <div className="relative mt-3 touch-none" style={{ height: chartH }}>
+        <svg
+          viewBox={`0 0 ${chartW} ${chartH}`}
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full"
+          aria-hidden
+        >
+          <defs>
+            <clipPath id="ep-left-clip">
+              <rect x={0} y={0} width={scrubX} height={chartH} />
+            </clipPath>
+          </defs>
+
+          {/* Full area — light */}
+          <path d={fillPath} fill="#e5e7eb" />
+          {/* Left portion up to scrubber — slightly darker */}
+          <path d={fillPath} fill="#d1d5db" clipPath="url(#ep-left-clip)" />
+
+          {/* Peak dashed indicator */}
+          {peakPct != null && (
+            <line
+              x1={(peakPct / 100) * chartW} y1={0}
+              x2={(peakPct / 100) * chartW} y2={chartH}
+              stroke="#F97316" strokeWidth={1.5} strokeDasharray="3,2" opacity={0.55}
+            />
+          )}
+
+          {/* Scrubber line */}
+          <line x1={scrubX} y1={0} x2={scrubX} y2={chartH} stroke="#F97316" strokeWidth={2} />
+          {/* Scrubber dot riding the elevation curve */}
+          <circle cx={scrubX} cy={dotY} r={5} fill="#F97316" />
+        </svg>
+
+        <input
+          type="range"
+          min={0}
+          max={coordinateCount - 1}
+          step={1}
+          value={endpointIndex}
+          onChange={(e) => onEndpointIndexChange(Number(e.target.value))}
+          disabled={disabled}
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+          style={{ margin: 0 }}
+        />
+      </div>
+
+      <div className="mt-1 flex justify-between">
+        <span className="text-xs text-neutral-400">Start</span>
+        <span className="text-xs text-neutral-400">End</span>
+      </div>
+    </div>
+  );
+}
+
 export default function DesignSettingsPanel({
   value,
   onChange,
@@ -134,6 +253,11 @@ export default function DesignSettingsPanel({
   isGeneratingSnapshot = false,
   onConfirm,
   activityType,
+  endpointIndex,
+  peakIndex,
+  coordinateCount,
+  elevations,
+  onEndpointIndexChange,
 }: DesignSettingsPanelProps) {
   const t = useTranslations('settings');
 
@@ -448,6 +572,19 @@ export default function DesignSettingsPanel({
                 />
               </button>
             </div>
+          </div>
+        )}
+
+        {activityType !== 'motion' && value.showRoutePoints && coordinateCount != null && coordinateCount > 1 && onEndpointIndexChange && (
+          <div className="rounded-[16px] border border-neutral-200 p-4">
+            <ElevationScrubber
+              coordinateCount={coordinateCount}
+              endpointIndex={endpointIndex ?? coordinateCount - 1}
+              peakIndex={peakIndex ?? null}
+              elevations={elevations ?? null}
+              onEndpointIndexChange={onEndpointIndexChange}
+              disabled={isGeneratingSnapshot}
+            />
           </div>
         )}
 

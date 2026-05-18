@@ -114,6 +114,9 @@ export default function DesignWorkspacePage() {
   const [fixedMapViewState, setFixedMapViewState] =
     useState<FixedMapViewState | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [endpointIndex, setEndpointIndex] = useState(0);
+  const [peakIndex, setPeakIndex] = useState<number | null>(null);
+  const [sampledElevations, setSampledElevations] = useState<number[] | null>(null);
   // Stores the map pixels captured at idle time, while the WebGL context is live.
   const mapSnapshotRef = useRef<string | null>(null);
   const pageRef = useRef<HTMLDivElement>(null);
@@ -196,6 +199,65 @@ export default function DesignWorkspacePage() {
   );
 
   const previewDistance = editor?.distance ?? '-';
+
+  // endpoint index 리셋 — 새 경로 로드 시
+  useEffect(() => {
+    if (posterCoordinates.length > 1) {
+      setEndpointIndex(posterCoordinates.length - 1);
+      setPeakIndex(null);
+      setSampledElevations(null);
+    }
+  }, [posterCoordinates]);
+
+  // 고도 데이터 fetch — peak 위치 계산용
+  useEffect(() => {
+    if (posterCoordinates.length < 2) return;
+
+    const MAX_SAMPLES = 100;
+    const step = Math.max(1, Math.floor(posterCoordinates.length / MAX_SAMPLES));
+    const sampled: Array<{ latitude: number; longitude: number }> = [];
+    const sampleIndices: number[] = [];
+
+    for (let i = 0; i < posterCoordinates.length; i += step) {
+      const coord = posterCoordinates[i];
+      if (coord) {
+        sampled.push({ latitude: coord[1], longitude: coord[0] });
+        sampleIndices.push(i);
+      }
+    }
+    // 마지막 포인트 포함
+    const lastIdx = posterCoordinates.length - 1;
+    if (sampleIndices[sampleIndices.length - 1] !== lastIdx) {
+      const last = posterCoordinates[lastIdx];
+      if (last) {
+        sampled.push({ latitude: last[1], longitude: last[0] });
+        sampleIndices.push(lastIdx);
+      }
+    }
+
+    let cancelled = false;
+
+    fetch('/api/elevation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ locations: sampled }),
+    })
+      .then((res) => res.json())
+      .then((data: { results?: Array<{ elevation: number }> }) => {
+        if (cancelled || !data.results) return;
+        const elevs = data.results.map((r) => r.elevation);
+        setSampledElevations(elevs);
+        let maxElev = -Infinity;
+        let peakSampledIdx = 0;
+        elevs.forEach((e, i) => {
+          if (e > maxElev) { maxElev = e; peakSampledIdx = i; }
+        });
+        setPeakIndex(sampleIndices[peakSampledIdx] ?? null);
+      })
+      .catch(() => { /* peak 없이 fallback */ });
+
+    return () => { cancelled = true; };
+  }, [posterCoordinates]);
 
   const handleOpenFriendPicker = useCallback(() => {
     if (isAddingFriend) return;
@@ -457,6 +519,7 @@ export default function DesignWorkspacePage() {
         editor,
         posterCoordinates,
         fixedMapViewState,
+        endpointIndex,
       );
 
       // Wait two animation frames so the WebGL canvas is fully committed
@@ -563,6 +626,7 @@ export default function DesignWorkspacePage() {
                         onMapViewStateChange={setFixedMapViewState}
                         onMapCanvas={handleMapCanvas}
                         initialMapViewState={fixedMapViewState}
+                        endpointIndex={endpointIndex}
                       />
                     </div>
                   </div>
@@ -591,6 +655,11 @@ export default function DesignWorkspacePage() {
                 isGeneratingSnapshot={isGeneratingSnapshot}
                 onConfirm={handleConfirm}
                 activityType={activityType}
+                endpointIndex={endpointIndex}
+                peakIndex={peakIndex}
+                coordinateCount={posterCoordinates.length}
+                elevations={sampledElevations}
+                onEndpointIndexChange={setEndpointIndex}
               />
             </div>
           </div>

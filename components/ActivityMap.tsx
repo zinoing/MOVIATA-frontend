@@ -40,6 +40,8 @@ export type ActivityMapProps = {
    * 최초 마운트 시 한 번만 적용되며 이후 변경은 무시됩니다.
    */
   initialViewState?: FixedMapViewState | null;
+  /** 엔드포인트 마커를 표시할 좌표 인덱스. 미지정 시 마지막 좌표. */
+  endpointIndex?: number;
 };
 
 type SavedView = {
@@ -371,6 +373,7 @@ export default function ActivityMap({
   onViewStateChange,
   onMapCanvas,
   initialViewState = null,
+  endpointIndex,
 }: ActivityMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -400,6 +403,9 @@ export default function ActivityMap({
 
   const pointFeatures = useMemo<FeatureCollection<Point>>(() => {
     if (coordinates.length < 2) return { type: 'FeatureCollection', features: [] };
+    const endIdx = endpointIndex != null
+      ? Math.max(0, Math.min(endpointIndex, coordinates.length - 1))
+      : coordinates.length - 1;
     return {
       type: 'FeatureCollection',
       features: [
@@ -410,12 +416,12 @@ export default function ActivityMap({
         },
         {
           type: 'Feature',
-          geometry: { type: 'Point', coordinates: coordinates[coordinates.length - 1] },
+          geometry: { type: 'Point', coordinates: coordinates[endIdx] },
           properties: { pointType: 'end' },
         },
       ],
     };
-  }, [coordinates]);
+  }, [coordinates, endpointIndex]);
 
   // ─── Effect 1: 맵 재생성 ───────────────────────────────────────────────────
   // coordinates / shirtColor / showContours 변경 시에만 실행.

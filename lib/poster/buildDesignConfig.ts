@@ -6,6 +6,7 @@ export function buildDesignConfig(
   editor: DesignEditorState,
   routeCoordinates: [number, number][],
   fixedMapViewState: FixedMapViewState | null,
+  endpointIndex?: number,
 ): DesignConfig {
   return {
     activityId,
@@ -31,5 +32,6 @@ export function buildDesignConfig(
     selectedUsers: editor.selectedUsers,
 
     fixedMapViewState,
+    endpointIndex,
   };
 }

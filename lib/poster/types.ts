@@ -86,4 +86,6 @@ export type DesignConfig = {
   selectedUsers: ProfileUser[];
 
   fixedMapViewState?: FixedMapViewState | null;
+
+  endpointIndex?: number;
 };

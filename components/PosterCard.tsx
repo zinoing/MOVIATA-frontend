@@ -28,6 +28,7 @@ type Props = {
   initialMapViewState?: FixedMapViewState | null;
   mapSlot?: React.ReactNode;
   titleFallback?: string;
+  endpointIndex?: number;
 };
 
 export default function PosterCard({
@@ -53,6 +54,7 @@ export default function PosterCard({
   initialMapViewState = null,
   mapSlot,
   titleFallback = 'Untitled Route',
+  endpointIndex,
 }: Props) {
   const isDark = shirtColor === 'black';
   const hasLocation = Boolean(location?.trim());
@@ -205,6 +207,7 @@ export default function PosterCard({
               onViewStateChange={onMapViewStateChange}
               onMapCanvas={onMapCanvas}
               initialViewState={initialMapViewState}
+              endpointIndex={endpointIndex}
               className="w-full max-w-full"
             />
           ) : (

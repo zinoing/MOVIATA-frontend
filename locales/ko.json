@@ -254,9 +254,6 @@
       "viewPreview": "미리보기 보기",
       "hidePreview": "미리보기 숨기기",
       "mobilePreviewGuide": "미리보기 — 참고용"
-    },
-    "routeHints": {
-      "noDesign": "경로 데이터 없음 · 디자인 불가"
     }
   },
   "motionComposite": {

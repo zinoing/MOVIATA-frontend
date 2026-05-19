@@ -110,34 +110,14 @@ function buildSvgPath(points: Point[]): string {
     .join(' ');
 }
 
-function getRouteHintKey(distanceM: number, points: Point[]): string {
-  if (points.length < 2) return '';
-
-  const xs = points.map((p) => p.x);
-  const ys = points.map((p) => p.y);
-  const spanX = Math.max(...xs) - Math.min(...xs);
-  const spanY = Math.max(...ys) - Math.min(...ys);
-  const aspectRatio = spanY > 0 ? spanX / spanY : 1;
-  const km = distanceM / 1000;
-
-  if (km < 3)            return 'short';
-  if (aspectRatio < 0.5) return 'vertical';
-  if (aspectRatio > 2)   return 'wide';
-  if (km > 15)           return 'long';
-  return '';
-}
-
 // ─── Desktop: RoutePreview ────────────────────────────────────────────────────
 
 function RoutePreview({
   polyline,
-  distanceM = 0,
 }: {
   polyline?: string | null;
   distanceM?: number;
 }) {
-  const t = useTranslations('activities');
-
   if (!polyline) return null;
 
   try {
@@ -145,9 +125,6 @@ function RoutePreview({
     const normalizedPoints = normalizeRouteToSvgPoints(decodedCoordinates);
     const pathData = buildSvgPath(normalizedPoints);
     if (!pathData) return null;
-
-    const hintKey = getRouteHintKey(distanceM, normalizedPoints);
-    const hint = hintKey ? t(`routeHints.${hintKey}`) : '';
 
     return (
       <div className="flex h-full flex-col">
@@ -169,11 +146,6 @@ function RoutePreview({
             />
           </svg>
         </div>
-        {hint && (
-          <p className="mt-3 text-center text-[11px] leading-[1.5] text-neutral-400 italic">
-            {hint}
-          </p>
-        )}
       </div>
     );
   } catch {
@@ -185,25 +157,22 @@ function RoutePreview({
 
 function MobileRouteSketch({
   polyline,
-  distanceM = 0,
 }: {
   polyline: string;
   distanceM?: number;
 }) {
   const t = useTranslations('activities');
-  const { pathData, hintKey } = useMemo(() => {
+  const pathData = useMemo(() => {
     try {
       const coords = decodePolyline(polyline);
       const pts = normalizeRouteToSvgPoints(coords);
-      return { pathData: buildSvgPath(pts), hintKey: getRouteHintKey(distanceM, pts) };
+      return buildSvgPath(pts);
     } catch {
-      return { pathData: '', hintKey: '' };
+      return '';
     }
-  }, [polyline, distanceM]);
+  }, [polyline]);
 
   if (!pathData) return null;
-
-  const hint = hintKey ? t(`routeHints.${hintKey}`) : '';
 
   return (
     <div className="flex flex-col items-center py-5">
@@ -220,7 +189,6 @@ function MobileRouteSketch({
         </svg>
       </div>
       <p className="mt-2 text-[10px] italic text-neutral-400">{t('card.mobilePreviewGuide')}</p>
-      {hint && <p className="mt-1 text-[11px] text-neutral-500">{hint}</p>}
     </div>
   );
 }
@@ -232,19 +200,6 @@ function MobileActivityCard({ activity }: { activity: ActivityWithMap }) {
   const hasRoute    = Boolean(activity.map?.summary_polyline);
   const hasDistance = (activity.distance || 0) > 0;
   const canDesign   = hasRoute && hasDistance;
-
-  const hint = useMemo(() => {
-    if (!canDesign) return t('routeHints.noDesign');
-    if (!activity.map?.summary_polyline) return '';
-    try {
-      const coords = decodePolyline(activity.map.summary_polyline);
-      const pts = normalizeRouteToSvgPoints(coords);
-      const key = getRouteHintKey(activity.distance || 0, pts);
-      return key ? t(`routeHints.${key}`) : '';
-    } catch {
-      return '';
-    }
-  }, [canDesign, activity, t]);
 
   return (
     <div
@@ -290,13 +245,6 @@ function MobileActivityCard({ activity }: { activity: ActivityWithMap }) {
               </span>
             </div>
           </div>
-          <p
-            className={`mt-1.5 text-[11px] leading-snug ${
-              canDesign ? 'text-neutral-400' : 'text-red-400'
-            }`}
-          >
-            {hint}
-          </p>
         </div>
 
         {/* Action column */}

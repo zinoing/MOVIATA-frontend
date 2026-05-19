@@ -254,9 +254,6 @@
       "viewPreview": "プレビューを見る",
       "hidePreview": "プレビューを隠す",
       "mobilePreviewGuide": "プレビュー — 参考用"
-    },
-    "routeHints": {
-      "noDesign": "ルートデータなし · デザイン不可"
     }
   },
   "motionComposite": {

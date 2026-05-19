@@ -254,14 +254,6 @@
       "viewPreview": "View preview",
       "hidePreview": "Hide preview",
       "mobilePreviewGuide": "Preview — guide only"
-    },
-    "routeHints": {
-      "short": "Short route · Subtle visual impact",
-      "vertical": "Vertical flow · Works well on A3",
-      "wide": "Wide spread · Strong horizontal layout",
-      "long": "Long route · High density, bold print",
-      "clean": "Clean route · Good for A3",
-      "noDesign": "No route data · Can't be designed"
     }
   },
   "motionComposite": {

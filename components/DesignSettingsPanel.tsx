@@ -129,15 +129,22 @@ function detectTitleWraps(rawTitle: string): string {
 function ElevationScrubber({
   coordinateCount,
   endpointIndex,
+  peakIndex,
+  elevations,
   onEndpointIndexChange,
   disabled = false,
 }: {
   coordinateCount: number;
   endpointIndex: number;
+  peakIndex: number | null;
+  elevations: number[] | null;
   onEndpointIndexChange: (i: number) => void;
   disabled?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const chartW = 300;
+  const chartH = 52;
+  const padY = 7;
 
   useEffect(() => {
     const el = containerRef.current;
@@ -173,11 +180,70 @@ function ElevationScrubber({
     };
   }, [coordinateCount, disabled, onEndpointIndexChange]);
 
+  const endPct = coordinateCount > 1 ? (endpointIndex / (coordinateCount - 1)) * 100 : 100;
+  const peakPct = peakIndex != null && coordinateCount > 1
+    ? (peakIndex / (coordinateCount - 1)) * 100
+    : null;
+
+  let fillPath = '';
+  let dotY = padY;
+
+  if (elevations && elevations.length >= 2) {
+    const minE = Math.min(...elevations);
+    const maxE = Math.max(...elevations);
+    const range = maxE - minE || 1;
+    const pts = elevations.map((e, i) => {
+      const x = (i / (elevations.length - 1)) * chartW;
+      const y = chartH - padY - ((e - minE) / range) * (chartH - padY * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    fillPath = `M0,${chartH} L${pts.join(' L')} L${chartW},${chartH} Z`;
+
+    const sampledIdx = Math.round((endPct / 100) * (elevations.length - 1));
+    const e = elevations[Math.min(sampledIdx, elevations.length - 1)] ?? minE;
+    dotY = chartH - padY - ((e - minE) / range) * (chartH - padY * 2);
+  } else {
+    const flatY = chartH * 0.55;
+    fillPath = `M0,${flatY} L${chartW},${flatY} L${chartW},${chartH} L0,${chartH} Z`;
+    dotY = flatY;
+  }
+
+  const scrubX = (endPct / 100) * chartW;
+
   return (
     <div>
-      <p className="text-sm font-medium text-neutral-900">Endpoint</p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-neutral-900">Endpoint</p>
+      </div>
 
-      <div ref={containerRef} className="mt-3 touch-none">
+      <div ref={containerRef} className="relative mt-3 touch-none" style={{ height: chartH }}>
+        <svg
+          viewBox={`0 0 ${chartW} ${chartH}`}
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full"
+          aria-hidden
+        >
+          <defs>
+            <clipPath id="ep-left-clip">
+              <rect x={0} y={0} width={scrubX} height={chartH} />
+            </clipPath>
+          </defs>
+
+          <path d={fillPath} fill="#e5e7eb" />
+          <path d={fillPath} fill="#d1d5db" clipPath="url(#ep-left-clip)" />
+
+          {peakPct != null && (
+            <line
+              x1={(peakPct / 100) * chartW} y1={0}
+              x2={(peakPct / 100) * chartW} y2={chartH}
+              stroke="#F97316" strokeWidth={1.5} strokeDasharray="3,2" opacity={0.55}
+            />
+          )}
+
+          <line x1={scrubX} y1={0} x2={scrubX} y2={chartH} stroke="#F97316" strokeWidth={2} />
+          <circle cx={scrubX} cy={dotY} r={5} fill="#F97316" />
+        </svg>
+
         <input
           type="range"
           min={0}
@@ -186,7 +252,8 @@ function ElevationScrubber({
           value={endpointIndex}
           onChange={(e) => onEndpointIndexChange(Number(e.target.value))}
           disabled={disabled}
-          className="w-full cursor-pointer disabled:cursor-not-allowed"
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+          style={{ margin: 0 }}
         />
       </div>
 
@@ -212,7 +279,9 @@ export default function DesignSettingsPanel({
   onConfirm,
   activityType,
   endpointIndex,
+  peakIndex,
   coordinateCount,
+  elevations,
   onEndpointIndexChange,
 }: DesignSettingsPanelProps) {
   const t = useTranslations('settings');
@@ -536,6 +605,8 @@ export default function DesignSettingsPanel({
             <ElevationScrubber
               coordinateCount={coordinateCount}
               endpointIndex={endpointIndex ?? coordinateCount - 1}
+              peakIndex={peakIndex ?? null}
+              elevations={elevations ?? null}
               onEndpointIndexChange={onEndpointIndexChange}
               disabled={isGeneratingSnapshot}
             />

@@ -600,6 +600,7 @@ export default function DesignSettingsPanel({
           </div>
         )}
 
+
         {activityType !== 'motion' && value.showRoutePoints && coordinateCount != null && coordinateCount > 1 && onEndpointIndexChange && (
           <div className="rounded-[16px] border border-neutral-200 p-4">
             <ElevationScrubber

@@ -204,60 +204,33 @@ export default function DesignWorkspacePage() {
   useEffect(() => {
     if (posterCoordinates.length > 1) {
       setEndpointIndex(posterCoordinates.length - 1);
-      setPeakIndex(null);
-      setSampledElevations(null);
     }
   }, [posterCoordinates]);
 
-  // 고도 데이터 fetch — peak 위치 계산용
+  // Strava streams — fetch altitude data for the elevation scrubber
   useEffect(() => {
-    if (posterCoordinates.length < 2) return;
+    if (typeof id !== 'string' || posterCoordinates.length < 2) return;
+    let ignore = false;
 
-    const MAX_SAMPLES = 100;
-    const step = Math.max(1, Math.floor(posterCoordinates.length / MAX_SAMPLES));
-    const sampled: Array<{ latitude: number; longitude: number }> = [];
-    const sampleIndices: number[] = [];
-
-    for (let i = 0; i < posterCoordinates.length; i += step) {
-      const coord = posterCoordinates[i];
-      if (coord) {
-        sampled.push({ latitude: coord[1], longitude: coord[0] });
-        sampleIndices.push(i);
-      }
-    }
-    // 마지막 포인트 포함
-    const lastIdx = posterCoordinates.length - 1;
-    if (sampleIndices[sampleIndices.length - 1] !== lastIdx) {
-      const last = posterCoordinates[lastIdx];
-      if (last) {
-        sampled.push({ latitude: last[1], longitude: last[0] });
-        sampleIndices.push(lastIdx);
+    async function loadStreams() {
+      try {
+        const data = await apiFetch<{ elevation: number[] }>(`/activities/${id}/streams`);
+        if (ignore) return;
+        const elev = data.elevation;
+        if (elev.length >= 2) {
+          setSampledElevations(elev);
+          const maxVal = Math.max(...elev);
+          const peakElevIdx = elev.indexOf(maxVal);
+          setPeakIndex(Math.round((peakElevIdx / (elev.length - 1)) * (posterCoordinates.length - 1)));
+        }
+      } catch {
+        // streams not available — scrubber shows flat line fallback
       }
     }
 
-    let cancelled = false;
-
-    fetch('/api/elevation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ locations: sampled }),
-    })
-      .then((res) => res.json())
-      .then((data: { results?: Array<{ elevation: number }> }) => {
-        if (cancelled || !data.results) return;
-        const elevs = data.results.map((r) => r.elevation);
-        setSampledElevations(elevs);
-        let maxElev = -Infinity;
-        let peakSampledIdx = 0;
-        elevs.forEach((e, i) => {
-          if (e > maxElev) { maxElev = e; peakSampledIdx = i; }
-        });
-        setPeakIndex(sampleIndices[peakSampledIdx] ?? null);
-      })
-      .catch(() => { /* peak 없이 fallback */ });
-
-    return () => { cancelled = true; };
-  }, [posterCoordinates]);
+    void loadStreams();
+    return () => { ignore = true; };
+  }, [id, posterCoordinates]);
 
   const handleOpenFriendPicker = useCallback(() => {
     if (isAddingFriend) return;

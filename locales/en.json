@@ -379,6 +379,43 @@
       "parseFailed": "Unexpected response from server."
     }
   },
+  "productPreview": {
+    "title": "Custom Running Tee — MOVIATA",
+    "product": "Product",
+    "back": "← Back",
+    "brand": "MOVIATA",
+    "headingPath": "Custom Path Tee",
+    "headingMotion": "Motion Tee",
+    "subtitle": "Upload your route. Get a shirt. Wear your journey.",
+    "color": "Color",
+    "colorWhite": "White",
+    "colorBlack": "Black",
+    "productInfo": "Product Information",
+    "productDescription": {
+      "title": "About this product",
+      "bullet1": "100% premium cotton",
+      "bullet2": "Designed and printed in-house for each order"
+    },
+    "refund": {
+      "title": "Returns & exchanges",
+      "text1": "Printed-to-order items cannot be returned or exchanged due to the custom nature of the product.",
+      "text2": "If there is a defect in the product, please contact us within 7 days of receipt."
+    },
+    "sizeGuide": {
+      "title": "Size Guide (cm)",
+      "measurements": "Measurements",
+      "size": "Size",
+      "length": "Length",
+      "shoulder": "Shoulder",
+      "chest": "Chest",
+      "sleeve": "Sleeve",
+      "note": "Measurements are in centimeters. We recommend sizing up if between sizes."
+    },
+    "price": "Price",
+    "delivery": "Free shipping",
+    "deliveryDays": "Delivered within 7 days",
+    "designAndBuy": "Design & Buy"
+  },
   "collections": {
     "title": "Collections",
     "subtitle": "Designs captured and saved.",
@@ -402,6 +439,7 @@
       "ceo": "CEO",
       "address": "Address",
       "support": "Customer Support",
+      "phone": "Phone Number",
       "mailOrder": "Mail Order Business No."
     }
   }

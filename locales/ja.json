@@ -374,6 +374,43 @@
       "parseFailed": "サーバーから予期しない応答がありました。"
     }
   },
+  "productPreview": {
+    "title": "カスタムランニングTシャツ — MOVIATA",
+    "product": "製品",
+    "back": "← 戻る",
+    "brand": "MOVIATA",
+    "headingPath": "カスタムパスTシャツ",
+    "headingMotion": "モーションTシャツ",
+    "subtitle": "ルートをアップロードして、シャツを受け取り、あなたの旅を着よう。",
+    "color": "カラー",
+    "colorWhite": "ホワイト",
+    "colorBlack": "ブラック",
+    "productInfo": "製品情報",
+    "productDescription": {
+      "title": "製品について",
+      "bullet1": "100%プレミアムコットン",
+      "bullet2": "注文ごとに自社で制作・印刷"
+    },
+    "refund": {
+      "title": "返品・交換",
+      "text1": "受注生産のため、気が変わった場合やサイズ選択ミスによる返品・交換はお受けできません。",
+      "text2": "商品に不良がある場合は、受け取りから7日以内にご連絡ください。"
+    },
+    "sizeGuide": {
+      "title": "サイズガイド (cm)",
+      "measurements": "実寸",
+      "size": "サイズ",
+      "length": "着丈",
+      "shoulder": "肩幅",
+      "chest": "胸囲",
+      "sleeve": "袖丈",
+      "note": "単位はセンチメートルです。サイズの間にいる場合は大きめをお勧めします。"
+    },
+    "price": "価格",
+    "delivery": "送料無料",
+    "deliveryDays": "7日以内にお届け",
+    "designAndBuy": "デザインして購入"
+  },
   "collections": {
     "title": "コレクション",
     "subtitle": "キャプチャされ保存されたデザイン。",
@@ -397,6 +434,7 @@
       "ceo": "代表者",
       "address": "住所",
       "support": "カスタマーサポート",
+      "phone": "電話番号",
       "mailOrder": "通信販売業申告番号"
     }
   }

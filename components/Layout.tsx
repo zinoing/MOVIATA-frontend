@@ -140,6 +140,7 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
             <p>{t('footer.ceo')}: 조진호</p>
             <p>{t('footer.address')}: 서울시 한강대로 77길 15</p>
             <p>{t('footer.support')}: 카카오톡 채널 MOVIATA</p>
+            <p>{t('footer.phone')}: 010-6715-5757</p>
             <p>{t('footer.mailOrder')}: TBU</p>
           </div>
         </footer>

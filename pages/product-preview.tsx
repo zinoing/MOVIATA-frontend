@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { useTranslations } from 'next-intl';
 import Layout from '../components/Layout';
 import ShirtMockup from '../components/ShirtMockup';
 
@@ -24,6 +25,7 @@ function Bullet({ children }: { children: React.ReactNode }) {
 export default function ProductPreviewPage() {
   const router = useRouter();
   const { type } = router.query;
+  const t = useTranslations('productPreview');
   const [productColor, setProductColor] = useState<ProductColor>('white');
 
   function handleDesignAndBuy() {
@@ -33,17 +35,17 @@ export default function ProductPreviewPage() {
   }
 
   return (
-    <Layout title="Custom Running Tee — MOVIATA">
+    <Layout title={t('title')}>
       <div className="min-h-screen bg-white px-5 py-8 lg:px-10 lg:py-10">
         <div className="mx-auto w-full max-w-[1440px] pb-6">
-          <p className="text-sm text-neutral-500">Product</p>
+          <p className="text-sm text-neutral-500">{t('product')}</p>
           <div className="mt-2">
             <button
               type="button"
               onClick={() => void router.back()}
               className="text-sm text-neutral-500 transition hover:text-neutral-900"
             >
-              ← Back
+              {t('back')}
             </button>
           </div>
         </div>
@@ -58,24 +60,23 @@ export default function ProductPreviewPage() {
 
               <div className="rounded-[28px] border border-neutral-200 bg-white px-5 py-5 lg:px-6 lg:py-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
-                  Product Information
+                  {t('productInfo')}
                 </p>
 
                 <div className="mt-5 space-y-8">
                   <section>
-                    <p className="text-sm font-semibold text-neutral-900">About this product</p>
+                    <p className="text-sm font-semibold text-neutral-900">{t('productDescription.title')}</p>
                     <div className="mt-3 space-y-2">
-                      <Bullet>100% premium cotton, 260gsm heavyweight fabric</Bullet>
-                      <Bullet>Your route printed on the back via eco-friendly water-based ink</Bullet>
-                      <Bullet>Designed and printed in-house for each order</Bullet>
+                      <Bullet>{t('productDescription.bullet1')}</Bullet>
+                      <Bullet>{t('productDescription.bullet2')}</Bullet>
                     </div>
                   </section>
 
                   <section className="border-t border-neutral-200 pt-6">
-                    <p className="text-sm font-semibold text-neutral-900">Returns & exchanges</p>
+                    <p className="text-sm font-semibold text-neutral-900">{t('refund.title')}</p>
                     <div className="mt-3 text-sm leading-7 text-neutral-600">
-                      <p>Printed-to-order items cannot be returned or exchanged due to the custom nature of the product.</p>
-                      <p className="mt-4">If there is a defect in the product, please contact us within 7 days of receipt.</p>
+                      <p>{t('refund.text1')}</p>
+                      <p className="mt-4">{t('refund.text2')}</p>
                     </div>
                   </section>
                 </div>
@@ -86,31 +87,29 @@ export default function ProductPreviewPage() {
           {/* RIGHT */}
           <aside className="w-full shrink-0 rounded-[36px] bg-white px-7 py-8 shadow-[0_18px_50px_rgba(0,0,0,0.06)] lg:sticky lg:top-8 lg:w-[430px]">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-400">MOVIATA</p>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-neutral-400">{t('brand')}</p>
               <h1 className="mt-3 text-[38px] font-semibold leading-[1.08] tracking-[-0.03em] text-neutral-950">
-                Custom Running Tee
+                {type === 'motion' ? t('headingMotion') : t('headingPath')}
               </h1>
-              <p className="mt-4 text-sm leading-6 text-neutral-500">
-                Upload your route. Get a shirt. Wear your journey.
-              </p>
+              <p className="mt-4 text-sm leading-6 text-neutral-500">{t('subtitle')}</p>
             </div>
 
             {/* Color selector */}
             <div className="mt-8 border-t border-neutral-200 pt-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">Color</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">{t('color')}</p>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 {(['white', 'black'] as const).map((c) => (
                   <button
                     key={c}
                     type="button"
                     onClick={() => setProductColor(c)}
-                    className={`rounded-xl border px-4 py-3 text-sm font-medium capitalize transition ${
+                    className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
                       productColor === c
                         ? 'border-neutral-900 bg-neutral-900 text-white'
                         : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500'
                     }`}
                   >
-                    {c === 'white' ? 'White' : 'Black'}
+                    {c === 'white' ? t('colorWhite') : t('colorBlack')}
                   </button>
                 ))}
               </div>
@@ -118,23 +117,23 @@ export default function ProductPreviewPage() {
 
             {/* Size guide */}
             <div className="mt-5 border-t border-neutral-200 pt-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">Size Guide (cm)</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">{t('sizeGuide.title')}</p>
 
               <div className="mt-4 overflow-hidden rounded-[24px] border border-neutral-200 bg-white">
                 <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                    Measurements
+                    {t('sizeGuide.measurements')}
                   </p>
                 </div>
 
                 <table className="w-full border-collapse text-sm">
                   <thead>
                     <tr className="bg-white text-neutral-500">
-                      <th className="border-b border-neutral-200 px-3 py-3 text-left font-medium">Size</th>
-                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">Length</th>
-                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">Shoulder</th>
-                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">Chest</th>
-                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">Sleeve</th>
+                      <th className="border-b border-neutral-200 px-3 py-3 text-left font-medium">{t('sizeGuide.size')}</th>
+                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">{t('sizeGuide.length')}</th>
+                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">{t('sizeGuide.shoulder')}</th>
+                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">{t('sizeGuide.chest')}</th>
+                      <th className="border-b border-neutral-200 px-2 py-3 text-center font-medium">{t('sizeGuide.sleeve')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -158,9 +157,7 @@ export default function ProductPreviewPage() {
                 </table>
 
                 <div className="px-4 py-4">
-                  <p className="text-xs leading-5 text-neutral-400">
-                    Measurements are in centimeters. We recommend sizing up if between sizes.
-                  </p>
+                  <p className="text-xs leading-5 text-neutral-400">{t('sizeGuide.note')}</p>
                 </div>
               </div>
             </div>
@@ -169,15 +166,15 @@ export default function ProductPreviewPage() {
             <div className="mt-5 rounded-[28px] bg-neutral-50 px-5 py-5">
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  <p className="text-sm text-neutral-500">Price</p>
+                  <p className="text-sm text-neutral-500">{t('price')}</p>
                   <p className="mt-1 text-[32px] font-semibold tracking-[-0.03em] text-neutral-950">
                     {UNIT_PRICE.toLocaleString()}원
                   </p>
                 </div>
                 <p className="text-right text-xs leading-5 text-neutral-400">
-                  Free shipping
+                  {t('delivery')}
                   <br />
-                  Ships in 7–14 business days
+                  {t('deliveryDays')}
                 </p>
               </div>
 
@@ -186,7 +183,7 @@ export default function ProductPreviewPage() {
                 onClick={handleDesignAndBuy}
                 className="mt-5 w-full rounded-2xl bg-neutral-900 py-4 text-sm font-semibold text-white transition hover:bg-[#FF5A1F]"
               >
-                Design & Buy
+                {t('designAndBuy')}
               </button>
             </div>
           </aside>

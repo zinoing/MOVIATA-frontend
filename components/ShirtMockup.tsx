@@ -3,7 +3,7 @@ import type { DesignConfig } from '../lib/poster/types';
 import { applyDisplacementMap } from '../lib/applyDisplacementMap';
 
 type Props = {
-  config: Readonly<DesignConfig>;
+  config?: Readonly<DesignConfig>;
   posterSnapshot?: string | null;
   width?: number;
   productColor?: 'white' | 'black';
@@ -16,7 +16,7 @@ export default function ShirtMockup({
   width,
   productColor,
 }: Props) {
-  const color = productColor ?? config.shirtColor ?? 'white';
+  const color = productColor ?? config?.shirtColor ?? 'white';
   const [warpedDesign, setWarpedDesign] = useState<string | null>(null);
   const [isWarping, setIsWarping] = useState(false);
 
@@ -62,14 +62,6 @@ export default function ShirtMockup({
       .finally(() => setIsWarping(false));
   }, [posterSnapshot, color]);
 
-  if (!posterSnapshot) {
-    return (
-      <div className="flex w-full items-center justify-center rounded-2xl bg-neutral-100 py-16 text-sm text-neutral-400">
-        No preview available
-      </div>
-    );
-  }
-
   const displayDesign = warpedDesign ?? posterSnapshot;
 
   return (
@@ -87,39 +79,40 @@ export default function ShirtMockup({
             className="block w-full select-none"
           />
 
-          {isWarping ? (
-            // 변위맵 처리 중 로딩 표시
-            <div
-              className="pointer-events-none absolute flex items-center justify-center"
-              style={{
-                top: '20%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '35%',
-                aspectRatio: '1',
-              }}
-            >
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600" />
-            </div>
-          ) : (
-            <img
-              src={displayDesign}
-              alt="Your design"
-              draggable={false}
-              className="pointer-events-none absolute select-none"
-              style={{
-                top: '10%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '35%',
-                height: 'auto',
-                display: 'block',
-                objectFit: 'contain',
-                background: 'transparent',
-                opacity: color === 'black' ? 0.92 : 1,
-                mixBlendMode: color === 'black' ? 'screen' : 'multiply',
-              }}
-            />
+          {posterSnapshot && (
+            isWarping ? (
+              <div
+                className="pointer-events-none absolute flex items-center justify-center"
+                style={{
+                  top: '20%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '35%',
+                  aspectRatio: '1',
+                }}
+              >
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600" />
+              </div>
+            ) : (
+              <img
+                src={displayDesign!}
+                alt="Your design"
+                draggable={false}
+                className="pointer-events-none absolute select-none"
+                style={{
+                  top: '10%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '35%',
+                  height: 'auto',
+                  display: 'block',
+                  objectFit: 'contain',
+                  background: 'transparent',
+                  opacity: color === 'black' ? 0.92 : 1,
+                  mixBlendMode: color === 'black' ? 'screen' : 'multiply',
+                }}
+              />
+            )
           )}
         </div>
         <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">

@@ -27,8 +27,7 @@ export default function ActivityTypePage() {
   ];
 
   function handleSelect(type: ActivityType) {
-    sessionStorage.setItem('activityType', type);
-    void router.push(type === 'motion' ? '/motion/upload' : '/start');
+    void router.push(`/product-preview?type=${type}`);
   }
 
   return (

@@ -141,8 +141,43 @@ function ElevationScrubber({
   onEndpointIndexChange: (i: number) => void;
   disabled?: boolean;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const chartW = 300;
   const chartH = 52;
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    function getIndexFromTouch(touch: Touch): number {
+      const rect = el!.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+      return Math.round(pct * (coordinateCount - 1));
+    }
+
+    function onTouchStart(e: TouchEvent) {
+      if (disabled) return;
+      const touch = e.touches[0];
+      if (!touch) return;
+      e.preventDefault();
+      onEndpointIndexChange(getIndexFromTouch(touch));
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      if (disabled) return;
+      const touch = e.touches[0];
+      if (!touch) return;
+      e.preventDefault();
+      onEndpointIndexChange(getIndexFromTouch(touch));
+    }
+
+    el.addEventListener('touchstart', onTouchStart, { passive: false });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+    };
+  }, [coordinateCount, disabled, onEndpointIndexChange]);
   const padY = 7;
 
   const endPct = coordinateCount > 1 ? (endpointIndex / (coordinateCount - 1)) * 100 : 100;
@@ -181,7 +216,7 @@ function ElevationScrubber({
         <p className="text-sm font-medium text-neutral-900">Endpoint</p>
       </div>
 
-      <div className="relative mt-3 touch-none" style={{ height: chartH }}>
+      <div ref={containerRef} className="relative mt-3 touch-none" style={{ height: chartH }}>
         <svg
           viewBox={`0 0 ${chartW} ${chartH}`}
           preserveAspectRatio="none"

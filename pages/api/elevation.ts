@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Location = { latitude: number; longitude: number };
-type ElevationResult = Location & { elevation: number };
 
 export default async function handler(
   req: NextApiRequest,
@@ -16,19 +15,27 @@ export default async function handler(
     return res.status(400).json({ error: 'Invalid locations' });
   }
 
+  const latitudes = locations.map((l) => l.latitude).join(',');
+  const longitudes = locations.map((l) => l.longitude).join(',');
+
   try {
-    const response = await fetch('https://api.open-elevation.com/api/v1/lookup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ locations }),
-    });
+    const response = await fetch(
+      `https://api.open-meteo.com/v1/elevation?latitude=${latitudes}&longitude=${longitudes}`,
+    );
 
     if (!response.ok) {
       return res.status(502).json({ error: 'Elevation service unavailable' });
     }
 
-    const data = (await response.json()) as { results: ElevationResult[] };
-    return res.status(200).json(data);
+    const data = (await response.json()) as { elevation: number[] };
+
+    const results = locations.map((loc, i) => ({
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+      elevation: data.elevation[i] ?? 0,
+    }));
+
+    return res.status(200).json({ results });
   } catch {
     return res.status(502).json({ error: 'Failed to fetch elevation data' });
   }

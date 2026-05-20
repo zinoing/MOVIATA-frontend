@@ -194,12 +194,11 @@ function setupMapLayers(
     paint: { 'line-color': routeMainColor, 'line-width': 5.5, 'line-opacity': 0.98 },
   });
 
-  // Waypoint marks — circle
+  // All marks — circle (destination marks show circle + flag)
   map.addLayer({
     id: 'marks-dots',
     type: 'circle',
     source: 'marks-source',
-    filter: ['!=', ['get', 'isDestination'], true],
     layout: { visibility: showRoutePoints ? 'visible' : 'none' },
     paint: {
       'circle-radius': 6.5,

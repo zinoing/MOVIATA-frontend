@@ -124,10 +124,8 @@ function getRouteColorValue(routeColor: RouteColor) {
   return routeColor === 'orange' ? '#F97316' : '#CF291D';
 }
 
-// ─── end-pin SVG 이미지 생성 헬퍼 ─────────────────────────────────────────────
-// setupMapLayers(초기 등록)과 applyStyleUpdates(색상 교체) 양쪽에서 공유합니다.
 function buildEndPinImage(color: string): { img: HTMLImageElement; dpr: number } {
-  const dpr = 3; // 맵 pixelRatio와 일치시켜 업스케일 블러 방지
+  const dpr = 3;
   const pinW = Math.round(27 * dpr);
   const pinH = Math.round(16 * dpr);
   const svg = `<svg width="${pinW}" height="${pinH}" viewBox="0 0 30 18" xmlns="http://www.w3.org/2000/svg">
@@ -210,13 +208,27 @@ function setupMapLayers(
     },
   });
 
-  // End pin (flag icon) — buildEndPinImage 헬퍼로 생성
+  map.addLayer({
+    id: 'route-end-point',
+    type: 'circle',
+    source: 'route-points',
+    filter: ['==', ['get', 'pointType'], 'end'],
+    layout: { visibility: showRoutePoints ? 'visible' : 'none' },
+    paint: {
+      'circle-radius': 6.5,
+      'circle-color': routeMainColor,
+      'circle-stroke-color': '#EDE8DC',
+      'circle-stroke-width': 2.2,
+      'circle-opacity': 1,
+    },
+  });
+
   const { img: pinImg, dpr } = buildEndPinImage(routeMainColor);
   pinImg.onload = () => {
     if (!map.hasImage('end-pin')) map.addImage('end-pin', pinImg, { pixelRatio: dpr });
-    if (!map.getLayer('route-end-point')) {
+    if (!map.getLayer('route-end-pin')) {
       map.addLayer({
-        id: 'route-end-point',
+        id: 'route-end-pin',
         type: 'symbol',
         source: 'route-points',
         filter: ['==', ['get', 'pointType'], 'end'],
@@ -247,6 +259,7 @@ function setupMapLayers(
         id === 'route-main' ||
         id === 'route-start-point' ||
         id === 'route-end-point' ||
+        id === 'route-end-pin' ||
         id === 'background'
       ) continue;
 
@@ -300,14 +313,14 @@ function applyStyleUpdates(
     map.setPaintProperty('route-start-point', 'circle-color', routeMainColor);
   }
 
-  // end-pin 이미지 교체 — SVG는 setPaintProperty로 색상 변경 불가, 이미지 자체를 교체해야 함
+  if (map.getLayer('route-end-point')) {
+    map.setPaintProperty('route-end-point', 'circle-color', routeMainColor);
+  }
+
   if (map.hasImage('end-pin')) {
     const { img } = buildEndPinImage(routeMainColor);
     img.onload = () => {
-      // 비동기 로드 사이에 맵이 제거됐을 수 있으므로 재확인
-      if (map.hasImage('end-pin')) {
-        map.updateImage('end-pin', img);
-      }
+      if (map.hasImage('end-pin')) map.updateImage('end-pin', img);
     };
   }
 
@@ -328,6 +341,9 @@ function applyStyleUpdates(
   if (map.getLayer('route-end-point')) {
     map.setLayoutProperty('route-end-point', 'visibility', pointVisibility);
   }
+  if (map.getLayer('route-end-pin')) {
+    map.setLayoutProperty('route-end-pin', 'visibility', pointVisibility);
+  }
 
   // 지도 레이어 표시 여부 (showContours 모드에서는 건드리지 않음)
   if (!showContours) {
@@ -337,6 +353,7 @@ function applyStyleUpdates(
         id === 'route-main' ||
         id === 'route-start-point' ||
         id === 'route-end-point' ||
+        id === 'route-end-pin' ||
         id === 'background'
       ) continue;
 

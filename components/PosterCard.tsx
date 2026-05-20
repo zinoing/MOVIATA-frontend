@@ -210,7 +210,6 @@ export default function PosterCard({
               onViewStateChange={onMapViewStateChange}
               onMapCanvas={onMapCanvas}
               initialViewState={initialMapViewState}
-              endpointIndex={endpointIndex}
               marks={marks}
               className="w-full max-w-full"
             />

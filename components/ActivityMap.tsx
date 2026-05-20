@@ -42,9 +42,7 @@ export type ActivityMapProps = {
    * 최초 마운트 시 한 번만 적용되며 이후 변경은 무시됩니다.
    */
   initialViewState?: FixedMapViewState | null;
-  /** 엔드포인트 마커를 표시할 좌표 인덱스. 미지정 시 마지막 좌표. */
-  endpointIndex?: number;
-  /** 경로 위에 표시할 마크 목록. showRoutePoints가 true일 때 circle로 표시. */
+  /** 경로 위에 표시할 마크 목록. showRoutePoints가 true일 때 circle/flag로 표시. */
   marks?: Mark[];
 };
 
@@ -170,8 +168,7 @@ function createMap(
 function setupMapLayers(
   map: MapLibreMap,
   routeFeature: Feature<LineString>,
-  pointFeatures: FeatureCollection<Point>,
-  marksFeatures: FeatureCollection<Point>,
+  marksFC: FeatureCollection<Point>,
   routeColor: RouteColor,
   shirtColor: 'white' | 'black',
   showMap: boolean,
@@ -187,8 +184,7 @@ function setupMapLayers(
   map.getCanvas().style.background = 'transparent';
 
   map.addSource('route', { type: 'geojson', data: routeFeature });
-  map.addSource('route-points', { type: 'geojson', data: pointFeatures });
-  map.addSource('marks-source', { type: 'geojson', data: marksFeatures });
+  map.addSource('marks-source', { type: 'geojson', data: marksFC });
 
   map.addLayer({
     id: 'route-main',
@@ -198,40 +194,12 @@ function setupMapLayers(
     paint: { 'line-color': routeMainColor, 'line-width': 5.5, 'line-opacity': 0.98 },
   });
 
-  map.addLayer({
-    id: 'route-start-point',
-    type: 'circle',
-    source: 'route-points',
-    filter: ['==', ['get', 'pointType'], 'start'],
-    layout: { visibility: showRoutePoints ? 'visible' : 'none' },
-    paint: {
-      'circle-radius': 6.5,
-      'circle-color': routeMainColor,
-      'circle-stroke-color': '#EDE8DC',
-      'circle-stroke-width': 2.2,
-      'circle-opacity': 1,
-    },
-  });
-
-  map.addLayer({
-    id: 'route-end-point',
-    type: 'circle',
-    source: 'route-points',
-    filter: ['==', ['get', 'pointType'], 'end'],
-    layout: { visibility: showRoutePoints ? 'visible' : 'none' },
-    paint: {
-      'circle-radius': 6.5,
-      'circle-color': routeMainColor,
-      'circle-stroke-color': '#EDE8DC',
-      'circle-stroke-width': 2.2,
-      'circle-opacity': 1,
-    },
-  });
-
+  // Waypoint marks — circle
   map.addLayer({
     id: 'marks-dots',
     type: 'circle',
     source: 'marks-source',
+    filter: ['!=', ['get', 'isDestination'], true],
     layout: { visibility: showRoutePoints ? 'visible' : 'none' },
     paint: {
       'circle-radius': 6.5,
@@ -242,15 +210,16 @@ function setupMapLayers(
     },
   });
 
+  // Destination marks — flag icon
   const { img: pinImg, dpr } = buildEndPinImage(routeMainColor);
   pinImg.onload = () => {
     if (!map.hasImage('end-pin')) map.addImage('end-pin', pinImg, { pixelRatio: dpr });
-    if (!map.getLayer('route-end-pin')) {
+    if (!map.getLayer('marks-flag')) {
       map.addLayer({
-        id: 'route-end-pin',
+        id: 'marks-flag',
         type: 'symbol',
-        source: 'route-points',
-        filter: ['==', ['get', 'pointType'], 'end'],
+        source: 'marks-source',
+        filter: ['==', ['get', 'isDestination'], true],
         layout: {
           'icon-image': 'end-pin',
           'icon-anchor': 'bottom',
@@ -276,10 +245,8 @@ function setupMapLayers(
       const { id, type } = layer;
       if (
         id === 'route-main' ||
-        id === 'route-start-point' ||
-        id === 'route-end-point' ||
-        id === 'route-end-pin' ||
         id === 'marks-dots' ||
+        id === 'marks-flag' ||
         id === 'background'
       ) continue;
 
@@ -328,15 +295,12 @@ function applyStyleUpdates(
     map.setPaintProperty('route-main', 'line-color', routeMainColor);
   }
 
-  // 시작점 색상
-  if (map.getLayer('route-start-point')) {
-    map.setPaintProperty('route-start-point', 'circle-color', routeMainColor);
+  // 마크 원 색상
+  if (map.getLayer('marks-dots')) {
+    map.setPaintProperty('marks-dots', 'circle-color', routeMainColor);
   }
 
-  if (map.getLayer('route-end-point')) {
-    map.setPaintProperty('route-end-point', 'circle-color', routeMainColor);
-  }
-
+  // 마크 플래그 이미지 색상 업데이트
   if (map.hasImage('end-pin')) {
     const { img } = buildEndPinImage(routeMainColor);
     img.onload = () => {
@@ -353,19 +317,13 @@ function applyStyleUpdates(
     );
   }
 
-  // 루트 포인트 표시 여부
+  // 마크 표시 여부
   const pointVisibility = showRoutePoints ? 'visible' : 'none';
-  if (map.getLayer('route-start-point')) {
-    map.setLayoutProperty('route-start-point', 'visibility', pointVisibility);
-  }
-  if (map.getLayer('route-end-point')) {
-    map.setLayoutProperty('route-end-point', 'visibility', pointVisibility);
-  }
-  if (map.getLayer('route-end-pin')) {
-    map.setLayoutProperty('route-end-pin', 'visibility', pointVisibility);
-  }
   if (map.getLayer('marks-dots')) {
     map.setLayoutProperty('marks-dots', 'visibility', pointVisibility);
+  }
+  if (map.getLayer('marks-flag')) {
+    map.setLayoutProperty('marks-flag', 'visibility', pointVisibility);
   }
 
   // 지도 레이어 표시 여부 (showContours 모드에서는 건드리지 않음)
@@ -374,10 +332,8 @@ function applyStyleUpdates(
       const { id, type } = layer;
       if (
         id === 'route-main' ||
-        id === 'route-start-point' ||
-        id === 'route-end-point' ||
-        id === 'route-end-pin' ||
         id === 'marks-dots' ||
+        id === 'marks-flag' ||
         id === 'background'
       ) continue;
 
@@ -415,7 +371,6 @@ export default function ActivityMap({
   onViewStateChange,
   onMapCanvas,
   initialViewState = null,
-  endpointIndex,
   marks,
 }: ActivityMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -444,31 +399,6 @@ export default function ActivityMap({
     [coordinates],
   );
 
-  const pointFeatures = useMemo<FeatureCollection<Point>>(() => {
-    if (coordinates.length < 2) return { type: 'FeatureCollection', features: [] };
-    const endIdx = endpointIndex != null
-      ? Math.max(0, Math.min(endpointIndex, coordinates.length - 1))
-      : coordinates.length - 1;
-    return {
-      type: 'FeatureCollection',
-      features: [
-        {
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: coordinates[0] },
-          properties: { pointType: 'start' },
-        },
-        {
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: coordinates[endIdx] },
-          properties: { pointType: 'end' },
-        },
-      ],
-    };
-  }, [coordinates, endpointIndex]);
-
-  const pointFeaturesRef = useRef(pointFeatures);
-  useEffect(() => { pointFeaturesRef.current = pointFeatures; }, [pointFeatures]);
-
   const marksFeatures = useMemo<FeatureCollection<Point>>(() => {
     if (!marks || coordinates.length < 2) return { type: 'FeatureCollection', features: [] };
     return {
@@ -481,7 +411,7 @@ export default function ActivityMap({
         return {
           type: 'Feature' as const,
           geometry: { type: 'Point' as const, coordinates: coordinates[idx] },
-          properties: { markId: mark.id, markName: mark.name },
+          properties: { markId: mark.id, markName: mark.name, isDestination: mark.isDestination },
         };
       }),
     };
@@ -498,7 +428,6 @@ export default function ActivityMap({
     console.log('[Effect1 triggered]', {
       coordinates: coordinates.length,
       routeFeature,
-      pointFeatures,
       shirtColor,
       showContours,
     });
@@ -530,7 +459,6 @@ export default function ActivityMap({
       setupMapLayers(
         map,
         routeFeature,
-        pointFeaturesRef.current,
         marksFeaturesRef.current,
         routeColor,
         shirtColor,
@@ -621,14 +549,7 @@ export default function ActivityMap({
     emitAfterIdle();
   }, [routeColor, showMap, showRoutePoints, showContours, shirtColor]);
 
-  // ─── Effect 3: endpoint 마커 위치만 업데이트 (맵 재생성 없음) ──────────────
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
-    (map.getSource('route-points') as GeoJSONSource | undefined)?.setData(pointFeatures);
-  }, [pointFeatures]);
-
-  // ─── Effect 4: marks 위치 업데이트 (맵 재생성 없음) ───────────────────────
+  // ─── Effect 3: marks 위치/상태 업데이트 (맵 재생성 없음) ─────────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !map.isStyleLoaded()) return;

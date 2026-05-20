@@ -603,6 +603,7 @@ export default function DesignWorkspacePage() {
                         onMapCanvas={handleMapCanvas}
                         initialMapViewState={fixedMapViewState}
                         endpointIndex={endpointIndex}
+                        marks={marks}
                       />
                     </div>
                   </div>

@@ -4,6 +4,7 @@ import ProfileGroup from './ProfileGroup';
 import type { ProfileUser } from '../types/profile';
 import { createProfileUser, dedupeProfileUsers } from '../lib/profileUsers';
 import type { FixedMapViewState } from '../lib/poster/types';
+import type { Mark } from '../types/mark';
 
 type Props = {
   coordinates?: [number, number][];
@@ -29,6 +30,7 @@ type Props = {
   mapSlot?: React.ReactNode;
   titleFallback?: string;
   endpointIndex?: number;
+  marks?: Mark[];
 };
 
 export default function PosterCard({
@@ -55,6 +57,7 @@ export default function PosterCard({
   mapSlot,
   titleFallback = 'Untitled Route',
   endpointIndex,
+  marks,
 }: Props) {
   const isDark = shirtColor === 'black';
   const hasLocation = Boolean(location?.trim());
@@ -208,6 +211,7 @@ export default function PosterCard({
               onMapCanvas={onMapCanvas}
               initialViewState={initialMapViewState}
               endpointIndex={endpointIndex}
+              marks={marks}
               className="w-full max-w-full"
             />
           ) : (

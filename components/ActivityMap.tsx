@@ -235,7 +235,7 @@ function setupMapLayers(
         layout: {
           'icon-image': 'end-pin',
           'icon-anchor': 'bottom',
-          'icon-offset': [6, -8],
+          'icon-offset': [6, -22],
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
           visibility: showRoutePoints ? 'visible' : 'none',

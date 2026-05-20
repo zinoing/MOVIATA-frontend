@@ -2,6 +2,7 @@ import type { ChangeEvent, ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import type { ProfileUser } from '../types/profile';
+import type { Mark } from '../types/mark';
 
 type ShirtColor = 'white' | 'black';
 type InstagramFetchStatus =
@@ -41,11 +42,13 @@ type DesignSettingsPanelProps = {
   isGeneratingSnapshot?: boolean;
   onConfirm: () => void;
   activityType: 'path' | 'motion' | null;
-  endpointIndex?: number;
-  peakIndex?: number | null;
+  marks?: Mark[];
+  onMarksChange?: (marks: Mark[]) => void;
+  selectedMarkId?: string | null;
+  onMarkSelect?: (id: string | null) => void;
   coordinateCount?: number;
   elevations?: number[] | null;
-  onEndpointIndexChange?: (i: number) => void;
+  peakIndex?: number | null;
 };
 
 function updateField<K extends keyof DesignEditorState>(
@@ -126,68 +129,30 @@ function detectTitleWraps(rawTitle: string): string {
   return `${line1}\n${words.slice(wrapAt).join(' ')}`;
 }
 
-function ElevationScrubber({
+function MarksSection({
+  marks,
+  onMarksChange,
+  selectedMarkId,
+  onMarkSelect,
   coordinateCount,
-  endpointIndex,
-  peakIndex,
   elevations,
-  onEndpointIndexChange,
+  peakIndex,
   disabled = false,
 }: {
+  marks: Mark[];
+  onMarksChange: (marks: Mark[]) => void;
+  selectedMarkId: string | null;
+  onMarkSelect: (id: string | null) => void;
   coordinateCount: number;
-  endpointIndex: number;
-  peakIndex: number | null;
   elevations: number[] | null;
-  onEndpointIndexChange: (i: number) => void;
+  peakIndex: number | null;
   disabled?: boolean;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const chartW = 300;
   const chartH = 52;
   const padY = 7;
 
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    function getIndexFromTouch(touch: Touch): number {
-      const rect = el!.getBoundingClientRect();
-      const pct = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
-      return Math.round(pct * (coordinateCount - 1));
-    }
-
-    function onTouchStart(e: TouchEvent) {
-      if (disabled) return;
-      const touch = e.touches[0];
-      if (!touch) return;
-      e.preventDefault();
-      onEndpointIndexChange(getIndexFromTouch(touch));
-    }
-
-    function onTouchMove(e: TouchEvent) {
-      if (disabled) return;
-      const touch = e.touches[0];
-      if (!touch) return;
-      e.preventDefault();
-      onEndpointIndexChange(getIndexFromTouch(touch));
-    }
-
-    el.addEventListener('touchstart', onTouchStart, { passive: false });
-    el.addEventListener('touchmove', onTouchMove, { passive: false });
-    return () => {
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('touchmove', onTouchMove);
-    };
-  }, [coordinateCount, disabled, onEndpointIndexChange]);
-
-  const endPct = coordinateCount > 1 ? (endpointIndex / (coordinateCount - 1)) * 100 : 100;
-  const peakPct = peakIndex != null && coordinateCount > 1
-    ? (peakIndex / (coordinateCount - 1)) * 100
-    : null;
-
   let fillPath = '';
-  let dotY = padY;
-
   if (elevations && elevations.length >= 2) {
     const minE = Math.min(...elevations);
     const maxE = Math.max(...elevations);
@@ -198,69 +163,146 @@ function ElevationScrubber({
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     });
     fillPath = `M0,${chartH} L${pts.join(' L')} L${chartW},${chartH} Z`;
-
-    const sampledIdx = Math.round((endPct / 100) * (elevations.length - 1));
-    const e = elevations[Math.min(sampledIdx, elevations.length - 1)] ?? minE;
-    dotY = chartH - padY - ((e - minE) / range) * (chartH - padY * 2);
   } else {
     const flatY = chartH * 0.55;
     fillPath = `M0,${flatY} L${chartW},${flatY} L${chartW},${chartH} L0,${chartH} Z`;
-    dotY = flatY;
   }
 
-  const scrubX = (endPct / 100) * chartW;
+  const peakPct = peakIndex != null && coordinateCount > 1
+    ? (peakIndex / (coordinateCount - 1)) * 100
+    : null;
+
+  function markDotY(position: number): number {
+    if (elevations && elevations.length >= 2) {
+      const minE = Math.min(...elevations);
+      const maxE = Math.max(...elevations);
+      const range = maxE - minE || 1;
+      const idx = Math.round(position * (elevations.length - 1));
+      const e = elevations[Math.min(idx, elevations.length - 1)] ?? minE;
+      return chartH - padY - ((e - minE) / range) * (chartH - padY * 2);
+    }
+    return chartH * 0.55;
+  }
+
+  function updateMark(id: string, patch: Partial<Mark>) {
+    onMarksChange(marks.map(m => m.id === id ? { ...m, ...patch } : m));
+  }
+
+  function deleteMark(id: string) {
+    onMarksChange(marks.filter(m => m.id !== id));
+  }
+
+  function addMark() {
+    onMarksChange([...marks, {
+      id: `mk-${Date.now()}`,
+      name: 'mark',
+      isDestination: false,
+      position: 0.5,
+    }]);
+  }
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-neutral-900">Endpoint</p>
-      </div>
+      <p className="text-sm font-medium text-neutral-900">Marks</p>
 
-      <div ref={containerRef} className="relative mt-3 touch-none" style={{ height: chartH }}>
+      <div className="relative mt-3" style={{ height: chartH }}>
         <svg
           viewBox={`0 0 ${chartW} ${chartH}`}
           preserveAspectRatio="none"
           className="absolute inset-0 h-full w-full"
           aria-hidden
         >
-          <defs>
-            <clipPath id="ep-left-clip">
-              <rect x={0} y={0} width={scrubX} height={chartH} />
-            </clipPath>
-          </defs>
-
           <path d={fillPath} fill="#e5e7eb" />
-          <path d={fillPath} fill="#d1d5db" clipPath="url(#ep-left-clip)" />
 
           {peakPct != null && (
             <line
               x1={(peakPct / 100) * chartW} y1={0}
               x2={(peakPct / 100) * chartW} y2={chartH}
-              stroke="#F97316" strokeWidth={1.5} strokeDasharray="3,2" opacity={0.55}
+              stroke="#F97316" strokeWidth={1.5} strokeDasharray="3,2" opacity={0.45}
             />
           )}
 
-          <line x1={scrubX} y1={0} x2={scrubX} y2={chartH} stroke="#F97316" strokeWidth={2} />
-          <circle cx={scrubX} cy={dotY} r={5} fill="#F97316" />
+          {marks.map(mark => {
+            const x = mark.position * chartW;
+            const y = markDotY(mark.position);
+            const selected = mark.id === selectedMarkId;
+            return (
+              <g key={mark.id}>
+                <line
+                  x1={x} y1={0} x2={x} y2={chartH}
+                  stroke={selected ? '#FF5A1F' : '#9ca3af'}
+                  strokeWidth={selected ? 2 : 1.5}
+                  strokeDasharray="3,2"
+                  opacity={0.7}
+                />
+                <circle
+                  cx={x} cy={y} r={selected ? 5.5 : 4}
+                  fill={selected ? '#FF5A1F' : '#6b7280'}
+                />
+              </g>
+            );
+          })}
         </svg>
-
-        <input
-          type="range"
-          min={0}
-          max={coordinateCount - 1}
-          step={1}
-          value={endpointIndex}
-          onChange={(e) => onEndpointIndexChange(Number(e.target.value))}
-          disabled={disabled}
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
-          style={{ margin: 0 }}
-        />
       </div>
 
       <div className="mt-1 flex justify-between">
         <span className="text-xs text-neutral-400">Start</span>
         <span className="text-xs text-neutral-400">End</span>
       </div>
+
+      <div className="mt-3 space-y-2">
+        {marks.map(mark => (
+          <div
+            key={mark.id}
+            className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition cursor-pointer ${
+              mark.id === selectedMarkId
+                ? 'border-[#FF5A1F] bg-orange-50'
+                : 'border-neutral-200 hover:border-neutral-300'
+            }`}
+            onClick={() => onMarkSelect(mark.id === selectedMarkId ? null : mark.id)}
+          >
+            <input
+              type="text"
+              value={mark.name}
+              onChange={e => { e.stopPropagation(); updateMark(mark.id, { name: e.target.value }); }}
+              onClick={e => e.stopPropagation()}
+              disabled={disabled}
+              className="flex-1 min-w-0 bg-transparent text-sm outline-none text-neutral-900 disabled:cursor-not-allowed"
+            />
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); updateMark(mark.id, { isDestination: !mark.isDestination }); }}
+              disabled={disabled}
+              className={`shrink-0 rounded-lg border px-2 py-1 text-xs font-medium transition ${
+                mark.isDestination
+                  ? 'border-[#FF5A1F] bg-[#FF5A1F] text-white'
+                  : 'border-neutral-300 text-neutral-500 hover:border-neutral-400'
+              } disabled:opacity-50`}
+            >
+              {mark.isDestination ? 'destination' : 'waypoint'}
+            </button>
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); deleteMark(mark.id); }}
+              disabled={disabled || marks.length <= 1}
+              className="shrink-0 text-xs text-neutral-400 hover:text-red-500 transition disabled:opacity-30"
+            >
+              delete
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {marks.length < 4 && (
+        <button
+          type="button"
+          onClick={addMark}
+          disabled={disabled}
+          className="mt-3 w-full rounded-xl border border-dashed border-neutral-300 py-2 text-xs text-neutral-400 hover:border-neutral-400 hover:text-neutral-500 transition disabled:opacity-50"
+        >
+          + add mark
+        </button>
+      )}
     </div>
   );
 }
@@ -278,11 +320,13 @@ export default function DesignSettingsPanel({
   isGeneratingSnapshot = false,
   onConfirm,
   activityType,
-  endpointIndex,
-  peakIndex,
+  marks,
+  onMarksChange,
+  selectedMarkId,
+  onMarkSelect,
   coordinateCount,
   elevations,
-  onEndpointIndexChange,
+  peakIndex,
 }: DesignSettingsPanelProps) {
   const t = useTranslations('settings');
 
@@ -601,14 +645,16 @@ export default function DesignSettingsPanel({
         )}
 
 
-        {activityType !== 'motion' && value.showRoutePoints && coordinateCount != null && coordinateCount > 1 && onEndpointIndexChange && (
+        {activityType !== 'motion' && marks != null && coordinateCount != null && coordinateCount > 1 && (
           <div className="rounded-[16px] border border-neutral-200 p-4">
-            <ElevationScrubber
+            <MarksSection
+              marks={marks}
+              onMarksChange={onMarksChange ?? (() => undefined)}
+              selectedMarkId={selectedMarkId ?? null}
+              onMarkSelect={onMarkSelect ?? (() => undefined)}
               coordinateCount={coordinateCount}
-              endpointIndex={endpointIndex ?? coordinateCount - 1}
-              peakIndex={peakIndex ?? null}
               elevations={elevations ?? null}
-              onEndpointIndexChange={onEndpointIndexChange}
+              peakIndex={peakIndex ?? null}
               disabled={isGeneratingSnapshot}
             />
           </div>

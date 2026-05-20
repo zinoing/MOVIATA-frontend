@@ -1,6 +1,8 @@
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Layout from '../../components/Layout';
+import type { Mark } from '../../types/mark';
+import { makeDefaultMarks } from '../../types/mark';
 import PosterCard from '../../components/PosterCard';
 import DesignSettingsPanel, {
   type DesignEditorState,
@@ -114,7 +116,8 @@ export default function DesignWorkspacePage() {
   const [fixedMapViewState, setFixedMapViewState] =
     useState<FixedMapViewState | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
-  const [endpointIndex, setEndpointIndex] = useState(0);
+  const [marks, setMarks] = useState<Mark[]>(makeDefaultMarks);
+  const [selectedMarkId, setSelectedMarkId] = useState<string | null>(null);
   const [peakIndex, setPeakIndex] = useState<number | null>(null);
   const [sampledElevations, setSampledElevations] = useState<number[] | null>(null);
   // Stores the map pixels captured at idle time, while the WebGL context is live.
@@ -200,12 +203,12 @@ export default function DesignWorkspacePage() {
 
   const previewDistance = editor?.distance ?? '-';
 
-  // endpoint index 리셋 — 새 경로 로드 시
-  useEffect(() => {
-    if (posterCoordinates.length > 1) {
-      setEndpointIndex(posterCoordinates.length - 1);
-    }
-  }, [posterCoordinates]);
+  // endpointIndex: "end" mark의 position에서 파생
+  const endpointIndex = useMemo(() => {
+    if (!posterCoordinates.length) return 0;
+    const maxPos = marks.reduce((max, m) => Math.max(max, m.position), 0);
+    return Math.round(maxPos * (posterCoordinates.length - 1));
+  }, [marks, posterCoordinates]);
 
   // Strava streams — fetch altitude data for the elevation scrubber
   useEffect(() => {
@@ -628,11 +631,13 @@ export default function DesignWorkspacePage() {
                 isGeneratingSnapshot={isGeneratingSnapshot}
                 onConfirm={handleConfirm}
                 activityType={activityType}
-                endpointIndex={endpointIndex}
+                marks={marks}
+                onMarksChange={setMarks}
+                selectedMarkId={selectedMarkId}
+                onMarkSelect={setSelectedMarkId}
                 peakIndex={peakIndex}
                 coordinateCount={posterCoordinates.length}
                 elevations={sampledElevations}
-                onEndpointIndexChange={setEndpointIndex}
               />
             </div>
           </div>

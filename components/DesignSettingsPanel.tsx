@@ -187,7 +187,6 @@ function ElevationScrubber({
 
   let fillPath = '';
   let dotY = padY;
-  let startDotY = padY;
 
   if (elevations && elevations.length >= 2) {
     const minE = Math.min(...elevations);
@@ -203,12 +202,10 @@ function ElevationScrubber({
     const sampledIdx = Math.round((endPct / 100) * (elevations.length - 1));
     const e = elevations[Math.min(sampledIdx, elevations.length - 1)] ?? minE;
     dotY = chartH - padY - ((e - minE) / range) * (chartH - padY * 2);
-    startDotY = chartH - padY - (((elevations[0] ?? minE) - minE) / range) * (chartH - padY * 2);
   } else {
     const flatY = chartH * 0.55;
     fillPath = `M0,${flatY} L${chartW},${flatY} L${chartW},${chartH} L0,${chartH} Z`;
     dotY = flatY;
-    startDotY = flatY;
   }
 
   const scrubX = (endPct / 100) * chartW;
@@ -243,7 +240,6 @@ function ElevationScrubber({
             />
           )}
 
-          <circle cx={0} cy={startDotY} r={5} fill="#F97316" />
           <line x1={scrubX} y1={0} x2={scrubX} y2={chartH} stroke="#F97316" strokeWidth={2} />
           <circle cx={scrubX} cy={dotY} r={5} fill="#F97316" />
         </svg>

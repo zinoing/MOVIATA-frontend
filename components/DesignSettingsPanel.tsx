@@ -151,6 +151,70 @@ function MarksSection({
   const chartW = 300;
   const chartH = 52;
   const padY = 7;
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Keep live refs so event handlers don't go stale
+  const marksRef = useRef(marks);
+  const onMarksChangeRef = useRef(onMarksChange);
+  const selectedMarkIdRef = useRef(selectedMarkId);
+  marksRef.current = marks;
+  onMarksChangeRef.current = onMarksChange;
+  selectedMarkIdRef.current = selectedMarkId;
+
+  // Chart drag — moves the selected mark's position
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    function posFromClientX(clientX: number): number {
+      const rect = el!.getBoundingClientRect();
+      return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    }
+
+    function applyPos(clientX: number) {
+      const sid = selectedMarkIdRef.current;
+      if (!sid) return;
+      const pos = posFromClientX(clientX);
+      onMarksChangeRef.current(
+        marksRef.current.map(m => m.id === sid ? { ...m, position: pos } : m),
+      );
+    }
+
+    function onMouseDown(e: MouseEvent) {
+      if (!selectedMarkIdRef.current) return;
+      applyPos(e.clientX);
+      function onMove(e: MouseEvent) { applyPos(e.clientX); }
+      function onUp() {
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+      }
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    }
+
+    function onTouchStart(e: TouchEvent) {
+      if (!selectedMarkIdRef.current) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      if (t) applyPos(t.clientX);
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      if (!selectedMarkIdRef.current) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      if (t) applyPos(t.clientX);
+    }
+
+    el.addEventListener('mousedown', onMouseDown);
+    el.addEventListener('touchstart', onTouchStart, { passive: false });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => {
+      el.removeEventListener('mousedown', onMouseDown);
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+    };
+  }, []); // refs handle live values — no deps needed
 
   let fillPath = '';
   if (elevations && elevations.length >= 2) {
@@ -188,24 +252,18 @@ function MarksSection({
     onMarksChange(marks.map(m => m.id === id ? { ...m, ...patch } : m));
   }
 
-  function deleteMark(id: string) {
-    onMarksChange(marks.filter(m => m.id !== id));
-  }
-
-  function addMark() {
-    onMarksChange([...marks, {
-      id: `mk-${Date.now()}`,
-      name: 'mark',
-      isDestination: false,
-      position: 0.5,
-    }]);
-  }
-
   return (
     <div>
       <p className="text-sm font-medium text-neutral-900">Marks</p>
+      <p className="mt-0.5 text-xs text-neutral-400">
+        {selectedMarkId ? 'Drag the chart to move the selected mark' : 'Select a mark to move it'}
+      </p>
 
-      <div className="relative mt-3" style={{ height: chartH }}>
+      <div
+        ref={containerRef}
+        className="relative mt-3 touch-none"
+        style={{ height: chartH, cursor: selectedMarkId ? 'ew-resize' : 'default' }}
+      >
         <svg
           viewBox={`0 0 ${chartW} ${chartH}`}
           preserveAspectRatio="none"
@@ -235,10 +293,7 @@ function MarksSection({
                   strokeDasharray="3,2"
                   opacity={0.7}
                 />
-                <circle
-                  cx={x} cy={y} r={selected ? 5.5 : 4}
-                  fill={selected ? '#FF5A1F' : '#6b7280'}
-                />
+                <circle cx={x} cy={y} r={selected ? 5.5 : 4} fill={selected ? '#FF5A1F' : '#6b7280'} />
               </g>
             );
           })}
@@ -254,21 +309,14 @@ function MarksSection({
         {marks.map(mark => (
           <div
             key={mark.id}
-            className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition cursor-pointer ${
+            className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 transition cursor-pointer ${
               mark.id === selectedMarkId
                 ? 'border-[#FF5A1F] bg-orange-50'
                 : 'border-neutral-200 hover:border-neutral-300'
             }`}
             onClick={() => onMarkSelect(mark.id === selectedMarkId ? null : mark.id)}
           >
-            <input
-              type="text"
-              value={mark.name}
-              onChange={e => { e.stopPropagation(); updateMark(mark.id, { name: e.target.value }); }}
-              onClick={e => e.stopPropagation()}
-              disabled={disabled}
-              className="flex-1 min-w-0 bg-transparent text-sm outline-none text-neutral-900 disabled:cursor-not-allowed"
-            />
+            <span className="flex-1 min-w-0 text-sm text-neutral-900 select-none">{mark.name}</span>
             <button
               type="button"
               onClick={e => { e.stopPropagation(); updateMark(mark.id, { isDestination: !mark.isDestination }); }}
@@ -281,28 +329,9 @@ function MarksSection({
             >
               {mark.isDestination ? 'destination' : 'waypoint'}
             </button>
-            <button
-              type="button"
-              onClick={e => { e.stopPropagation(); deleteMark(mark.id); }}
-              disabled={disabled || marks.length <= 1}
-              className="shrink-0 text-xs text-neutral-400 hover:text-red-500 transition disabled:opacity-30"
-            >
-              delete
-            </button>
           </div>
         ))}
       </div>
-
-      {marks.length < 4 && (
-        <button
-          type="button"
-          onClick={addMark}
-          disabled={disabled}
-          className="mt-3 w-full rounded-xl border border-dashed border-neutral-300 py-2 text-xs text-neutral-400 hover:border-neutral-400 hover:text-neutral-500 transition disabled:opacity-50"
-        >
-          + add mark
-        </button>
-      )}
     </div>
   );
 }
@@ -645,7 +674,7 @@ export default function DesignSettingsPanel({
         )}
 
 
-        {activityType !== 'motion' && marks != null && coordinateCount != null && coordinateCount > 1 && (
+        {activityType !== 'motion' && value.showRoutePoints && marks != null && coordinateCount != null && coordinateCount > 1 && (
           <div className="rounded-[16px] border border-neutral-200 p-4">
             <MarksSection
               marks={marks}

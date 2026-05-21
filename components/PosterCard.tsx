@@ -108,16 +108,16 @@ export default function PosterCard({
   const tertiaryColorClass = isDark ? 'text-[#EDE8DC]' : 'text-[#1A1A1A]';
 
   const wrapperClass = compact
-    ? `w-full aspect-[3/5] rounded-[24px] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.10)] ${cardClass}`
-    : `w-[428px] h-[760px] max-w-full mx-auto rounded-[32px] overflow-hidden px-6 pt-6 pb-8 shadow-[0_8px_40px_rgba(0,0,0,0.12)] ${cardClass}`;
+    ? `font-belmonte w-full aspect-[3/5] rounded-[24px] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.10)] ${cardClass}`
+    : `font-belmonte w-[428px] h-[760px] max-w-full mx-auto rounded-[32px] overflow-hidden px-6 pt-6 pb-8 shadow-[0_8px_40px_rgba(0,0,0,0.12)] ${cardClass}`;
 
   const titleClass = compact
-    ? 'font-serif text-[1.3rem] font-bold leading-[1.08] tracking-[-0.01em] uppercase'
-    : 'font-serif text-[2.35rem] font-bold leading-[1.02] tracking-[-0.02em] uppercase';
+    ? 'text-[1.3rem] font-bold leading-[1.08] tracking-[-0.01em] uppercase'
+    : 'text-[2.35rem] font-bold leading-[1.02] tracking-[-0.02em] uppercase';
 
-  const locationClass = `font-garamond text-[15px] font-medium tracking-[0.1em] ${tertiaryColorClass}`;
+  const locationClass = `text-[15px] font-medium tracking-[0.1em] ${tertiaryColorClass}`;
 
-  const dateClass = `font-garamond text-[15px] font-medium uppercase tracking-[0.1em] ${tertiaryColorClass}`;
+  const dateClass = `text-[15px] font-medium uppercase tracking-[0.1em] ${tertiaryColorClass}`;
 
   const statLabelClass = compact
     ? `mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em] ${tertiaryTextClass}`
@@ -232,8 +232,8 @@ export default function PosterCard({
       <div className={compact ? 'mt-3 flex justify-center' : 'mt-6 flex justify-center'}>
         <span
           style={{
-            fontFamily: '"Inter", system-ui, sans-serif',
-            fontWeight: 700,
+            fontFamily: '"Belmonte Ballpoint Print", sans-serif',
+            fontWeight: 400,
             fontSize: compact ? '13px' : '18px',
             letterSpacing: '-0.03em',
             color: isDark ? '#EDE8DC' : '#1A1A1A',

@@ -193,7 +193,7 @@
     },
     "total": "Total",
     "delivery": "Estimated delivery",
-    "deliveryDays": "5–10 business days",
+    "deliveryDays": "Within 15 days",
     "buyNow": "Buy now",
     "addSize": "+ Add size",
     "uploading": "Uploading…",
@@ -405,7 +405,7 @@
     },
     "price": "Price",
     "delivery": "Free shipping",
-    "deliveryDays": "Delivered within 7 days",
+    "deliveryDays": "Within 15 days",
     "designAndBuy": "Design & Buy"
   },
   "collections": {

@@ -193,7 +193,7 @@
     },
     "total": "合計",
     "delivery": "お届け予定",
-    "deliveryDays": "営業日5〜10日",
+    "deliveryDays": "15日以内",
     "buyNow": "今すぐ購入",
     "addSize": "+ サイズを追加",
     "uploading": "アップロード中…",
@@ -405,7 +405,7 @@
     },
     "price": "価格",
     "delivery": "送料無料",
-    "deliveryDays": "7日以内にお届け",
+    "deliveryDays": "15日以内",
     "designAndBuy": "デザインして購入"
   },
   "collections": {

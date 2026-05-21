@@ -419,6 +419,22 @@
       "description": "Completed designs will appear here."
     }
   },
+  "orderComplete": {
+    "title": "Order Complete",
+    "errorTitle": "Error",
+    "invalidAccess": "Invalid access.",
+    "orderNotFound": "Order not found.",
+    "home": "Home",
+    "loading": "Loading order information...",
+    "successHeading": "Your order is complete",
+    "orderNumber": "Order",
+    "shippingNotice": "Ships within 15 days of production",
+    "orderedItems": "Items Ordered",
+    "productName": "Custom T-Shirt",
+    "total": "Total",
+    "shippingAddress": "Shipping Address",
+    "backToHome": "Back to Home"
+  },
   "layout": {
     "langEn": "EN",
     "langKo": "한국어",

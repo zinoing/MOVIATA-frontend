@@ -419,6 +419,22 @@
       "description": "완성된 디자인이 여기에 표시됩니다."
     }
   },
+  "orderComplete": {
+    "title": "주문 완료",
+    "errorTitle": "오류",
+    "invalidAccess": "잘못된 접근입니다.",
+    "orderNotFound": "주문 정보를 찾을 수 없습니다.",
+    "home": "홈으로",
+    "loading": "주문 정보를 불러오는 중...",
+    "successHeading": "주문이 완료되었습니다",
+    "orderNumber": "주문번호",
+    "shippingNotice": "제작 후 15일 이내에 배송됩니다",
+    "orderedItems": "주문 상품",
+    "productName": "커스텀 티셔츠",
+    "total": "합계",
+    "shippingAddress": "배송지",
+    "backToHome": "홈으로 돌아가기"
+  },
   "layout": {
     "langEn": "EN",
     "langKo": "한국어",

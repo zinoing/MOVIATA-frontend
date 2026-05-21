@@ -419,6 +419,22 @@
       "description": "完成したデザインがここに表示されます。"
     }
   },
+  "orderComplete": {
+    "title": "注文完了",
+    "errorTitle": "エラー",
+    "invalidAccess": "無効なアクセスです。",
+    "orderNotFound": "注文が見つかりません。",
+    "home": "ホーム",
+    "loading": "注文情報を読み込み中...",
+    "successHeading": "ご注文が完了しました",
+    "orderNumber": "注文番号",
+    "shippingNotice": "製作後15日以内に発送します",
+    "orderedItems": "注文商品",
+    "productName": "カスタムTシャツ",
+    "total": "合計",
+    "shippingAddress": "配送先",
+    "backToHome": "ホームに戻る"
+  },
   "layout": {
     "langEn": "EN",
     "langKo": "한국어",

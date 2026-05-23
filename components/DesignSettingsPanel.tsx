@@ -740,13 +740,13 @@ export default function DesignSettingsPanel({
         )}
 
         <section className="rounded-2xl border border-neutral-200 p-4">
-          <FieldLabel>Font Style</FieldLabel>
+          <FieldLabel>{t('fontStyle.title')}</FieldLabel>
 
           <div className="grid grid-cols-3 gap-3">
             {([
-              { value: 'sansSerif', label: 'SansSerif' },
-              { value: 'serif', label: 'Serif' },
-              { value: 'script', label: 'Script' },
+              { value: 'sansSerif', label: t('fontStyle.sansSerif') },
+              { value: 'serif', label: t('fontStyle.serif') },
+              { value: 'script', label: t('fontStyle.script') },
             ] as const).map(({ value: fs, label }) => {
               const selected = value.fontStyle === fs;
               return (

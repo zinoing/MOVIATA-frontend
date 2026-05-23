@@ -144,7 +144,27 @@ export async function capturePosterCard(
   }
 
   await document.fonts.load('500 15px "EB Garamond"').catch(() => {});
+  await document.fonts.load('400 16px "Belmonte Ballpoint Print"').catch(() => {});
   await document.fonts.ready;
+
+  // Pre-fetch Belmonte font and embed as base64 so html-to-image can inline it
+  // into the SVG. html-to-image fetches font URLs from @font-face rules
+  // independently of the browser cache — if the URL has spaces or any fetch
+  // issue, the font is silently dropped and text falls back to sans-serif.
+  let belmonteFontEmbedCSS: string | undefined;
+  try {
+    const fontRes = await fetch('/fonts/Belmonte_Ballpoint/Webfonts/Woff2/Belmonte-Ballpoint-Print.woff2');
+    const fontBlob = await fontRes.blob();
+    const fontB64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(fontBlob);
+    });
+    belmonteFontEmbedCSS = `@font-face { font-family: 'Belmonte Ballpoint Print'; src: url('${fontB64}') format('woff2'); font-weight: 400; font-style: normal; }`;
+  } catch {
+    // Proceed without manual embedding; html-to-image will attempt its own fetch
+  }
 
   // Step 4: pre-fetch all avatar <img> srcs and replace with base64 data URLs.
   // html-to-image fetches images in parallel internally — without this step,
@@ -161,6 +181,7 @@ export async function capturePosterCard(
       width: cardW,
       height: cardH,
       cacheBust: false,
+      ...(belmonteFontEmbedCSS ? { fontEmbedCSS: belmonteFontEmbedCSS } : {}),
     });
 
     // Build output canvas

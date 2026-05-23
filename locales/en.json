@@ -193,7 +193,7 @@
     },
     "total": "Total",
     "delivery": "Estimated delivery",
-    "deliveryDays": "5–10 business days",
+    "deliveryDays": "Within 15 days",
     "buyNow": "Buy now",
     "addSize": "+ Add size",
     "uploading": "Uploading…",
@@ -405,7 +405,7 @@
     },
     "price": "Price",
     "delivery": "Free shipping",
-    "deliveryDays": "Delivered within 7 days",
+    "deliveryDays": "Within 15 days",
     "designAndBuy": "Design & Buy"
   },
   "collections": {
@@ -419,6 +419,22 @@
       "description": "Completed designs will appear here."
     }
   },
+  "orderComplete": {
+    "title": "Order Complete",
+    "errorTitle": "Error",
+    "invalidAccess": "Invalid access.",
+    "orderNotFound": "Order not found.",
+    "home": "Home",
+    "loading": "Loading order information...",
+    "successHeading": "Your order is complete",
+    "orderNumber": "Order",
+    "shippingNotice": "Ships within 15 days of production",
+    "orderedItems": "Items Ordered",
+    "productName": "Custom T-Shirt",
+    "total": "Total",
+    "shippingAddress": "Shipping Address",
+    "backToHome": "Back to Home"
+  },
   "layout": {
     "langEn": "EN",
     "langKo": "한국어",
@@ -427,6 +443,7 @@
       "copyright": "© 2025 MOVIATA",
       "terms": "Terms of Service",
       "privacy": "Privacy Policy",
+      "companyName": "Business Name",
       "bizNumber": "Business Registration No.",
       "ceo": "CEO",
       "address": "Address",

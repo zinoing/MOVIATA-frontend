@@ -23,6 +23,7 @@ function buildEditorFromGpx(gpx: GpxData): DesignEditorState {
   return {
     instagramEnabled: false,
     shirtColor: 'white',
+    fontStyle: 'natural',
     routeColor: 'red',
     showMap: true,
     showRoutePoints: false,
@@ -288,6 +289,7 @@ export default function GpxDesignPage() {
                     elevation={editor.elevation}
                     duration={editor.time}
                     shirtColor={editor.shirtColor}
+                    fontStyle={editor.fontStyle}
                     routeColor={editor.routeColor}
                     showMap={editor.showMap}
                     showRoutePoints={editor.showRoutePoints}

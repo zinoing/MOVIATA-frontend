@@ -193,7 +193,7 @@
     },
     "total": "합계",
     "delivery": "예상 배송",
-    "deliveryDays": "영업일 기준 5–10일",
+    "deliveryDays": "15일 이내",
     "buyNow": "지금 구매",
     "addSize": "+ 사이즈 추가",
     "uploading": "업로드 중…",
@@ -405,7 +405,7 @@
     },
     "price": "가격",
     "delivery": "무료 배송",
-    "deliveryDays": "7일 이내에 배송",
+    "deliveryDays": "15일 이내",
     "designAndBuy": "디자인하고 구매하기"
   },
   "collections": {
@@ -419,6 +419,22 @@
       "description": "완성된 디자인이 여기에 표시됩니다."
     }
   },
+  "orderComplete": {
+    "title": "주문 완료",
+    "errorTitle": "오류",
+    "invalidAccess": "잘못된 접근입니다.",
+    "orderNotFound": "주문 정보를 찾을 수 없습니다.",
+    "home": "홈으로",
+    "loading": "주문 정보를 불러오는 중...",
+    "successHeading": "주문이 완료되었습니다",
+    "orderNumber": "주문번호",
+    "shippingNotice": "제작 후 15일 이내에 배송됩니다",
+    "orderedItems": "주문 상품",
+    "productName": "커스텀 티셔츠",
+    "total": "합계",
+    "shippingAddress": "배송지",
+    "backToHome": "홈으로 돌아가기"
+  },
   "layout": {
     "langEn": "EN",
     "langKo": "한국어",
@@ -427,6 +443,7 @@
       "copyright": "© 2025 MOVIATA",
       "terms": "이용약관",
       "privacy": "개인정보처리방침",
+      "companyName": "상호명",
       "bizNumber": "사업자등록번호",
       "ceo": "대표자",
       "address": "주소",

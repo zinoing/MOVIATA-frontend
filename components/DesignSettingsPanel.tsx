@@ -12,9 +12,12 @@ type InstagramFetchStatus =
   | 'error'
   | 'not_found';
 
+export type FontStyle = 'minimal' | 'natural';
+
 export type DesignEditorState = {
   instagramEnabled: boolean;
   shirtColor: ShirtColor;
+  fontStyle: FontStyle;
   title: string;
   date: string;
   location: string;
@@ -735,6 +738,35 @@ export default function DesignSettingsPanel({
             </div>
           </div>
         )}
+
+        <section className="rounded-2xl border border-neutral-200 p-4">
+          <FieldLabel>Font Style</FieldLabel>
+
+          <div className="grid grid-cols-2 gap-3">
+            {([
+              { value: 'minimal', label: 'Minimal', desc: 'Clean · Inter' },
+              { value: 'natural', label: 'Natural', desc: 'Handwritten · Belmonte' },
+            ] as const).map(({ value: fs, label, desc }) => {
+              const selected = value.fontStyle === fs;
+              return (
+                <button
+                  key={fs}
+                  type="button"
+                  onClick={() => updateField(value, onChange, 'fontStyle', fs)}
+                  disabled={isGeneratingSnapshot}
+                  className={`rounded-xl border px-3 py-3 text-left transition ${
+                    selected
+                      ? 'border-neutral-900 bg-neutral-900 text-white'
+                      : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500'
+                  } disabled:cursor-not-allowed disabled:opacity-50`}
+                >
+                  <p className="text-sm font-semibold">{label}</p>
+                  <p className={`mt-0.5 text-[11px] ${selected ? 'text-neutral-300' : 'text-neutral-400'}`}>{desc}</p>
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
         <section className="rounded-2xl border border-neutral-200 p-4">
           <div className="space-y-4">

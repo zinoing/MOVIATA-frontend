@@ -136,6 +136,7 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
             <span>{t('footer.privacy')}</span>
           </p>
           <div className="space-y-0.5">
+            <p>{t('footer.companyName')}: Moviata</p>
             <p>{t('footer.bizNumber')}: 188-16-02745</p>
             <p>{t('footer.ceo')}: 조진호</p>
             <p>{t('footer.address')}: 서울시 한강대로 77길 15</p>

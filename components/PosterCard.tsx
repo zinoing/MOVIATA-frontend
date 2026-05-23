@@ -40,7 +40,6 @@ type Props = {
   instagramEnabled: boolean;
   instagramId: string;
   selectedUsers: ProfileUser[];
-  onRemoveUser?: (userId: string) => void;
   compact?: boolean;
   onMapViewStateChange?: (viewState: FixedMapViewState) => void;
   onMapCanvas?: (canvas: HTMLCanvasElement) => void;
@@ -67,7 +66,6 @@ export default function PosterCard({
   instagramEnabled,
   instagramId,
   selectedUsers,
-  onRemoveUser,
   compact = false,
   onMapViewStateChange,
   onMapCanvas,

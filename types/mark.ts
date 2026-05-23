@@ -8,6 +8,6 @@ export type Mark = {
 export function makeDefaultMarks(): Mark[] {
   return [
     { id: 'mk-start', name: 'start', isDestination: false, position: 0 },
-    { id: 'mk-end',   name: 'end',   isDestination: false, position: 1 },
+    { id: 'mk-end',   name: 'end',   isDestination: true,  position: 1 },
   ];
 }

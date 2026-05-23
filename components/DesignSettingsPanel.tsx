@@ -88,45 +88,7 @@ function normalizeInstagramHandle(input: string) {
 }
 
 function normalizePosterTitle(input: string) {
-  // Max 2 lines (one \n allowed), total 60 chars
-  const lines = input.toUpperCase().split('\n').slice(0, 2);
-  return lines.join('\n').slice(0, 60);
-}
-
-function detectTitleWraps(rawTitle: string): string {
-  if (typeof document === 'undefined') return rawTitle;
-  const parts = rawTitle.split('\n');
-  if (parts.length >= 2) return rawTitle;
-
-  const words = (parts[0] ?? '').split(/\s+/).filter(Boolean);
-  if (words.length <= 1) return rawTitle;
-
-  const div = document.createElement('div');
-  div.style.cssText =
-    'position:absolute;visibility:hidden;pointer-events:none;top:-9999px;left:-9999px;' +
-    "width:380px;font-family:var(--font-playfair),'Playfair Display',Georgia,serif;" +
-    'font-size:2.35rem;font-weight:700;line-height:1.02;letter-spacing:-0.02em;' +
-    'text-transform:uppercase;white-space:normal;';
-  document.body.appendChild(div);
-
-  div.textContent = '​';
-  const oneLineH = div.clientHeight;
-
-  let line1 = '';
-  let wrapAt = -1;
-  for (let i = 0; i < words.length; i++) {
-    const candidate = line1 ? `${line1} ${words[i]}` : words[i]!;
-    div.textContent = candidate;
-    if (div.clientHeight > oneLineH && line1) {
-      wrapAt = i;
-      break;
-    }
-    line1 = candidate;
-  }
-
-  document.body.removeChild(div);
-  if (wrapAt === -1) return rawTitle;
-  return `${line1}\n${words.slice(wrapAt).join(' ')}`;
+  return input.replace(/\n/g, '').toUpperCase().slice(0, 30);
 }
 
 function MarksSection({
@@ -421,16 +383,6 @@ export default function DesignSettingsPanel({
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
-  useEffect(() => {
-    const raw = value.title;
-    const id = setTimeout(() => {
-      const wrapped = detectTitleWraps(raw);
-      if (wrapped !== raw) {
-        onChangeRef.current({ ...valueRef.current, title: wrapped });
-      }
-    }, 300);
-    return () => clearTimeout(id);
-  }, [value.title]);
 
   return (
     <aside className="w-full rounded-[20px] border border-neutral-200 bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.08)] lg:sticky lg:top-6">
@@ -779,7 +731,8 @@ export default function DesignSettingsPanel({
           <div className="space-y-4">
             <div>
               <FieldLabel required>{t('activity.name')}</FieldLabel>
-              <textarea
+              <input
+                type="text"
                 value={value.title}
                 onChange={(e) =>
                   updateField(
@@ -790,10 +743,9 @@ export default function DesignSettingsPanel({
                   )
                 }
                 placeholder={t('activity.namePlaceholder')}
-                maxLength={60}
-                rows={2}
+                maxLength={30}
                 disabled={isGeneratingSnapshot}
-                className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-2.5 text-sm leading-6 uppercase outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm uppercase outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
 

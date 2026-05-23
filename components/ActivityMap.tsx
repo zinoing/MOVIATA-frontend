@@ -296,7 +296,8 @@ function applyStyleUpdates(
 
   // 마크 원 색상
   if (map.getLayer('marks-dots')) {
-    map.setPaintProperty('marks-dots', 'circle-color', routeMainColor);
+    map.setPaintProperty('marks-dots', 'circle-color', isDark ? routeMainColor : '#EDE8DC');
+    map.setPaintProperty('marks-dots', 'circle-stroke-color', isDark ? '#EDE8DC' : routeMainColor);
   }
 
   // 마크 플래그 이미지 색상 업데이트

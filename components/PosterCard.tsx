@@ -243,7 +243,7 @@ export default function PosterCard({
         <span
           style={{
             ...fc.moviata,
-            fontSize: compact ? '13px' : '18px',
+            fontSize: compact ? '26px' : '36px',
             letterSpacing: '-0.03em',
             color: isDark ? '#EDE8DC' : '#1A1A1A',
             userSelect: 'none',

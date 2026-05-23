@@ -827,49 +827,7 @@ export default function DesignSettingsPanel({
 
         <section className="rounded-2xl border border-neutral-200 p-4">
           <div className="space-y-4">
-            {activityType !== 'motion' && (
-              <div>
-                <FieldLabel>{t('distance.title')}</FieldLabel>
-                <input
-                  type="text"
-                  value={value.distance}
-                  onChange={handleInput('distance')}
-                  placeholder={t('distance.placeholder')}
-                  disabled={isGeneratingSnapshot}
-                  className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-            )}
-
-            {activityType !== 'motion' && (
-              <div>
-                <FieldLabel>Elev Gain (m)</FieldLabel>
-                <input
-                  type="text"
-                  value={value.elevation}
-                  onChange={handleInput('elevation')}
-                  placeholder="e.g. 295"
-                  disabled={isGeneratingSnapshot}
-                  className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-            )}
-
-            {activityType !== 'motion' && (
-              <div>
-                <FieldLabel required>{t('time.title')}</FieldLabel>
-                <input
-                  type="text"
-                  value={value.time}
-                  onChange={handleInput('time')}
-                  placeholder="00:00"
-                  disabled={isGeneratingSnapshot}
-                  className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-            )}
-
-            <div className={`${activityType !== 'motion' ? 'mt-6' : ''} space-y-3`}>
+            <div className="space-y-3">
               <button
                 type="button"
                 onClick={onConfirm}

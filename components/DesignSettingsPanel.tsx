@@ -88,7 +88,7 @@ function normalizeInstagramHandle(input: string) {
 }
 
 function normalizePosterTitle(input: string) {
-  return input.replace(/\n/g, '').toUpperCase().slice(0, 30);
+  return input.replace(/\n/g, '').toUpperCase().slice(0, 15);
 }
 
 function MarksSection({
@@ -743,7 +743,7 @@ export default function DesignSettingsPanel({
                   )
                 }
                 placeholder={t('activity.namePlaceholder')}
-                maxLength={30}
+                maxLength={15}
                 disabled={isGeneratingSnapshot}
                 className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm uppercase outline-none transition focus:border-neutral-500 disabled:cursor-not-allowed disabled:opacity-50"
               />

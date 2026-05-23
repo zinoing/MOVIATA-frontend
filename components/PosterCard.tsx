@@ -182,13 +182,9 @@ export default function PosterCard({
       >
         <h1
           className={`${titleClass} ${primaryTextClass} text-center`}
-          style={{ whiteSpace: 'normal' }}
+          style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
         >
-          {(title || titleFallback).split('\n').map((line, i) => (
-            <span key={i} style={{ display: 'block' }}>
-              {line}
-            </span>
-          ))}
+          {title || titleFallback}
         </h1>
 
         {(hasLocation || hasDate) && (

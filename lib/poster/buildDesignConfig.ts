@@ -26,6 +26,7 @@ export function buildDesignConfig(
     duration: editor.time,
 
     shirtColor: editor.shirtColor,
+    fontStyle: editor.fontStyle,
 
     instagramEnabled: editor.instagramEnabled,
     myInstagramId: editor.myInstagramId,

@@ -136,7 +136,7 @@ export default function ShirtMockup({
               right: '29%',
               fontFamily: '"Belmonte Ballpoint Print", sans-serif',
               fontWeight: 400,
-              fontSize: '2.4cqi',
+              fontSize: '3cqi',
               letterSpacing: '-0.03em',
               color: color === 'black' ? '#EDE8DC' : '#1A1A1A',
               userSelect: 'none',

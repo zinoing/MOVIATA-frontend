@@ -193,7 +193,7 @@ export default function PosterCard({
 
         {(hasLocation || hasDate) && (
           hasLocation ? (
-            <div className={`${compact ? 'mt-3' : 'mt-7'} ${contentWidthClass}`}>
+            <div className={`${compact ? 'mt-3' : 'mt-5'} ${contentWidthClass}`}>
               <div className="flex items-center justify-between gap-6">
                 <span className={`${locationClass} ml-12 text-left`}>{location}</span>
                 {hasDate ? (
@@ -202,7 +202,7 @@ export default function PosterCard({
               </div>
             </div>
           ) : (
-            <div className={compact ? 'mt-3' : 'mt-7'}>
+            <div className={compact ? 'mt-3' : 'mt-5'}>
               {hasDate ? (
                 <span className={dateClass}>{date}</span>
               ) : null}

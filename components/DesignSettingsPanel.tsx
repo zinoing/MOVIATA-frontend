@@ -319,6 +319,7 @@ function MarksSection({
       <div className="mt-3 space-y-2">
         {marks.map(mark => {
           const isFixed = mark.id === 'mk-start' || mark.id === 'mk-end';
+          const canToggleFlag = mark.id !== 'mk-start';
           const selected = mark.id === selectedMarkId;
           return (
             <div
@@ -331,6 +332,23 @@ function MarksSection({
               onClick={() => onMarkSelect(mark.id === selectedMarkId ? null : mark.id)}
             >
               <span className="flex-1 min-w-0 text-sm text-neutral-900 select-none capitalize">{mark.name}</span>
+              {canToggleFlag && (
+                <button
+                  type="button"
+                  onClick={e => {
+                    e.stopPropagation();
+                    onMarksChange(marks.map(m => m.id === mark.id ? { ...m, isDestination: !m.isDestination } : m));
+                  }}
+                  disabled={disabled}
+                  className={`shrink-0 rounded-lg border px-2 py-1 text-xs font-medium transition ${
+                    mark.isDestination
+                      ? 'border-[#FF5A1F] bg-[#FF5A1F] text-white'
+                      : 'border-neutral-300 text-neutral-500 hover:border-neutral-400'
+                  } disabled:opacity-50`}
+                >
+                  {mark.isDestination ? 'flag' : 'waypoint'}
+                </button>
+              )}
               {!isFixed && (
                 <button
                   type="button"

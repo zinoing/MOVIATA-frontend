@@ -7,7 +7,7 @@ import type { FixedMapViewState, FontStyle } from '../lib/poster/types';
 import type { Mark } from '../types/mark';
 
 const FONT_CONFIGS = {
-  minimal: {
+  sansSerif: {
     wrapper: 'font-inter',
     title: {
       compact: 'text-[1.3rem] font-bold leading-[1.08] tracking-[-0.01em] uppercase',
@@ -24,7 +24,24 @@ const FONT_CONFIGS = {
     },
     moviata: { fontFamily: '"Inter", system-ui, sans-serif', fontWeight: 700 as const },
   },
-  natural: {
+  serif: {
+    wrapper: 'font-serif',
+    title: {
+      compact: 'text-[1.3rem] font-bold leading-[1.08] tracking-[-0.01em] uppercase',
+      full: 'text-[2.35rem] font-bold leading-[1.02] tracking-[-0.02em] uppercase',
+    },
+    meta: 'text-[15px] font-medium tracking-[0.1em]',
+    statValue: {
+      compact: 'mt-1 text-[15px] font-bold tracking-[-0.02em]',
+      full: 'mt-1.5 text-[1.45rem] font-bold leading-none tracking-[-0.03em]',
+    },
+    statLabel: {
+      compact: 'mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em]',
+      full: 'mt-1 text-[10px] font-medium uppercase tracking-[0.24em]',
+    },
+    moviata: { fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 700 as const },
+  },
+  script: {
     wrapper: 'font-belmonte',
     title: {
       compact: 'text-[1.4rem] leading-[1.1] tracking-[0.01em] uppercase',

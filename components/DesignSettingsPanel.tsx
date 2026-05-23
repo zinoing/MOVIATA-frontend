@@ -12,7 +12,7 @@ type InstagramFetchStatus =
   | 'error'
   | 'not_found';
 
-export type FontStyle = 'minimal' | 'natural';
+export type FontStyle = 'sansSerif' | 'serif' | 'script';
 
 export type DesignEditorState = {
   instagramEnabled: boolean;
@@ -742,11 +742,12 @@ export default function DesignSettingsPanel({
         <section className="rounded-2xl border border-neutral-200 p-4">
           <FieldLabel>Font Style</FieldLabel>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {([
-              { value: 'minimal', label: 'Minimal', desc: 'Clean · Inter' },
-              { value: 'natural', label: 'Natural', desc: 'Handwritten · Belmonte' },
-            ] as const).map(({ value: fs, label, desc }) => {
+              { value: 'sansSerif', label: 'SansSerif' },
+              { value: 'serif', label: 'Serif' },
+              { value: 'script', label: 'Script' },
+            ] as const).map(({ value: fs, label }) => {
               const selected = value.fontStyle === fs;
               return (
                 <button
@@ -754,14 +755,13 @@ export default function DesignSettingsPanel({
                   type="button"
                   onClick={() => updateField(value, onChange, 'fontStyle', fs)}
                   disabled={isGeneratingSnapshot}
-                  className={`rounded-xl border px-3 py-3 text-left transition ${
+                  className={`rounded-xl border px-3 py-3 text-center transition ${
                     selected
                       ? 'border-neutral-900 bg-neutral-900 text-white'
                       : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500'
                   } disabled:cursor-not-allowed disabled:opacity-50`}
                 >
                   <p className="text-sm font-semibold">{label}</p>
-                  <p className={`mt-0.5 text-[11px] ${selected ? 'text-neutral-300' : 'text-neutral-400'}`}>{desc}</p>
                 </button>
               );
             })}

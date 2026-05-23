@@ -59,7 +59,7 @@ function buildInitialEditorState(activity: ActivityResponse, activityType: 'path
   return {
     instagramEnabled: false,
     shirtColor: 'white',
-    fontStyle: 'natural',
+    fontStyle: 'script',
     routeColor: 'red',
     showMap: true,
     showRoutePoints: false,

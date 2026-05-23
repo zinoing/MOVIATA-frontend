@@ -134,7 +134,7 @@ export default function ShirtMockup({
             style={{
               top: '28%',
               right: '29%',
-              ...(config?.fontStyle === 'natural'
+              ...(config?.fontStyle === 'script'
                 ? { fontFamily: '"Belmonte Ballpoint Print", sans-serif', fontWeight: 400 }
                 : { fontFamily: '"Inter", system-ui, sans-serif', fontWeight: 700 }),
               fontSize: '2.0cqi',

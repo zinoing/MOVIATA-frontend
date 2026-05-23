@@ -23,7 +23,7 @@ function buildEditorFromGpx(gpx: GpxData): DesignEditorState {
   return {
     instagramEnabled: false,
     shirtColor: 'white',
-    fontStyle: 'natural',
+    fontStyle: 'script',
     routeColor: 'red',
     showMap: true,
     showRoutePoints: false,

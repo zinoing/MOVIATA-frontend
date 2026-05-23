@@ -61,7 +61,7 @@ export type FixedMapViewState = {
   height: number;
 };
 
-export type FontStyle = 'minimal' | 'natural';
+export type FontStyle = 'sansSerif' | 'serif' | 'script';
 
 export type DesignConfig = {
   activityId: string;

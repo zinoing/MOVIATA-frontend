@@ -87,7 +87,7 @@ async function captureMotionCard(el: HTMLElement, compositeDataUrl: string | nul
 const DEFAULT_EDITOR: DesignEditorState = {
   instagramEnabled: false,
   shirtColor: 'white',
-  fontStyle: 'natural',
+  fontStyle: 'script',
   routeColor: 'red',
   showMap: false,
   showRoutePoints: false,

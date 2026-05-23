@@ -161,6 +161,14 @@ export default function ConfirmPage() {
     }
   };
 
+  const handleDownloadPng = () => {
+    if (!posterSnapshot) return;
+    const a = document.createElement('a');
+    a.href = posterSnapshot;
+    a.download = `moviata-${config.title || 'design'}.png`;
+    a.click();
+  };
+
   const uploadDesignImage = async (retryCount = 0): Promise<string> => {
     if (!posterSnapshot) throw new Error('posterSnapshot이 없습니다.');
 
@@ -557,6 +565,14 @@ export default function ConfirmPage() {
               className="mt-5 w-full rounded-2xl bg-[#111111] py-4 text-sm font-semibold text-white transition hover:bg-[#333333] disabled:opacity-50"
             >
               {paymentState === 'paying' ? '결제 처리 중...' : '카드 결제하기'}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadPng}
+              className="mt-2 w-full rounded-2xl border border-neutral-200 py-3.5 text-sm font-medium text-neutral-600 transition hover:border-neutral-400 hover:text-neutral-900"
+            >
+              {t('downloadPng')}
             </button>
 
             {paymentState === 'error' && paymentError && (

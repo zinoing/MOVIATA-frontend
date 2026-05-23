@@ -156,7 +156,6 @@ function MarksSection({
   const padY = 7;
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Keep live refs so event handlers don't go stale
   const marksRef = useRef(marks);
   const onMarksChangeRef = useRef(onMarksChange);
   const selectedMarkIdRef = useRef(selectedMarkId);
@@ -164,7 +163,6 @@ function MarksSection({
   onMarksChangeRef.current = onMarksChange;
   selectedMarkIdRef.current = selectedMarkId;
 
-  // Chart drag — moves the selected mark's position
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -251,14 +249,24 @@ function MarksSection({
     return chartH * 0.55;
   }
 
-  function updateMark(id: string, patch: Partial<Mark>) {
-    onMarksChange(marks.map(m => m.id === id ? { ...m, ...patch } : m));
+  const hasOptionalMark = marks.some(m => m.id === 'mk-mid');
+
+  function addMark() {
+    onMarksChange([
+      ...marks.filter(m => m.id !== 'mk-end'),
+      { id: 'mk-mid', name: 'mark', isDestination: false, position: 0.5 },
+      ...marks.filter(m => m.id === 'mk-end'),
+    ]);
+  }
+
+  function removeMark() {
+    if (selectedMarkId === 'mk-mid') onMarkSelect(null);
+    onMarksChange(marks.filter(m => m.id !== 'mk-mid'));
   }
 
   return (
-    <div>
-      <p className="text-sm font-medium text-neutral-900">Marks</p>
-      <p className="mt-0.5 text-xs text-neutral-400">
+    <div className="mt-4">
+      <p className="text-xs text-neutral-400">
         {selectedMarkId ? 'Drag the chart to move the selected mark' : 'Select a mark to move it'}
       </p>
 
@@ -309,31 +317,44 @@ function MarksSection({
       </div>
 
       <div className="mt-3 space-y-2">
-        {marks.map(mark => (
-          <div
-            key={mark.id}
-            className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 transition cursor-pointer ${
-              mark.id === selectedMarkId
-                ? 'border-[#FF5A1F] bg-orange-50'
-                : 'border-neutral-200 hover:border-neutral-300'
-            }`}
-            onClick={() => onMarkSelect(mark.id === selectedMarkId ? null : mark.id)}
-          >
-            <span className="flex-1 min-w-0 text-sm text-neutral-900 select-none">{mark.name}</span>
-            <button
-              type="button"
-              onClick={e => { e.stopPropagation(); updateMark(mark.id, { isDestination: !mark.isDestination }); }}
-              disabled={disabled}
-              className={`shrink-0 rounded-lg border px-2 py-1 text-xs font-medium transition ${
-                mark.isDestination
-                  ? 'border-[#FF5A1F] bg-[#FF5A1F] text-white'
-                  : 'border-neutral-300 text-neutral-500 hover:border-neutral-400'
-              } disabled:opacity-50`}
+        {marks.map(mark => {
+          const isFixed = mark.id === 'mk-start' || mark.id === 'mk-end';
+          const selected = mark.id === selectedMarkId;
+          return (
+            <div
+              key={mark.id}
+              className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 transition cursor-pointer ${
+                selected
+                  ? 'border-[#FF5A1F] bg-orange-50'
+                  : 'border-neutral-200 hover:border-neutral-300'
+              }`}
+              onClick={() => onMarkSelect(mark.id === selectedMarkId ? null : mark.id)}
             >
-              {mark.isDestination ? 'destination' : 'waypoint'}
-            </button>
-          </div>
-        ))}
+              <span className="flex-1 min-w-0 text-sm text-neutral-900 select-none capitalize">{mark.name}</span>
+              {!isFixed && (
+                <button
+                  type="button"
+                  onClick={e => { e.stopPropagation(); removeMark(); }}
+                  disabled={disabled}
+                  className="shrink-0 rounded-lg border border-neutral-300 px-2 py-1 text-xs font-medium text-neutral-500 transition hover:border-red-300 hover:text-red-500 disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          );
+        })}
+
+        {!hasOptionalMark && (
+          <button
+            type="button"
+            onClick={addMark}
+            disabled={disabled}
+            className="w-full rounded-xl border border-dashed border-neutral-300 px-3 py-2.5 text-sm text-neutral-500 transition hover:border-neutral-400 hover:text-neutral-700 disabled:opacity-50"
+          >
+            + Add Mark
+          </button>
+        )}
       </div>
     </div>
   );
@@ -673,22 +694,22 @@ export default function DesignSettingsPanel({
                 />
               </button>
             </div>
-          </div>
-        )}
 
-
-        {activityType !== 'motion' && value.showRoutePoints && marks != null && coordinateCount != null && coordinateCount > 1 && (
-          <div className="rounded-[16px] border border-neutral-200 p-4">
-            <MarksSection
-              marks={marks}
-              onMarksChange={onMarksChange ?? (() => undefined)}
-              selectedMarkId={selectedMarkId ?? null}
-              onMarkSelect={onMarkSelect ?? (() => undefined)}
-              coordinateCount={coordinateCount}
-              elevations={elevations ?? null}
-              peakIndex={peakIndex ?? null}
-              disabled={isGeneratingSnapshot}
-            />
+            {value.showRoutePoints && marks != null && coordinateCount != null && coordinateCount > 1 && (
+              <>
+                <div className="mt-4 h-px bg-neutral-100" />
+                <MarksSection
+                  marks={marks}
+                  onMarksChange={onMarksChange ?? (() => undefined)}
+                  selectedMarkId={selectedMarkId ?? null}
+                  onMarkSelect={onMarkSelect ?? (() => undefined)}
+                  coordinateCount={coordinateCount}
+                  elevations={elevations ?? null}
+                  peakIndex={peakIndex ?? null}
+                  disabled={isGeneratingSnapshot}
+                />
+              </>
+            )}
           </div>
         )}
 

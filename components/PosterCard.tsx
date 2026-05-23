@@ -97,7 +97,7 @@ export default function PosterCard({
   duration,
   elevation,
   shirtColor,
-  fontStyle = 'natural',
+  fontStyle = 'script',
   routeColor,
   showMap,
   showRoutePoints,

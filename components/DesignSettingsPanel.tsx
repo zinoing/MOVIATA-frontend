@@ -12,12 +12,9 @@ type InstagramFetchStatus =
   | 'error'
   | 'not_found';
 
-export type FontStyle = 'sansSerif' | 'serif' | 'script';
-
 export type DesignEditorState = {
   instagramEnabled: boolean;
   shirtColor: ShirtColor;
-  fontStyle: FontStyle;
   title: string;
   date: string;
   location: string;
@@ -777,35 +774,6 @@ export default function DesignSettingsPanel({
             </div>
           </div>
         )}
-
-        <section className="rounded-2xl border border-neutral-200 p-4">
-          <FieldLabel>{t('fontStyle.title')}</FieldLabel>
-
-          <div className="grid grid-cols-3 gap-3">
-            {([
-              { value: 'sansSerif', label: t('fontStyle.sansSerif') },
-              { value: 'serif', label: t('fontStyle.serif') },
-              { value: 'script', label: t('fontStyle.script') },
-            ] as const).map(({ value: fs, label }) => {
-              const selected = value.fontStyle === fs;
-              return (
-                <button
-                  key={fs}
-                  type="button"
-                  onClick={() => updateField(value, onChange, 'fontStyle', fs)}
-                  disabled={isGeneratingSnapshot}
-                  className={`rounded-xl border px-3 py-3 text-center transition ${
-                    selected
-                      ? 'border-neutral-900 bg-neutral-900 text-white'
-                      : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500'
-                  } disabled:cursor-not-allowed disabled:opacity-50`}
-                >
-                  <p className="text-sm font-semibold">{label}</p>
-                </button>
-              );
-            })}
-          </div>
-        </section>
 
         <section className="rounded-2xl border border-neutral-200 p-4">
           <div className="space-y-4">

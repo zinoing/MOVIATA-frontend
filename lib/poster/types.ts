@@ -61,8 +61,6 @@ export type FixedMapViewState = {
   height: number;
 };
 
-export type FontStyle = 'sansSerif' | 'serif' | 'script';
-
 export type DesignConfig = {
   activityId: string;
 
@@ -82,7 +80,6 @@ export type DesignConfig = {
   duration: string;
 
   shirtColor: 'white' | 'black';
-  fontStyle: FontStyle;
 
   instagramEnabled: boolean;
   myInstagramId: string;

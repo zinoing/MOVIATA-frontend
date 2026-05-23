@@ -12,16 +12,16 @@ const FC = {
     compact: 'text-[1.68rem] font-bold leading-[1.1] tracking-[0.01em] uppercase',
     full: 'text-[3rem] font-bold leading-[1.0] tracking-[0.01em] uppercase',
   },
-  meta: 'text-[19px] tracking-[0.12em]',
+  meta: 'text-[19px] font-bold tracking-[0.12em]',
   statValue: {
-    compact: 'mt-1 text-[19px] tracking-[-0.01em]',
-    full: 'mt-1.5 text-[1.8rem] leading-none tracking-[-0.01em]',
+    compact: 'mt-1 text-[19px] font-bold tracking-[-0.01em]',
+    full: 'mt-1.5 text-[1.8rem] font-bold leading-none tracking-[-0.01em]',
   },
   statLabel: {
-    compact: 'mt-0.5 text-[11px] uppercase tracking-[0.22em]',
-    full: 'mt-1 text-[12px] uppercase tracking-[0.24em]',
+    compact: 'mt-0.5 text-[11px] font-bold uppercase tracking-[0.22em]',
+    full: 'mt-1 text-[12px] font-bold uppercase tracking-[0.24em]',
   },
-  moviata: { fontFamily: '"Belmonte Ballpoint Print", sans-serif', fontWeight: 400 as const },
+  moviata: { fontFamily: '"Belmonte Ballpoint Print", sans-serif', fontWeight: 700 as const },
 };
 
 type Props = {

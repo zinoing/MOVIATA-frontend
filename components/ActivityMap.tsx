@@ -202,8 +202,8 @@ function setupMapLayers(
     layout: { visibility: showRoutePoints ? 'visible' : 'none' },
     paint: {
       'circle-radius': 6.5,
-      'circle-color': routeMainColor,
-      'circle-stroke-color': '#EDE8DC',
+      'circle-color': isDark ? routeMainColor : '#EDE8DC',
+      'circle-stroke-color': isDark ? '#EDE8DC' : routeMainColor,
       'circle-stroke-width': 2.2,
       'circle-opacity': 1,
     },

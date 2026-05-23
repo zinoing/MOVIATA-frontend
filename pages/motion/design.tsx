@@ -87,7 +87,7 @@ async function captureMotionCard(el: HTMLElement, compositeDataUrl: string | nul
 const DEFAULT_EDITOR: DesignEditorState = {
   instagramEnabled: false,
   shirtColor: 'white',
-  routeColor: 'red',
+  routeColor: 'orange',
   showMap: false,
   showRoutePoints: false,
   showContours: false,
@@ -353,7 +353,7 @@ export default function MotionDesignPage() {
                   elevation={editor.elevation}
                   duration={editor.time}
                   shirtColor={editor.shirtColor}
-                  routeColor="red"
+                  routeColor="orange"
                   showMap={false}
                   showRoutePoints={false}
                   showContours={false}

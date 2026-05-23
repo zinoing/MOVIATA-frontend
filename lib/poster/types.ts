@@ -68,7 +68,7 @@ export type DesignConfig = {
 
   mapStyle: 'default' | 'contours';
   showMap: boolean;
-  routeColor: 'red' | 'orange';
+  routeColor: 'orange';
   backgroundColor: 'white' | 'black';
   showRoutePoints: boolean;
 

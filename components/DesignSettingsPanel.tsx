@@ -23,7 +23,7 @@ export type DesignEditorState = {
   time: string;
   myInstagramId: string;
   selectedUsers: ProfileUser[];
-  routeColor: 'red' | 'orange';
+  routeColor: 'orange';
   showMap: boolean;
   showRoutePoints: boolean;
   showContours: boolean;
@@ -680,52 +680,6 @@ export default function DesignSettingsPanel({
           </div>
         )}
 
-        {activityType !== 'motion' && (
-          <div className="rounded-[16px] border border-neutral-200 p-4">
-            <p className="text-sm font-medium text-neutral-900">{t('routeColor.title')}</p>
-            <p className="mt-1 text-xs text-neutral-500">
-              {t('routeColor.description')}
-            </p>
-
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() =>
-                  onChange({
-                    ...value,
-                    routeColor: 'red',
-                  })
-                }
-                disabled={isGeneratingSnapshot}
-                className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
-                  value.routeColor === 'red'
-                    ? 'border-[#CF291D] bg-[#CF291D] text-white'
-                    : 'border-neutral-300 bg-white text-neutral-900'
-                } disabled:cursor-not-allowed disabled:opacity-50`}
-              >
-                {t('routeColor.red')}
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  onChange({
-                    ...value,
-                    routeColor: 'orange',
-                  })
-                }
-                disabled={isGeneratingSnapshot}
-                className={`rounded-2xl border px-4 py-3 text-sm font-medium transition ${
-                  value.routeColor === 'orange'
-                    ? 'border-[#F97316] bg-[#F97316] text-white'
-                    : 'border-neutral-300 bg-white text-neutral-900'
-                } disabled:cursor-not-allowed disabled:opacity-50`}
-              >
-                {t('routeColor.orange')}
-              </button>
-            </div>
-          </div>
-        )}
 
         <section className="rounded-2xl border border-neutral-200 p-4">
           <div className="space-y-4">

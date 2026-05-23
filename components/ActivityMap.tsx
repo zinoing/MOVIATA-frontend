@@ -24,7 +24,7 @@ function ensurePmtilesProtocol() {
   protocolRegistered = true;
 }
 
-export type RouteColor = 'red' | 'orange';
+export type RouteColor = 'orange';
 
 export type ActivityMapProps = {
   coordinates: [number, number][];
@@ -121,8 +121,8 @@ function getBounds(coordinates: [number, number][]): LngLatBoundsLike {
   ];
 }
 
-function getRouteColorValue(routeColor: RouteColor) {
-  return routeColor === 'orange' ? '#F97316' : '#CF291D';
+function getRouteColorValue(_routeColor: RouteColor) {
+  return '#F97316';
 }
 
 function buildEndPinImage(color: string): { img: HTMLImageElement; dpr: number } {
@@ -363,7 +363,7 @@ export default function ActivityMap({
   coordinates,
   className,
   shirtColor = 'white',
-  routeColor = 'red',
+  routeColor = 'orange',
   showMap = true,
   showRoutePoints = false,
   showContours = false,

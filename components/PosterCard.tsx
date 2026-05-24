@@ -151,21 +151,23 @@ export default function PosterCard({
   return (
     <div className={wrapperClass}>
       {/* Camera-focus corner brackets */}
-      {[
-        { top: bracketOffset, left: bracketOffset,   borderTop: `${bracketThickness}px solid ${bracketColor}`, borderLeft:   `${bracketThickness}px solid ${bracketColor}` },
-        { top: bracketOffset, right: bracketOffset,  borderTop: `${bracketThickness}px solid ${bracketColor}`, borderRight:  `${bracketThickness}px solid ${bracketColor}` },
-        { bottom: bracketOffset, left: bracketOffset,  borderBottom: `${bracketThickness}px solid ${bracketColor}`, borderLeft:   `${bracketThickness}px solid ${bracketColor}` },
-        { bottom: bracketOffset, right: bracketOffset, borderBottom: `${bracketThickness}px solid ${bracketColor}`, borderRight:  `${bracketThickness}px solid ${bracketColor}` },
-      ].map((s, i) => (
+      {(['tl', 'tr', 'bl', 'br'] as const).map((corner) => (
         <div
-          key={i}
+          key={corner}
           style={{
             position: 'absolute',
             width: bracketSize,
             height: bracketSize,
-            zIndex: 10,
-            pointerEvents: 'none',
-            ...s,
+            top: corner.startsWith('t') ? bracketOffset : undefined,
+            bottom: corner.startsWith('b') ? bracketOffset : undefined,
+            left: corner.endsWith('l') ? bracketOffset : undefined,
+            right: corner.endsWith('r') ? bracketOffset : undefined,
+            borderColor: bracketColor,
+            borderStyle: 'solid',
+            borderTopWidth: corner.startsWith('t') ? bracketThickness : 0,
+            borderBottomWidth: corner.startsWith('b') ? bracketThickness : 0,
+            borderLeftWidth: corner.endsWith('l') ? bracketThickness : 0,
+            borderRightWidth: corner.endsWith('r') ? bracketThickness : 0,
           }}
         />
       ))}

@@ -1,10 +1,100 @@
 import { useMemo } from 'react';
+import type { ReactNode } from 'react';
 import ActivityMap, { type RouteColor } from './ActivityMap';
 import ProfileGroup from './ProfileGroup';
 import type { ProfileUser } from '../types/profile';
 import { createProfileUser, dedupeProfileUsers } from '../lib/profileUsers';
 import type { FixedMapViewState } from '../lib/poster/types';
 import type { Mark } from '../types/mark';
+
+function coordTicks(min: number, max: number, n: number): number[] {
+  return Array.from({ length: n }, (_, i) => min + (i / (n - 1)) * (max - min));
+}
+
+function MapFrame({
+  coordinates,
+  compact,
+  isDark,
+  children,
+}: {
+  coordinates: [number, number][];
+  compact: boolean;
+  isDark: boolean;
+  children: ReactNode;
+}) {
+  const bounds = useMemo(() => {
+    if (coordinates.length < 2) return null;
+    let w = coordinates[0][0], e = coordinates[0][0];
+    let s = coordinates[0][1], n = coordinates[0][1];
+    for (const [lng, lat] of coordinates) {
+      w = Math.min(w, lng); e = Math.max(e, lng);
+      s = Math.min(s, lat); n = Math.max(n, lat);
+    }
+    return { w, e, s, n };
+  }, [coordinates]);
+
+  if (!bounds) return <>{children}</>;
+
+  const latTicks = coordTicks(bounds.s, bounds.n, 4);
+  const lngTicks = coordTicks(bounds.w, bounds.e, 4);
+
+  const borderColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.22)';
+  const textColor = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.32)';
+  const fs = compact ? 6.5 : 7.5;
+  const labelW = compact ? 30 : 36;
+  const bottomH = compact ? 13 : 16;
+  const sans = '"Inter", system-ui, sans-serif';
+
+  return (
+    <div style={{ position: 'relative', paddingLeft: labelW, paddingBottom: bottomH }}>
+      {/* Latitude labels: left side, bottom→top */}
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: bottomH, width: labelW - 3 }}>
+        {latTicks.map((lat, i) => (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              bottom: `${(i / (latTicks.length - 1)) * 100}%`,
+              right: 3,
+              transform: 'translateY(50%)',
+              fontSize: fs,
+              fontFamily: sans,
+              fontWeight: 500,
+              color: textColor,
+              lineHeight: 1,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {lat.toFixed(2)}°
+          </div>
+        ))}
+      </div>
+
+      {/* Map with border */}
+      <div style={{ border: `1px solid ${borderColor}` }}>
+        {children}
+      </div>
+
+      {/* Longitude labels: bottom */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 3 }}>
+        {lngTicks.map((lng, i) => (
+          <span
+            key={i}
+            style={{
+              fontSize: fs,
+              fontFamily: sans,
+              fontWeight: 500,
+              color: textColor,
+              lineHeight: 1,
+            }}
+          >
+            {lng.toFixed(2)}°
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const FC = {
   wrapper: 'font-belmonte',
@@ -14,12 +104,12 @@ const FC = {
   },
   meta: 'text-[19px] font-bold tracking-[0.12em]',
   statValue: {
-    compact: 'mt-1 text-[19px] font-bold tracking-[-0.01em]',
-    full: 'mt-1.5 text-[1.8rem] font-bold leading-none tracking-[-0.01em]',
+    compact: 'mt-1 text-[15px] font-bold tracking-[-0.02em]',
+    full: 'mt-1.5 text-[1.45rem] font-bold leading-none tracking-[-0.03em]',
   },
   statLabel: {
-    compact: 'mt-0.5 text-[11px] font-bold uppercase tracking-[0.22em]',
-    full: 'mt-1 text-[12px] font-bold uppercase tracking-[0.24em]',
+    compact: 'mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em]',
+      full: 'mt-1 text-[10px] font-medium uppercase tracking-[0.24em]',
   },
   moviata: { fontFamily: '"Belmonte Ballpoint Print", sans-serif', fontWeight: 700 as const },
 };
@@ -207,21 +297,25 @@ export default function PosterCard({
 
       <div className={compact ? 'mt-3 flex justify-center' : 'mt-5 flex justify-center'}>
         <div className={compact ? 'w-full max-w-[312px]' : 'w-full max-w-[380px]'}>
-          {mapSlot ?? (coordinates.length > 1 ? (
-            <ActivityMap
-              coordinates={coordinates}
-              shirtColor={shirtColor}
-              routeColor={routeColor}
-              showMap={showMap}
-              showRoutePoints={showRoutePoints}
-              showContours={showContours}
-              onViewStateChange={onMapViewStateChange}
-              onMapCanvas={onMapCanvas}
-              initialViewState={initialMapViewState}
-              marks={marks}
-              className="w-full max-w-full"
-            />
-          ) : (
+          {coordinates.length > 1 ? (
+            <MapFrame coordinates={coordinates} compact={compact} isDark={isDark}>
+              {mapSlot ?? (
+                <ActivityMap
+                  coordinates={coordinates}
+                  shirtColor={shirtColor}
+                  routeColor={routeColor}
+                  showMap={showMap}
+                  showRoutePoints={showRoutePoints}
+                  showContours={showContours}
+                  onViewStateChange={onMapViewStateChange}
+                  onMapCanvas={onMapCanvas}
+                  initialViewState={initialMapViewState}
+                  marks={marks}
+                  className="w-full max-w-full"
+                />
+              )}
+            </MapFrame>
+          ) : (mapSlot ?? (
             <div
               className={`flex aspect-[3/4] items-center justify-center rounded-[18px] border ${
                 isDark

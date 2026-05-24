@@ -121,6 +121,7 @@ export async function capturePosterCard(
   const savedTop = captureTarget.style.top;
   const savedZIndex = captureTarget.style.zIndex;
   const savedWidth = captureTarget.style.width;
+  const savedMaxWidth = captureTarget.style.maxWidth;
 
   captureTarget.style.backgroundColor = 'transparent';
   captureTarget.style.boxShadow = 'none';
@@ -128,6 +129,10 @@ export async function capturePosterCard(
   captureTarget.style.left = '0';
   captureTarget.style.top = '0';
   captureTarget.style.width = `${cardW}px`;
+  // On mobile, max-w-full resolves to viewport width (~390px) for fixed elements,
+  // overriding the explicit width and clipping content on the right. Remove the
+  // constraint so html-to-image captures the full 428px poster width.
+  captureTarget.style.maxWidth = 'none';
   captureTarget.style.zIndex = '-1';
 
   // Step 3: replace \n in h1 with block spans for consistent line breaks
@@ -217,6 +222,7 @@ export async function capturePosterCard(
     captureTarget.style.top = savedTop;
     captureTarget.style.zIndex = savedZIndex;
     captureTarget.style.width = savedWidth;
+    captureTarget.style.maxWidth = savedMaxWidth;
 
     // Restore map
     if (mapContainer) mapContainer.style.display = savedMapDisplay;

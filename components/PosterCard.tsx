@@ -49,6 +49,8 @@ function MapFrame({
   const bottomH = compact ? 13 : 16;
   const sans = '"Inter", system-ui, sans-serif';
 
+  const tickLen = compact ? 3 : 4;
+
   return (
     <div style={{
       position: 'relative',
@@ -57,24 +59,25 @@ function MapFrame({
       transform: `translateX(-${labelW / 2}px)`,
     }}>
       {/* Latitude labels: left side, bottom→top */}
-      <div style={{ position: 'absolute', left: 0, top: 0, bottom: bottomH, width: labelW - 3 }}>
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: bottomH, width: labelW }}>
         {latTicks.map((lat, i) => (
           <div
             key={i}
             style={{
               position: 'absolute',
               bottom: `${(i / (latTicks.length - 1)) * 100}%`,
-              right: 3,
+              right: 0,
               transform: 'translateY(50%)',
-              fontSize: fs,
-              fontFamily: sans,
-              fontWeight: 500,
-              color,
-              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
               whiteSpace: 'nowrap',
             }}
           >
-            {lat.toFixed(2)}°
+            <span style={{ fontSize: fs, fontFamily: sans, fontWeight: 500, color, lineHeight: 1 }}>
+              {lat.toFixed(2)}°
+            </span>
+            <div style={{ width: tickLen, height: 1, backgroundColor: color, flexShrink: 0 }} />
           </div>
         ))}
       </div>
@@ -85,20 +88,26 @@ function MapFrame({
       </div>
 
       {/* Longitude labels: bottom */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 3 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         {lngTicks.map((lng, i) => (
-          <span
+          <div
             key={i}
-            style={{
-              fontSize: fs,
-              fontFamily: sans,
-              fontWeight: 500,
-              color,
-              lineHeight: 1,
-            }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
           >
-            {lng.toFixed(2)}°
-          </span>
+            <div style={{ width: 1, height: tickLen, backgroundColor: color }} />
+            <span
+              style={{
+                fontSize: fs,
+                fontFamily: sans,
+                fontWeight: 500,
+                color,
+                lineHeight: 1,
+                marginTop: 2,
+              }}
+            >
+              {lng.toFixed(2)}°
+            </span>
+          </div>
         ))}
       </div>
     </div>

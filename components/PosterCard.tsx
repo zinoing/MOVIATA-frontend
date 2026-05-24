@@ -59,38 +59,37 @@ function MapFrame({
       paddingBottom: bottomH,
       transform: `translateX(-${labelW / 2}px)`,
     }}>
-      {/* Latitude labels: left side, bottom→top */}
-      <div style={{ position: 'absolute', left: 0, top: vPad, bottom: bottomH + vPad, width: labelW }}>
-        {latTicks.map((lat, i) => {
-          const transform =
-            i === 0 ? 'translateY(0%)'
-            : i === latTicks.length - 1 ? 'translateY(100%)'
-            : 'translateY(50%)';
-          return (
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              bottom: `${(i / (latTicks.length - 1)) * 100}%`,
-              right: 0,
-              transform,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span style={{ fontSize: fs, fontFamily: sans, fontWeight: 500, color, lineHeight: 1 }}>
-              {lat.toFixed(2)}°
-            </span>
-            <div style={{ width: tickLen, height: 1, backgroundColor: color, flexShrink: 0 }} />
-          </div>
-          );
-        })}
-      </div>
-
-      {/* Map with border */}
-      <div style={{ border: `1px solid ${color}` }}>
+      {/* Map with border — latitude labels positioned relative to this div */}
+      <div style={{ position: 'relative', border: `1px solid ${color}` }}>
+        {/* Latitude labels: anchored to map border div so top/bottom are exact */}
+        <div style={{ position: 'absolute', right: '100%', top: vPad, bottom: vPad, width: labelW }}>
+          {latTicks.map((lat, i) => {
+            const transform =
+              i === 0 ? 'translateY(0%)'
+              : i === latTicks.length - 1 ? 'translateY(100%)'
+              : 'translateY(50%)';
+            return (
+              <div
+                key={i}
+                style={{
+                  position: 'absolute',
+                  bottom: `${(i / (latTicks.length - 1)) * 100}%`,
+                  right: 0,
+                  transform,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span style={{ fontSize: fs, fontFamily: sans, fontWeight: 500, color, lineHeight: 1 }}>
+                  {lat.toFixed(2)}°
+                </span>
+                <div style={{ width: tickLen, height: 1, backgroundColor: color, flexShrink: 0 }} />
+              </div>
+            );
+          })}
+        </div>
         {children}
       </div>
 

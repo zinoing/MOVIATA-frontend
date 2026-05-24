@@ -50,6 +50,7 @@ function MapFrame({
   const sans = '"Inter", system-ui, sans-serif';
 
   const tickLen = compact ? 3 : 4;
+  const vPad = compact ? 8 : 10;
 
   return (
     <div style={{
@@ -59,15 +60,20 @@ function MapFrame({
       transform: `translateX(-${labelW / 2}px)`,
     }}>
       {/* Latitude labels: left side, bottom→top */}
-      <div style={{ position: 'absolute', left: 0, top: 0, bottom: bottomH, width: labelW }}>
-        {latTicks.map((lat, i) => (
+      <div style={{ position: 'absolute', left: 0, top: vPad, bottom: bottomH + vPad, width: labelW }}>
+        {latTicks.map((lat, i) => {
+          const transform =
+            i === 0 ? 'translateY(0%)'
+            : i === latTicks.length - 1 ? 'translateY(100%)'
+            : 'translateY(50%)';
+          return (
           <div
             key={i}
             style={{
               position: 'absolute',
               bottom: `${(i / (latTicks.length - 1)) * 100}%`,
               right: 0,
-              transform: 'translateY(50%)',
+              transform,
               display: 'flex',
               alignItems: 'center',
               gap: 2,
@@ -79,7 +85,8 @@ function MapFrame({
             </span>
             <div style={{ width: tickLen, height: 1, backgroundColor: color, flexShrink: 0 }} />
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Map with border */}

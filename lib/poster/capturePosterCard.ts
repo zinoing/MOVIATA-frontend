@@ -70,6 +70,51 @@ async function inlineImages(el: HTMLElement): Promise<Map<HTMLImageElement, stri
 
 import { POSTER_W, POSTER_H } from './dimensions';
 
+// Fetches the poster's custom fonts and returns @font-face CSS with base64
+// data URLs. This bypasses html-to-image's own font-fetching which silently
+// fails on first page load when the font file is not yet in the HTTP cache,
+// causing the SVG foreignObject to fall back to a wider system font and
+// truncate text that fits only with the custom font.
+async function buildEmbeddedFontCSS(): Promise<string> {
+  const fontDefs = [
+    {
+      family: 'Belmonte Ballpoint Print',
+      weight: '400',
+      style: 'normal',
+      url: '/fonts/Belmonte_Ballpoint/Webfonts/Woff2/Belmonte-Ballpoint-Print.woff2',
+      format: 'woff2',
+    },
+    {
+      family: 'Inter',
+      weight: '100 900',
+      style: 'normal',
+      url: '/fonts/Inter/Inter-VariableFont_opsz,wght.ttf',
+      format: 'truetype',
+    },
+  ];
+
+  const rules = await Promise.all(
+    fontDefs.map(async ({ family, weight, style, url, format }) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return '';
+        const blob = await res.blob();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        return `@font-face{font-family:'${family}';src:url('${dataUrl}')format('${format}');font-weight:${weight};font-style:${style};}`;
+      } catch {
+        return '';
+      }
+    }),
+  );
+
+  return rules.filter(Boolean).join('\n');
+}
+
 export async function capturePosterCard(
   el: HTMLElement,
   mapDataUrl: string | null,
@@ -143,8 +188,13 @@ export async function capturePosterCard(
     h1.style.whiteSpace = 'normal';
   }
 
-  await document.fonts.load('500 15px "EB Garamond"').catch(() => {});
-  await document.fonts.load('400 16px "Belmonte Ballpoint Print"').catch(() => {});
+  // Build embedded font CSS and trigger browser font loads in parallel so
+  // html-to-image always has the fonts available in the SVG context.
+  const [fontEmbedCSS] = await Promise.all([
+    buildEmbeddedFontCSS(),
+    document.fonts.load('500 15px "EB Garamond"').catch(() => {}),
+    document.fonts.load('400 16px "Belmonte Ballpoint Print"').catch(() => {}),
+  ]);
   await document.fonts.ready;
 
   // Step 4: pre-fetch all avatar <img> srcs and replace with base64 data URLs.
@@ -162,6 +212,7 @@ export async function capturePosterCard(
       width: cardW,
       height: cardH,
       cacheBust: false,
+      fontEmbedCSS,
     });
 
     // Build output canvas

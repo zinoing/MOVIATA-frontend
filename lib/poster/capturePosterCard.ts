@@ -76,6 +76,10 @@ import { POSTER_W, POSTER_H } from './dimensions';
 // causing the SVG foreignObject to fall back to a wider system font and
 // truncate text that fits only with the custom font.
 async function buildEmbeddedFontCSS(): Promise<string> {
+  // Only embed Belmonte Ballpoint Print — the font that causes visible
+  // truncation when missing. Inter is a large variable TTF (~400 KB base64)
+  // that bloats the SVG enough to make html-to-image produce a blank layer;
+  // coordinate labels fall back to system sans-serif which is acceptable.
   const fontDefs = [
     {
       family: 'Belmonte Ballpoint Print',
@@ -83,13 +87,6 @@ async function buildEmbeddedFontCSS(): Promise<string> {
       style: 'normal',
       url: '/fonts/Belmonte_Ballpoint/Webfonts/Woff2/Belmonte-Ballpoint-Print.woff2',
       format: 'woff2',
-    },
-    {
-      family: 'Inter',
-      weight: '100 900',
-      style: 'normal',
-      url: '/fonts/Inter/Inter-VariableFont_opsz,wght.ttf',
-      format: 'truetype',
     },
   ];
 

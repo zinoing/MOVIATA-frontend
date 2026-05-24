@@ -143,34 +143,8 @@ export default function PosterCard({
     ? 'mx-auto w-full max-w-[312px]'
     : 'mx-auto w-full max-w-[380px]';
 
-  const bracketSize = compact ? 18 : 26;
-  const bracketThickness = compact ? 2 : 2.5;
-  const bracketOffset = compact ? 10 : 14;
-  const bracketColor = '#FF5A1F';
-
   return (
     <div className={wrapperClass}>
-      {/* Camera-focus corner brackets */}
-      {(['tl', 'tr', 'bl', 'br'] as const).map((corner) => (
-        <div
-          key={corner}
-          style={{
-            position: 'absolute',
-            width: bracketSize,
-            height: bracketSize,
-            top: corner.startsWith('t') ? bracketOffset : undefined,
-            bottom: corner.startsWith('b') ? bracketOffset : undefined,
-            left: corner.endsWith('l') ? bracketOffset : undefined,
-            right: corner.endsWith('r') ? bracketOffset : undefined,
-            borderColor: bracketColor,
-            borderStyle: 'solid',
-            borderTopWidth: corner.startsWith('t') ? bracketThickness : 0,
-            borderBottomWidth: corner.startsWith('b') ? bracketThickness : 0,
-            borderLeftWidth: corner.endsWith('l') ? bracketThickness : 0,
-            borderRightWidth: corner.endsWith('r') ? bracketThickness : 0,
-          }}
-        />
-      ))}
       {/* FIX: always use a fixed height regardless of instagramEnabled so
           html2canvas has a stable containing-block height to measure against.
           Without this, overflow:visible caused the ProfileGroup's rendered

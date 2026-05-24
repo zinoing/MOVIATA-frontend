@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import ActivityMap, { type RouteColor } from './ActivityMap';
 import ProfileGroup from './ProfileGroup';
@@ -11,18 +11,22 @@ function coordTicks(min: number, max: number, n: number): number[] {
   return Array.from({ length: n }, (_, i) => min + (i / (n - 1)) * (max - min));
 }
 
+type Bounds = { w: number; e: number; s: number; n: number };
+
 function MapFrame({
   coordinates,
   compact,
   isDark,
   children,
+  visibleBounds,
 }: {
   coordinates: [number, number][];
   compact: boolean;
   isDark: boolean;
   children: ReactNode;
+  visibleBounds: Bounds | null;
 }) {
-  const bounds = useMemo(() => {
+  const fallbackBounds = useMemo(() => {
     if (coordinates.length < 2) return null;
     let w = coordinates[0][0], e = coordinates[0][0];
     let s = coordinates[0][1], n = coordinates[0][1];
@@ -33,20 +37,25 @@ function MapFrame({
     return { w, e, s, n };
   }, [coordinates]);
 
+  const bounds = visibleBounds ?? fallbackBounds;
   if (!bounds) return <>{children}</>;
 
   const latTicks = coordTicks(bounds.s, bounds.n, 4);
   const lngTicks = coordTicks(bounds.w, bounds.e, 4);
 
-  const borderColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.22)';
-  const textColor = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.32)';
+  const color = isDark ? '#EDE8DC' : '#1A1A1A';
   const fs = compact ? 6.5 : 7.5;
   const labelW = compact ? 30 : 36;
   const bottomH = compact ? 13 : 16;
   const sans = '"Inter", system-ui, sans-serif';
 
   return (
-    <div style={{ position: 'relative', paddingLeft: labelW, paddingBottom: bottomH }}>
+    <div style={{
+      position: 'relative',
+      paddingLeft: labelW,
+      paddingBottom: bottomH,
+      transform: `translateX(-${labelW / 2}px)`,
+    }}>
       {/* Latitude labels: left side, bottom→top */}
       <div style={{ position: 'absolute', left: 0, top: 0, bottom: bottomH, width: labelW - 3 }}>
         {latTicks.map((lat, i) => (
@@ -60,7 +69,7 @@ function MapFrame({
               fontSize: fs,
               fontFamily: sans,
               fontWeight: 500,
-              color: textColor,
+              color,
               lineHeight: 1,
               whiteSpace: 'nowrap',
             }}
@@ -71,7 +80,7 @@ function MapFrame({
       </div>
 
       {/* Map with border */}
-      <div style={{ border: `1px solid ${borderColor}` }}>
+      <div style={{ border: `1px solid ${color}` }}>
         {children}
       </div>
 
@@ -84,7 +93,7 @@ function MapFrame({
               fontSize: fs,
               fontFamily: sans,
               fontWeight: 500,
-              color: textColor,
+              color,
               lineHeight: 1,
             }}
           >
@@ -104,12 +113,12 @@ const FC = {
   },
   meta: 'text-[19px] font-bold tracking-[0.12em]',
   statValue: {
-    compact: 'mt-1 text-[15px] font-bold tracking-[-0.02em]',
-    full: 'mt-1.5 text-[1.45rem] font-bold leading-none tracking-[-0.03em]',
+    compact: 'mt-1 text-[19px] font-bold tracking-[-0.01em] font-inter',
+    full: 'mt-1.5 text-[1.8rem] font-bold leading-none tracking-[-0.01em] font-inter',
   },
   statLabel: {
-    compact: 'mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em]',
-      full: 'mt-1 text-[10px] font-medium uppercase tracking-[0.24em]',
+    compact: 'mt-0.5 text-[11px] font-bold uppercase tracking-[0.22em] font-inter',
+    full: 'mt-1 text-[12px] font-bold uppercase tracking-[0.24em] font-inter',
   },
   moviata: { fontFamily: '"Belmonte Ballpoint Print", sans-serif', fontWeight: 700 as const },
 };
@@ -168,6 +177,13 @@ export default function PosterCard({
   const isDark = shirtColor === 'black';
   const hasLocation = Boolean(location?.trim());
   const hasDate = Boolean(date?.trim());
+
+  const [visibleBounds, setVisibleBounds] = useState<Bounds | null>(null);
+  const handleMapViewStateChange = useCallback((viewState: FixedMapViewState) => {
+    const { bounds } = viewState;
+    setVisibleBounds({ w: bounds.west, e: bounds.east, s: bounds.south, n: bounds.north });
+    onMapViewStateChange?.(viewState);
+  }, [onMapViewStateChange]);
   const distanceValue = distance?.replace(/\s*[a-zA-Z]+$/, '') || '-';
 
   function formatWithCommas(value?: string) {
@@ -298,7 +314,7 @@ export default function PosterCard({
       <div className={compact ? 'mt-3 flex justify-center' : 'mt-5 flex justify-center'}>
         <div className={compact ? 'w-full max-w-[312px]' : 'w-full max-w-[380px]'}>
           {coordinates.length > 1 ? (
-            <MapFrame coordinates={coordinates} compact={compact} isDark={isDark}>
+            <MapFrame coordinates={coordinates} compact={compact} isDark={isDark} visibleBounds={visibleBounds}>
               {mapSlot ?? (
                 <ActivityMap
                   coordinates={coordinates}
@@ -307,7 +323,7 @@ export default function PosterCard({
                   showMap={showMap}
                   showRoutePoints={showRoutePoints}
                   showContours={showContours}
-                  onViewStateChange={onMapViewStateChange}
+                  onViewStateChange={handleMapViewStateChange}
                   onMapCanvas={onMapCanvas}
                   initialViewState={initialMapViewState}
                   marks={marks}

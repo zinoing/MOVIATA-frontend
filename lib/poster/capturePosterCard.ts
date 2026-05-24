@@ -203,6 +203,18 @@ export async function capturePosterCard(
   await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
   try {
+    // Warm-up call: populates html-to-image's internal resource cache with
+    // font files. If fontEmbedCSS fetch succeeded, this is a no-op safety net.
+    // If fontEmbedCSS is empty (fetch failed), this call fetches the @font-face
+    // files and caches them so the real capture below always finds them.
+    await toPng(captureTarget, {
+      width: cardW,
+      height: cardH,
+      pixelRatio: 1,
+      cacheBust: false,
+      fontEmbedCSS,
+    }).catch(() => {});
+
     // Layer 1: capture card UI with html-to-image at full pixel ratio
     const uiPng = await toPng(captureTarget, {
       pixelRatio: PIXEL_RATIO,

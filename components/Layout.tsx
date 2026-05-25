@@ -108,10 +108,14 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
           <div className="relative flex h-11 items-center justify-center px-6">
             <Link
               href="/"
-              className="text-sm font-black tracking-[-0.03em] text-neutral-950 transition-opacity duration-[180ms] hover:opacity-50"
-              style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
+              className="transition-opacity duration-[180ms] hover:opacity-50"
             >
-              MOVIATA
+              <img
+                src="/resources/logo/black_logo.png"
+                alt="MOVIATA"
+                draggable={false}
+                style={{ height: '20px', width: 'auto' }}
+              />
             </Link>
 
             {/* 데스크탑 전용: 언어 스위처 */}

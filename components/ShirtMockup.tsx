@@ -130,7 +130,7 @@ export default function ShirtMockup({
             className="block w-full select-none"
           />
           <img
-            src={color === 'black' ? '/resources/logo/cream_logo.png' : '/resources/logo/black_logo.png'}
+            src={color === 'black' ? '/resources/cream_logo.png' : '/resources/black_logo.png'}
             alt="MOVIATA"
             draggable={false}
             className="pointer-events-none absolute select-none"

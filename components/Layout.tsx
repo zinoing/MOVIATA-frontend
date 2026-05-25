@@ -111,7 +111,7 @@ export default function Layout({ title, children }: PropsWithChildren<LayoutProp
               className="transition-opacity duration-[180ms] hover:opacity-50"
             >
               <img
-                src="/resources/logo/black_logo.png"
+                src="/resources/black_logo.png"
                 alt="MOVIATA"
                 draggable={false}
                 style={{ height: '20px', width: 'auto' }}

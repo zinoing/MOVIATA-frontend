@@ -364,7 +364,7 @@ export default function PosterCard({
 
       <div className={compact ? 'mt-3 flex justify-center' : 'mt-6 flex justify-center'}>
         <img
-          src={isDark ? '/resources/logo/cream_logo.png' : '/resources/logo/black_logo.png'}
+          src={isDark ? '/resources/cream_logo.png' : '/resources/black_logo.png'}
           alt="MOVIATA"
           draggable={false}
           style={{ width: compact ? '60px' : '84px', height: 'auto', userSelect: 'none' }}

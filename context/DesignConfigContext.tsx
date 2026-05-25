@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { DesignConfig } from '../lib/poster/types';
 import type { DesignEditorState } from '../components/DesignSettingsPanel';
 import type { FixedMapViewState } from '../lib/poster/types';
+import type { Mark } from '../types/mark';
 
 const STORAGE_KEY = 'wtm-confirm-draft-v5';
 const EDITOR_STORAGE_KEY = 'wtm-editor-snapshot-v1';
@@ -19,6 +20,7 @@ type PersistedDraftState = {
 type EditorSnapshot = {
   editor: DesignEditorState;
   fixedMapViewState: FixedMapViewState | null;
+  marks?: Mark[];
 };
 
 type SaveDraftInput = {
@@ -26,6 +28,7 @@ type SaveDraftInput = {
   posterSnapshot?: string | null;
   editorSnapshot?: DesignEditorState | null;
   fixedMapViewState?: FixedMapViewState | null;
+  marks?: Mark[];
 };
 
 type DesignConfigContextValue = {
@@ -83,6 +86,7 @@ export function DesignConfigProvider({ children }: { children: React.ReactNode }
         const snapshot: EditorSnapshot = {
           editor: input.editorSnapshot,
           fixedMapViewState: input.fixedMapViewState ?? null,
+          marks: input.marks,
         };
         sessionStorage.setItem(EDITOR_STORAGE_KEY, JSON.stringify(snapshot));
       }

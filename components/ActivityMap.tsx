@@ -554,6 +554,11 @@ export default function ActivityMap({
     const map = mapRef.current;
     if (!map || !map.isStyleLoaded()) return;
     (map.getSource('marks-source') as GeoJSONSource | undefined)?.setData(marksFeatures);
+    // marks 변경 후 canvas 스냅샷 갱신 — 변경 전 스냅샷이 Confirm 페이지에 전달되는 것을 방지
+    map.once('idle', () => {
+      if (mapRef.current !== map) return;
+      onMapCanvasRef.current?.(map.getCanvas());
+    });
   }, [marksFeatures]);
 
   return (

@@ -152,6 +152,9 @@ export default function DesignWorkspacePage() {
           if (snapshot?.fixedMapViewState) {
             setFixedMapViewState(snapshot.fixedMapViewState);
           }
+          if (snapshot?.marks) {
+            setMarks(snapshot.marks);
+          }
           setActivityFetchState('success');
         }
       } catch (err) {
@@ -464,6 +467,7 @@ export default function DesignWorkspacePage() {
         posterSnapshot: snapshot,
         editorSnapshot: editor,
         fixedMapViewState,
+        marks,
       });
       await router.push('/confirm');
     } catch (e) {

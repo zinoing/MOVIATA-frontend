@@ -132,8 +132,8 @@ export default function ShirtMockup({
           <span
             className="pointer-events-none absolute select-none"
             style={{
-              top: '28%',
-              right: '29%',
+              top: '25%',
+              right: '32%',
               fontFamily: '"Belmonte Ballpoint Print", sans-serif',
               fontWeight: 400,
               fontSize: '3cqi',

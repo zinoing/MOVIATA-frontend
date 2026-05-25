@@ -129,21 +129,13 @@ export default function ShirtMockup({
             draggable={false}
             className="block w-full select-none"
           />
-          <span
+          <img
+            src={color === 'black' ? '/resources/logo/cream_logo.png' : '/resources/logo/black_logo.png'}
+            alt="MOVIATA"
+            draggable={false}
             className="pointer-events-none absolute select-none"
-            style={{
-              top: '25%',
-              right: '32%',
-              fontFamily: '"Belmonte Ballpoint Print", sans-serif',
-              fontWeight: 400,
-              fontSize: '3cqi',
-              letterSpacing: '-0.03em',
-              color: color === 'black' ? '#EDE8DC' : '#1A1A1A',
-              userSelect: 'none',
-            }}
-          >
-            MOVIATA
-          </span>
+            style={{ top: '25%', right: '32%', width: '10cqi', height: 'auto' }}
+          />
         </div>
         <p className="text-center text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">
           Front

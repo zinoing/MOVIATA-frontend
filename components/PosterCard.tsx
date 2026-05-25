@@ -363,17 +363,12 @@ export default function PosterCard({
       </div>
 
       <div className={compact ? 'mt-3 flex justify-center' : 'mt-6 flex justify-center'}>
-        <span
-          style={{
-            ...fc.moviata,
-            fontSize: compact ? '20px' : '28px',
-            letterSpacing: '-0.03em',
-            color: isDark ? '#EDE8DC' : '#1A1A1A',
-            userSelect: 'none',
-          }}
-        >
-          MOVIATA
-        </span>
+        <img
+          src={isDark ? '/resources/logo/cream_logo.png' : '/resources/logo/black_logo.png'}
+          alt="MOVIATA"
+          draggable={false}
+          style={{ width: compact ? '60px' : '84px', height: 'auto', userSelect: 'none' }}
+        />
       </div>
 
       <div className={compact ? 'mt-2' : 'mt-3'}>

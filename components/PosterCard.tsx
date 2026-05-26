@@ -47,7 +47,7 @@ function MapFrame({
   const fs = compact ? 6.5 : 7.5;
   const labelW = compact ? 30 : 36;
   const bottomH = compact ? 13 : 16;
-  const sans = '"Inter", system-ui, sans-serif';
+  const sans = '"Belmonte Ballpoint Print", sans-serif';
 
   const tickLen = compact ? 3 : 4;
   const vPad = compact ? 8 : 10;
@@ -132,8 +132,8 @@ const FC = {
     full: 'mt-1.5 text-[25px] font-bold leading-none tracking-[-0.03em]',
   },
   statLabel: {
-    compact: 'mt-0.5 text-[10px] font-medium uppercase tracking-[0.22em]',
-    full: 'mt-1 text-[11px] font-medium uppercase tracking-[0.24em]',
+    compact: 'mt-0.5 text-[10px] font-medium uppercase tracking-[0.08em]',
+    full: 'mt-1 text-[11px] font-medium uppercase tracking-[0.10em]',
   },
   moviata: { fontFamily: '"Belmonte Ballpoint Print", sans-serif', fontWeight: 700 as const },
 };

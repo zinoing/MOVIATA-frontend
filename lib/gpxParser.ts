@@ -49,8 +49,10 @@ export function parseGpx(xmlString: string): GpxData {
 
   const coordinates: [number, number][] = [];
   let distanceMeters = 0;
+  let elevationGainMeters = 0;
   let firstTime: string | null = null;
   let lastTime: string | null = null;
+  let prevEle: number | null = null;
 
   for (const pt of trkpts) {
     const lat = parseFloat(pt.getAttribute('lat') ?? '');
@@ -61,6 +63,15 @@ export function parseGpx(xmlString: string): GpxData {
     if (time) {
       if (!firstTime) firstTime = time;
       lastTime = time;
+    }
+
+    const eleText = pt.querySelector('ele')?.textContent?.trim();
+    const ele = eleText ? parseFloat(eleText) : null;
+    if (ele !== null && Number.isFinite(ele)) {
+      if (prevEle !== null && ele > prevEle) {
+        elevationGainMeters += ele - prevEle;
+      }
+      prevEle = ele;
     }
 
     if (coordinates.length > 0) {
@@ -81,5 +92,5 @@ export function parseGpx(xmlString: string): GpxData {
         )
       : 0;
 
-  return { name, date, coordinates, distanceMeters, movingTimeSeconds };
+  return { name, date, coordinates, distanceMeters, movingTimeSeconds, elevationGainMeters };
 }

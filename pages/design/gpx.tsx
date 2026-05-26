@@ -29,7 +29,7 @@ function buildEditorFromGpx(gpx: GpxData): DesignEditorState {
     date: gpx.date,
     location: '',
     distance: formatDistanceKm(gpx.distanceMeters),
-    elevation: '',
+    elevation: gpx.elevationGainMeters > 0 ? `${Math.round(gpx.elevationGainMeters)}` : '',
     time: formatMinutes(gpx.movingTimeSeconds),
     myInstagramId: '',
     selectedUsers: [],

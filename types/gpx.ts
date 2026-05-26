@@ -4,4 +4,5 @@ export type GpxData = {
   coordinates: [number, number][];    // [lon, lat] pairs (MapLibre order)
   distanceMeters: number;
   movingTimeSeconds: number;
+  elevationGainMeters: number;
 };

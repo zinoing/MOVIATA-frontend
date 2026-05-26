@@ -44,7 +44,7 @@ function MapFrame({
   const lngTicks = coordTicks(bounds.w, bounds.e, 4);
 
   const color = isDark ? '#EDE8DC' : '#1A1A1A';
-  const fs = compact ? 6.5 : 7.5;
+  const fs = compact ? 8.5 : 9.75;
   const labelW = compact ? 30 : 36;
   const bottomH = compact ? 13 : 16;
   const sans = '"Belmonte Ballpoint Print", sans-serif';

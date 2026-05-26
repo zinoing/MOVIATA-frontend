@@ -129,11 +129,11 @@ const FC = {
   meta: 'text-[19px] font-bold tracking-[0.12em]',
   statValue: {
     compact: 'mt-1 text-[15px] font-bold tracking-[-0.02em]',
-    full: 'mt-1.5 text-[1.45rem] font-bold leading-none tracking-[-0.03em]',
+    full: 'mt-1.5 text-[25px] font-bold leading-none tracking-[-0.03em]',
   },
   statLabel: {
-    compact: 'mt-0.5 text-[9px] font-medium uppercase tracking-[0.22em]',
-    full: 'mt-1 text-[10px] font-medium uppercase tracking-[0.24em]',
+    compact: 'mt-0.5 text-[10px] font-medium uppercase tracking-[0.22em]',
+    full: 'mt-1 text-[11px] font-medium uppercase tracking-[0.24em]',
   },
   moviata: { fontFamily: '"Belmonte Ballpoint Print", sans-serif', fontWeight: 700 as const },
 };
@@ -362,7 +362,7 @@ export default function PosterCard({
         </div>
       </div>
 
-      <div className={compact ? 'mt-3 flex justify-center' : 'mt-6 flex justify-center'}>
+      <div className={compact ? 'mt-0 flex justify-center' : 'mt-1 flex justify-center'}>
         <img
           src={isDark ? '/resources/cream_logo.png' : '/resources/black_logo.png'}
           alt="MOVIATA"
@@ -371,7 +371,7 @@ export default function PosterCard({
         />
       </div>
 
-      <div className={compact ? 'mt-2' : 'mt-3'}>
+      <div className={compact ? 'mt-3' : 'mt-4'}>
         {(() => {
           const hasDistance = Boolean(distanceValue && distanceValue !== '-');
           const hasElevation = Boolean(elevation && elevation !== '-');

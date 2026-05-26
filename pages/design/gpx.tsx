@@ -13,6 +13,7 @@ import { useDesignConfig } from '../../context/DesignConfigContext';
 import { buildDesignConfig } from '../../lib/poster/buildDesignConfig';
 import { capturePosterCard } from '../../lib/poster/capturePosterCard';
 import type { FixedMapViewState } from '../../lib/poster/types';
+import { getPrimaryRoute, smoothRoute } from '../../lib/polyline';
 import type { GpxData } from '../../types/gpx';
 
 type LoadState = 'loading' | 'ready' | 'error' | 'not_found';
@@ -147,10 +148,10 @@ export default function GpxDesignPage() {
     });
   }, [editor?.instagramEnabled, instagram.state.fetchState]);
 
-  const coordinates = useMemo(
-    () => (gpxData ? gpxData.coordinates : []) as [number, number][],
-    [gpxData],
-  );
+  const coordinates = useMemo<[number, number][]>(() => {
+    if (!gpxData) return [];
+    return smoothRoute(getPrimaryRoute(gpxData.coordinates));
+  }, [gpxData]);
 
   const handleEditorChange = useCallback(
     (next: DesignEditorState) => {

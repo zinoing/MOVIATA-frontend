@@ -40,7 +40,7 @@ function buildEditorFromGpx(gpx: GpxData): DesignEditorState {
 export default function GpxDesignPage() {
   const router = useRouter();
   const instagram = useInstagramProfile();
-  const { saveDraft } = useDesignConfig();
+  const { saveDraft, consumeEditorSnapshot } = useDesignConfig();
   const t = useTranslations('design');
 
   const [loadState, setLoadState] = useState<LoadState>('loading');
@@ -67,7 +67,9 @@ export default function GpxDesignPage() {
         return;
       }
       setGpxData(data);
-      setEditor(buildEditorFromGpx(data));
+      const snapshot = consumeEditorSnapshot();
+      setEditor(snapshot?.editor ?? buildEditorFromGpx(data));
+      if (snapshot?.fixedMapViewState) setFixedMapViewState(snapshot.fixedMapViewState);
       setLoadState('ready');
     } catch {
       setLoadState('error');
@@ -193,7 +195,7 @@ export default function GpxDesignPage() {
       if (posterCard) {
         snapshot = await capturePosterCard(posterCard, mapSnapshotRef.current);
       }
-      saveDraft({ config, posterSnapshot: snapshot });
+      saveDraft({ config, posterSnapshot: snapshot, editorSnapshot: editor, fixedMapViewState });
       await router.push('/confirm');
     } catch (e) {
       console.error('[confirm] failed:', e);

@@ -137,10 +137,14 @@ export async function capturePosterCard(
   const cardRect = captureTarget.getBoundingClientRect();
   const mapRect = mapContainer?.getBoundingClientRect() ?? null;
 
-  const mapRelX = mapRect ? mapRect.x - cardRect.x : 0;
-  const mapRelY = mapRect ? mapRect.y - cardRect.y : 0;
-  const mapW = mapRect?.width ?? 0;
-  const mapH = mapRect?.height ?? 0;
+  // CSS zoom (mobile zoom-out) shrinks getBoundingClientRect values.
+  // Divide by the display scale to recover natural CSS pixel coordinates.
+  const displayScale = cardRect.width / POSTER_W;
+
+  const mapRelX = mapRect ? (mapRect.x - cardRect.x) / displayScale : 0;
+  const mapRelY = mapRect ? (mapRect.y - cardRect.y) / displayScale : 0;
+  const mapW = mapRect ? mapRect.width / displayScale : 0;
+  const mapH = mapRect ? mapRect.height / displayScale : 0;
   const cardW = POSTER_W;
   const cardH = POSTER_H;
 

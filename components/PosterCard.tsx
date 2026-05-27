@@ -49,7 +49,7 @@ function MapFrame({
   const bottomH = compact ? 13 : 16;
   const sans = '"Belmonte Ballpoint Print", sans-serif';
 
-  const tickLen = compact ? 3 : 4;
+  const tickLen = compact ? 6 : 8;
   const vPad = compact ? 8 : 10;
 
   return (
@@ -60,7 +60,7 @@ function MapFrame({
       transform: `translateX(-${labelW / 2}px)`,
     }}>
       {/* Map with border — latitude labels positioned relative to this div */}
-      <div style={{ position: 'relative', border: `1px solid ${color}` }}>
+      <div style={{ position: 'relative', border: `2px solid ${color}` }}>
         {/* Latitude labels: anchored to map border div so top/bottom are exact */}
         <div style={{ position: 'absolute', right: '100%', top: vPad, bottom: vPad, width: labelW }}>
           {latTicks.map((lat, i) => {
@@ -85,7 +85,7 @@ function MapFrame({
                 <span style={{ fontSize: fs, fontFamily: sans, fontWeight: 500, color, lineHeight: 1 }}>
                   {lat.toFixed(2)}°
                 </span>
-                <div style={{ width: tickLen, height: 1, backgroundColor: color, flexShrink: 0 }} />
+                <div style={{ width: tickLen, height: 2, backgroundColor: color, flexShrink: 0 }} />
               </div>
             );
           })}
@@ -100,7 +100,7 @@ function MapFrame({
             key={i}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
           >
-            <div style={{ width: 1, height: tickLen, backgroundColor: color }} />
+            <div style={{ width: 2, height: tickLen, backgroundColor: color }} />
             <span
               style={{
                 fontSize: fs,

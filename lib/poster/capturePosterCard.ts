@@ -141,6 +141,12 @@ export async function capturePosterCard(
   // Divide by the display scale to recover natural CSS pixel coordinates.
   const displayScale = cardRect.width / POSTER_W;
 
+  // On iOS Safari, CSS zoom is inherited by position:fixed children, so
+  // html-to-image renders the card at zoom*POSTER_W instead of POSTER_W.
+  // Compute the effective accumulated zoom so we can cancel it before capture.
+  const effectiveZoom =
+    captureTarget.offsetWidth > 0 ? cardRect.width / captureTarget.offsetWidth : 1;
+
   const mapRelX = mapRect ? (mapRect.x - cardRect.x) / displayScale : 0;
   const mapRelY = mapRect ? (mapRect.y - cardRect.y) / displayScale : 0;
   const mapW = mapRect ? mapRect.width / displayScale : 0;
@@ -167,6 +173,7 @@ export async function capturePosterCard(
   const savedTop = captureTarget.style.top;
   const savedZIndex = captureTarget.style.zIndex;
   const savedWidth = captureTarget.style.width;
+  const savedZoom = captureTarget.style.zoom;
 
   captureTarget.style.backgroundColor = 'transparent';
   captureTarget.style.boxShadow = 'none';
@@ -175,6 +182,9 @@ export async function capturePosterCard(
   captureTarget.style.top = '0';
   captureTarget.style.width = `${cardW}px`;
   captureTarget.style.zIndex = '-1';
+  // Cancel inherited CSS zoom so html-to-image renders at natural POSTER_W size.
+  // On iOS Safari zoom compounds multiplicatively, so we apply the inverse.
+  captureTarget.style.zoom = String(1 / effectiveZoom);
 
   // Step 3: replace \n in h1 with block spans for consistent line breaks
   const h1 = captureTarget.querySelector<HTMLElement>('h1');
@@ -281,6 +291,7 @@ export async function capturePosterCard(
     captureTarget.style.top = savedTop;
     captureTarget.style.zIndex = savedZIndex;
     captureTarget.style.width = savedWidth;
+    captureTarget.style.zoom = savedZoom;
 
     // Restore map
     if (mapContainer) mapContainer.style.display = savedMapDisplay;

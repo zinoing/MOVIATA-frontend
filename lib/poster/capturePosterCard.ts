@@ -136,14 +136,6 @@ export async function capturePosterCard(
   const cardW = POSTER_W;
   const cardH = POSTER_H;
 
-  // On iOS Safari, CSS zoom is inherited by position:fixed children, so
-  // html-to-image renders the card at zoom*POSTER_W instead of POSTER_W.
-  // Compute the effective accumulated zoom BEFORE any DOM changes so we can
-  // cancel it when repositioning captureTarget.
-  const preBCR = captureTarget.getBoundingClientRect();
-  const effectiveZoom =
-    captureTarget.offsetWidth > 0 ? preBCR.width / captureTarget.offsetWidth : 1;
-
   // Step 1: hide map container FIRST so MapLibre cannot receive resize events
   // when we later change captureTarget's position
   const savedMapDisplay = mapContainer?.style.display ?? '';
@@ -172,9 +164,10 @@ export async function capturePosterCard(
   captureTarget.style.top = '0';
   captureTarget.style.width = `${cardW}px`;
   captureTarget.style.zIndex = '-1';
-  // Cancel inherited CSS zoom so html-to-image renders at natural POSTER_W size.
-  // On iOS Safari zoom compounds multiplicatively, so we apply the inverse.
-  captureTarget.style.zoom = String(1 / effectiveZoom);
+  // Override any inherited CSS zoom (e.g. from mobile zoom-out on pageRef).
+  // In Safari, a child's explicit zoom: 1 overrides the ancestor's value,
+  // so html-to-image sees the element at its natural POSTER_W width.
+  captureTarget.style.zoom = '1';
 
   // Step 3: replace \n in h1 with block spans for consistent line breaks
   const h1 = captureTarget.querySelector<HTMLElement>('h1');

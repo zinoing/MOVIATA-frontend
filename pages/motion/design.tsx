@@ -87,6 +87,7 @@ const DEFAULT_EDITOR: DesignEditorState = {
   shirtColor: 'white',
   routeColor: 'orange',
   showMap: false,
+  showRoute: false,
   showRoutePoints: false,
   showContours: false,
   title: '',

@@ -131,28 +131,18 @@ export async function capturePosterCard(
         })()
       : null);
 
-  // Measure all positions BEFORE touching the DOM
   const cardRoot = el.firstElementChild as HTMLElement | null;
   const captureTarget = cardRoot ?? el;
-  const cardRect = captureTarget.getBoundingClientRect();
-  const mapRect = mapContainer?.getBoundingClientRect() ?? null;
-
-  // CSS zoom (mobile zoom-out) shrinks getBoundingClientRect values.
-  // Divide by the display scale to recover natural CSS pixel coordinates.
-  const displayScale = cardRect.width / POSTER_W;
+  const cardW = POSTER_W;
+  const cardH = POSTER_H;
 
   // On iOS Safari, CSS zoom is inherited by position:fixed children, so
   // html-to-image renders the card at zoom*POSTER_W instead of POSTER_W.
-  // Compute the effective accumulated zoom so we can cancel it before capture.
+  // Compute the effective accumulated zoom BEFORE any DOM changes so we can
+  // cancel it when repositioning captureTarget.
+  const preBCR = captureTarget.getBoundingClientRect();
   const effectiveZoom =
-    captureTarget.offsetWidth > 0 ? cardRect.width / captureTarget.offsetWidth : 1;
-
-  const mapRelX = mapRect ? (mapRect.x - cardRect.x) / displayScale : 0;
-  const mapRelY = mapRect ? (mapRect.y - cardRect.y) / displayScale : 0;
-  const mapW = mapRect ? mapRect.width / displayScale : 0;
-  const mapH = mapRect ? mapRect.height / displayScale : 0;
-  const cardW = POSTER_W;
-  const cardH = POSTER_H;
+    captureTarget.offsetWidth > 0 ? preBCR.width / captureTarget.offsetWidth : 1;
 
   // Step 1: hide map container FIRST so MapLibre cannot receive resize events
   // when we later change captureTarget's position
@@ -199,6 +189,22 @@ export async function capturePosterCard(
     h1.style.whiteSpace = 'normal';
   }
 
+  // Step 4: measure map position NOW — after card is forced to POSTER_W width
+  // with zoom cancelled (≈ natural CSS pixels). getBoundingClientRect() forces
+  // synchronous layout recomputation, so we get the 428px layout coordinates.
+  //
+  // mapContainer is already display:none, so we measure its grandparent
+  // (ActivityMap outer div) which stays visible and keeps its aspect-ratio size.
+  const captureCardRect = captureTarget.getBoundingClientRect();
+  const mapFrameEl = mapContainer?.parentElement?.parentElement ?? null;
+  const mapFrameRect = mapFrameEl?.getBoundingClientRect() ?? null;
+  // With zoom cancelled, captureCardRect.width ≈ cardW, so displayScale ≈ 1.
+  const displayScale = captureCardRect.width > 0 ? captureCardRect.width / cardW : 1;
+  const mapRelX = mapFrameRect ? (mapFrameRect.x - captureCardRect.x) / displayScale : 0;
+  const mapRelY = mapFrameRect ? (mapFrameRect.y - captureCardRect.y) / displayScale : 0;
+  const mapW = mapFrameRect ? mapFrameRect.width / displayScale : 0;
+  const mapH = mapFrameRect ? mapFrameRect.height / displayScale : 0;
+
   // Build embedded font CSS and trigger browser font loads in parallel so
   // html-to-image always has the fonts available in the SVG context.
   const [fontEmbedCSS] = await Promise.all([
@@ -208,7 +214,7 @@ export async function capturePosterCard(
   ]);
   await document.fonts.ready;
 
-  // Step 4: pre-fetch all avatar <img> srcs and replace with base64 data URLs.
+  // Step 5: pre-fetch all avatar <img> srcs and replace with base64 data URLs.
   // html-to-image fetches images in parallel internally — without this step,
   // concurrent proxy URL responses can arrive out of order and the wrong avatar
   // ends up in the wrong <img> slot (race condition).
@@ -254,7 +260,7 @@ export async function capturePosterCard(
     ctx.drawImage(uiImg, 0, 0);
 
     // Draw Layer 2: map snapshot at measured position
-    if (effectiveMapDataUrl && mapRect) {
+    if (effectiveMapDataUrl && mapFrameRect) {
       const mapImg = await new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
         img.onload = () => img.naturalWidth === 0 ? reject(new Error('Map image broken')) : resolve(img);

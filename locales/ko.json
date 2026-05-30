@@ -110,6 +110,10 @@
       "title": "지도",
       "description": "배경 지도를 표시하거나 숨깁니다."
     },
+    "route": {
+      "title": "경로",
+      "description": "지도에 경로 선을 표시하거나 숨깁니다."
+    },
     "contours": {
       "title": "등고선",
       "description": "지형 기반 지도 스타일을 위한 등고선을 표시합니다."

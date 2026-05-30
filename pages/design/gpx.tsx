@@ -24,6 +24,7 @@ function buildEditorFromGpx(gpx: GpxData): DesignEditorState {
     shirtColor: 'white',
     routeColor: 'orange',
     showMap: true,
+    showRoute: true,
     showRoutePoints: false,
     showContours: false,
     title: gpx.name || 'Untitled Route',
@@ -263,6 +264,7 @@ export default function GpxDesignPage() {
                       shirtColor={editor.shirtColor}
                       routeColor={editor.routeColor}
                       showMap={editor.showMap}
+                      showRoute={editor.showRoute}
                       showRoutePoints={editor.showRoutePoints}
                       showContours={editor.showContours}
                       instagramEnabled={editor.instagramEnabled}

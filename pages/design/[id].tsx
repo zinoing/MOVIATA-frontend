@@ -59,6 +59,7 @@ function buildInitialEditorState(activity: ActivityResponse, activityType: 'path
     shirtColor: 'white',
     routeColor: 'orange',
     showMap: true,
+    showRoute: true,
     showRoutePoints: false,
     showContours: activityType === 'motion',
     title: activity.name || 'Untitled Activity',
@@ -540,6 +541,7 @@ export default function DesignWorkspacePage() {
                         shirtColor={editor.shirtColor}
                         routeColor={editor.routeColor}
                         showMap={editor.showMap}
+                        showRoute={editor.showRoute}
                         showRoutePoints={editor.showRoutePoints}
                         showContours={editor.showContours}
                         instagramEnabled={editor.instagramEnabled}

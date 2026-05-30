@@ -25,6 +25,7 @@ export type DesignEditorState = {
   selectedUsers: ProfileUser[];
   routeColor: 'orange';
   showMap: boolean;
+  showRoute: boolean;
   showRoutePoints: boolean;
   showContours: boolean;
 };
@@ -507,6 +508,35 @@ export default function DesignSettingsPanel({
                 <span
                   className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
                     value.showMap ? 'left-6' : 'left-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="h-px bg-neutral-100" />
+
+            {/* Route toggle */}
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-neutral-900">{t('route.title')}</p>
+                <p className="mt-1 text-xs text-neutral-500">
+                  {t('route.description')}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => onChange({ ...value, showRoute: !value.showRoute })}
+                disabled={isGeneratingSnapshot}
+                className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+                  value.showRoute ? 'bg-neutral-900' : 'bg-neutral-200'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+                aria-pressed={value.showRoute}
+              >
+                <span
+                  className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
+                    value.showRoute ? 'left-6' : 'left-1'
                   }`}
                 />
               </button>

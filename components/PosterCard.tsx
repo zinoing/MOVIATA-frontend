@@ -149,6 +149,7 @@ type Props = {
   shirtColor: 'white' | 'black';
   routeColor: RouteColor;
   showMap: boolean;
+  showRoute?: boolean;
   showRoutePoints: boolean;
   showContours: boolean;
   instagramEnabled: boolean;
@@ -175,6 +176,7 @@ export default function PosterCard({
   shirtColor,
   routeColor,
   showMap,
+  showRoute = true,
   showRoutePoints,
   showContours,
   instagramEnabled,
@@ -336,6 +338,7 @@ export default function PosterCard({
                   shirtColor={shirtColor}
                   routeColor={routeColor}
                   showMap={showMap}
+                  showRoute={showRoute}
                   showRoutePoints={showRoutePoints}
                   showContours={showContours}
                   onViewStateChange={handleMapViewStateChange}

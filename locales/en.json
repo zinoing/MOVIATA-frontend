@@ -110,6 +110,10 @@
       "title": "Map",
       "description": "Show or hide the background map."
     },
+    "route": {
+      "title": "Route",
+      "description": "Show or hide the route line on the map."
+    },
     "contours": {
       "title": "Contours",
       "description": "Show contour lines for terrain-based map styling."

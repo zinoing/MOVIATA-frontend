@@ -32,6 +32,7 @@ export type ActivityMapProps = {
   shirtColor?: 'white' | 'black';
   routeColor?: RouteColor;
   showMap?: boolean;
+  showRoute?: boolean;
   showRoutePoints?: boolean;
   showContours?: boolean;
   onViewStateChange?: (viewState: FixedMapViewState) => void;
@@ -172,6 +173,7 @@ function setupMapLayers(
   routeColor: RouteColor,
   shirtColor: 'white' | 'black',
   showMap: boolean,
+  showRoute: boolean,
   showRoutePoints: boolean,
   showContours: boolean,
 ) {
@@ -190,7 +192,7 @@ function setupMapLayers(
     id: 'route-main',
     type: 'line',
     source: 'route',
-    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    layout: { 'line-cap': 'round', 'line-join': 'round', visibility: showRoute ? 'visible' : 'none' },
     paint: { 'line-color': routeMainColor, 'line-width': 5.5, 'line-opacity': 0.98 },
   });
 
@@ -272,12 +274,13 @@ function setupMapLayers(
   }
 }
 
-// routeColor / showMap / showRoutePoints 변경을 맵 재생성 없이 직접 적용
+// routeColor / showMap / showRoute / showRoutePoints 변경을 맵 재생성 없이 직접 적용
 function applyStyleUpdates(
   map: MapLibreMap,
   routeColor: RouteColor,
   shirtColor: 'white' | 'black',
   showMap: boolean,
+  showRoute: boolean,
   showRoutePoints: boolean,
   showContours: boolean,
 ) {
@@ -289,8 +292,9 @@ function applyStyleUpdates(
   const roadColors = getRoadColors(isDark);
   const waterColor = showContours ? 'rgba(0,0,0,0)' : isDark ? '#7a7a7a' : '#BED6D8';
 
-  // 루트 선 색상
+  // 루트 선 표시 여부 및 색상
   if (map.getLayer('route-main')) {
+    map.setLayoutProperty('route-main', 'visibility', showRoute ? 'visible' : 'none');
     map.setPaintProperty('route-main', 'line-color', routeMainColor);
   }
 
@@ -366,6 +370,7 @@ export default function ActivityMap({
   shirtColor = 'white',
   routeColor = 'orange',
   showMap = true,
+  showRoute = true,
   showRoutePoints = false,
   showContours = false,
   onViewStateChange,
@@ -463,6 +468,7 @@ export default function ActivityMap({
         routeColor,
         shirtColor,
         showMap,
+        showRoute,
         showRoutePoints,
         showContours,
       );
@@ -538,7 +544,7 @@ export default function ActivityMap({
     // 스타일이 아직 로드되지 않은 경우 idle 이후 적용
     if (!map.isStyleLoaded()) {
       const onIdle = () => {
-        applyStyleUpdates(map, routeColor, shirtColor, showMap, showRoutePoints, showContours);
+        applyStyleUpdates(map, routeColor, shirtColor, showMap, showRoute, showRoutePoints, showContours);
         emitAfterIdle();
       };
       map.once('idle', onIdle);
@@ -547,7 +553,7 @@ export default function ActivityMap({
 
     applyStyleUpdates(map, routeColor, shirtColor, showMap, showRoutePoints, showContours);
     emitAfterIdle();
-  }, [routeColor, showMap, showRoutePoints, showContours, shirtColor]);
+  }, [routeColor, showMap, showRoute, showRoutePoints, showContours, shirtColor]);
 
   // ─── Effect 3: marks 위치/상태 업데이트 (맵 재생성 없음) ─────────────────────
   useEffect(() => {

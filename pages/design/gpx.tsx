@@ -250,26 +250,28 @@ export default function GpxDesignPage() {
                 </p>
               )}
               {loadState === 'ready' ? (
-                <div id="poster-card" className="relative w-[420px] max-w-full mx-auto">
-                  <PosterCard
-                    coordinates={coordinates}
-                    title={editor.title}
-                    date={editor.date}
-                    location={editor.location}
-                    distance={editor.distance}
-                    elevation={editor.elevation}
-                    duration={editor.time}
-                    shirtColor={editor.shirtColor}
-                    routeColor={editor.routeColor}
-                    showMap={editor.showMap}
-                    showRoutePoints={editor.showRoutePoints}
-                    showContours={editor.showContours}
-                    instagramEnabled={editor.instagramEnabled}
-                    instagramId={editor.myInstagramId}
-                    selectedUsers={editor.selectedUsers}
-                    onMapViewStateChange={setFixedMapViewState}
-                    onMapCanvas={handleMapCanvas}
-                  />
+                <div className="w-full overflow-x-auto py-1">
+                  <div id="poster-card" className="relative w-[428px] mx-auto">
+                    <PosterCard
+                      coordinates={coordinates}
+                      title={editor.title}
+                      date={editor.date}
+                      location={editor.location}
+                      distance={editor.distance}
+                      elevation={editor.elevation}
+                      duration={editor.time}
+                      shirtColor={editor.shirtColor}
+                      routeColor={editor.routeColor}
+                      showMap={editor.showMap}
+                      showRoutePoints={editor.showRoutePoints}
+                      showContours={editor.showContours}
+                      instagramEnabled={editor.instagramEnabled}
+                      instagramId={editor.myInstagramId}
+                      selectedUsers={editor.selectedUsers}
+                      onMapViewStateChange={setFixedMapViewState}
+                      onMapCanvas={handleMapCanvas}
+                    />
+                  </div>
                 </div>
               ) : (
                 <div className="flex w-[450px] max-w-full items-center justify-center rounded-[16px] bg-white p-10 text-sm text-neutral-500 shadow-[0_8px_32px_rgba(0,0,0,0.18)]">

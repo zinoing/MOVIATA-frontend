@@ -551,7 +551,7 @@ export default function ActivityMap({
       return () => { map.off('idle', onIdle); };
     }
 
-    applyStyleUpdates(map, routeColor, shirtColor, showMap, showRoutePoints, showContours);
+    applyStyleUpdates(map, routeColor, shirtColor, showMap, showRoute, showRoutePoints, showContours);
     emitAfterIdle();
   }, [routeColor, showMap, showRoute, showRoutePoints, showContours, shirtColor]);
 

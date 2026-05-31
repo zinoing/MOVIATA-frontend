@@ -571,6 +571,7 @@ export default function ActivityMap({
     <div
       className={className}
       style={{
+        position: 'relative',
         width: '100%',
         maxWidth: '380px',
         aspectRatio: '1 / 1',
@@ -590,6 +591,25 @@ export default function ActivityMap({
           ref={containerRef}
           style={{ position: 'relative', width: '100%', height: '100%', background: 'transparent' }}
         />
+      </div>
+
+      {/* Desktop-only rotation buttons */}
+      <div className="absolute bottom-2 right-2 hidden gap-1 md:flex">
+        {[{ label: '↺', delta: -15 }, { label: '↻', delta: 15 }].map(({ label, delta }) => (
+          <button
+            key={delta}
+            type="button"
+            aria-label={delta < 0 ? 'Rotate left' : 'Rotate right'}
+            onClick={() => {
+              const map = mapRef.current;
+              if (!map) return;
+              map.easeTo({ bearing: map.getBearing() + delta, duration: 200 });
+            }}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-base text-neutral-700 shadow backdrop-blur-sm transition hover:bg-white"
+          >
+            {label}
+          </button>
+        ))}
       </div>
     </div>
   );

@@ -36,7 +36,7 @@ export function buildContourStyle(shirtColor: 'white' | 'black' = 'white'): Styl
         filter: ['in', ['get', 'nth_line'], ['literal', [0, 1, 2]]],
         paint: {
           'line-color': lineColor,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 9, 1.0, 11, 1.6, 13, 2.2, 15, 2.8],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.5, 11, 0.8, 13, 1.1, 15, 1.4],
           'line-opacity': 0.9,
         },
       },
@@ -51,7 +51,7 @@ export function buildContourStyle(shirtColor: 'white' | 'black' = 'white'): Styl
         filter: ['==', ['get', 'nth_line'], 5],
         paint: {
           'line-color': lineColor,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 9, 1.0, 11, 1.6, 13, 2.2, 15, 2.8],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.5, 11, 0.8, 13, 1.1, 15, 1.4],
           'line-opacity': 0.9,
         },
       },
@@ -66,7 +66,7 @@ export function buildContourStyle(shirtColor: 'white' | 'black' = 'white'): Styl
         filter: ['==', ['get', 'nth_line'], 10],
         paint: {
           'line-color': lineColorIndex,
-          'line-width': ['interpolate', ['linear'], ['zoom'], 9, 2.4, 11, 3.6, 13, 4.8, 15, 6.0],
+          'line-width': ['interpolate', ['linear'], ['zoom'], 9, 1.2, 11, 1.8, 13, 2.4, 15, 3.0],
           'line-opacity': 1,
         },
       },

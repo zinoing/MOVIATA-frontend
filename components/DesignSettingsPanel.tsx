@@ -517,7 +517,7 @@ export default function DesignSettingsPanel({
             <div className="h-px bg-neutral-100" />
 
             {/* Route toggle */}
-            <div className="flex items-center justify-between gap-4">
+            {/* <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-neutral-900">{t('route.title')}</p>
                 <p className="mt-1 text-xs text-neutral-500">
@@ -540,7 +540,7 @@ export default function DesignSettingsPanel({
                   }`}
                 />
               </button>
-            </div>
+            </div> */}
 
             {/* Divider */}
             <div className="h-px bg-neutral-100" />

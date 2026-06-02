@@ -594,7 +594,7 @@ export default function ActivityMap({
       </div>
 
       {/* Desktop-only rotation buttons */}
-      <div className="absolute bottom-2 right-2 hidden gap-1 md:flex">
+      <div data-no-capture className="absolute bottom-2 right-2 hidden gap-1 md:flex">
         {[{ label: '↻', delta: -15 }, { label: '↺', delta: 15 }].map(({ label, delta }) => (
           <button
             key={delta}

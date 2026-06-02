@@ -142,7 +142,7 @@ export async function capturePosterCard(
   if (mapContainer) mapContainer.style.display = 'none';
 
   const controls = el.querySelectorAll<HTMLElement>(
-    '.maplibregl-ctrl-top-left, .maplibregl-ctrl-top-right, .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right',
+    '.maplibregl-ctrl-top-left, .maplibregl-ctrl-top-right, .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right, [data-no-capture]',
   );
   controls.forEach((o) => { o.style.display = 'none'; });
 

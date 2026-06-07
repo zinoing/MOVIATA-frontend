@@ -120,8 +120,33 @@ function MapFrame({
   );
 }
 
+function isKoreanChar(ch: string): boolean {
+  return /[가-힣ᄀ-ᇿ㄰-㆏]/.test(ch);
+}
+
 function containsKorean(text: string): boolean {
-  return /[가-힣ᄀ-ᇿ㄰-㆏]/.test(text);
+  return text.split('').some(isKoreanChar);
+}
+
+type TextSegment = { text: string; korean: boolean };
+
+function splitByScript(text: string): TextSegment[] {
+  if (!text) return [];
+  const segments: TextSegment[] = [];
+  let current = text[0]!;
+  let currentKorean = isKoreanChar(text[0]!);
+  for (let i = 1; i < text.length; i++) {
+    const korean = isKoreanChar(text[i]!);
+    if (korean === currentKorean) {
+      current += text[i];
+    } else {
+      segments.push({ text: current, korean: currentKorean });
+      current = text[i]!;
+      currentKorean = korean;
+    }
+  }
+  segments.push({ text: current, korean: currentKorean });
+  return segments;
 }
 
 const FC = {
@@ -307,15 +332,21 @@ export default function PosterCard({
       >
         <h1
           className={`${titleClass} ${primaryTextClass} text-center`}
-          style={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            ...(containsKorean(title || titleFallback)
-              ? { fontFamily: '"NanumSonPyeonjiche", sans-serif', textTransform: 'none', letterSpacing: '0.02em' }
-              : {}),
-          }}
+          style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
         >
-          {title || titleFallback}
+          {containsKorean(title || titleFallback)
+            ? splitByScript(title || titleFallback).map((seg, i) =>
+                seg.korean ? (
+                  <span key={i} style={{ fontFamily: '"NanumSonPyeonjiche", sans-serif', textTransform: 'none', letterSpacing: '0.02em' }}>
+                    {seg.text}
+                  </span>
+                ) : (
+                  <span key={i} style={{ fontFamily: '"Belmonte Ballpoint Print", sans-serif' }}>
+                    {seg.text}
+                  </span>
+                )
+              )
+            : (title || titleFallback)}
         </h1>
 
         {(hasLocation || hasDate) && (

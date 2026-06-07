@@ -120,6 +120,10 @@ function MapFrame({
   );
 }
 
+function containsKorean(text: string): boolean {
+  return /[가-힣ᄀ-ᇿ㄰-㆏]/.test(text);
+}
+
 const FC = {
   wrapper: 'font-belmonte',
   title: {
@@ -303,7 +307,13 @@ export default function PosterCard({
       >
         <h1
           className={`${titleClass} ${primaryTextClass} text-center`}
-          style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            ...(containsKorean(title || titleFallback)
+              ? { fontFamily: '"NanumSonPyeonjiche", sans-serif', textTransform: 'none', letterSpacing: '0.02em' }
+              : {}),
+          }}
         >
           {title || titleFallback}
         </h1>

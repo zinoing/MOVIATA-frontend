@@ -27,6 +27,7 @@ module.exports = {
         garamond: ['"EB Garamond"', 'Georgia', 'serif'],
         inter: ['"Inter"', 'system-ui', 'sans-serif'],
         belmonte: ['"Belmonte Ballpoint Print"', 'sans-serif'],
+        nanumSonPyeonjiche: ['"NanumSonPyeonjiche"', 'sans-serif'],
       },
     },
   },

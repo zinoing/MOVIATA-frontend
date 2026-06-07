@@ -372,8 +372,27 @@ export default function PosterCard({
       <div className={compact ? 'mt-3 flex justify-center' : 'mt-5 flex justify-center'}>
         <div className={compact ? 'w-full max-w-[312px]' : 'w-full max-w-[380px]'}>
           {coordinates.length > 1 ? (
-            <MapFrame coordinates={coordinates} compact={compact} isDark={isDark} visibleBounds={visibleBounds}>
-              {mapSlot ?? (
+            showMap ? (
+              <MapFrame coordinates={coordinates} compact={compact} isDark={isDark} visibleBounds={visibleBounds}>
+                {mapSlot ?? (
+                  <ActivityMap
+                    coordinates={coordinates}
+                    shirtColor={shirtColor}
+                    routeColor={routeColor}
+                    showMap={showMap}
+                    showRoute={showRoute}
+                    showRoutePoints={showRoutePoints}
+                    showContours={showContours}
+                    onViewStateChange={handleMapViewStateChange}
+                    onMapCanvas={onMapCanvas}
+                    initialViewState={initialMapViewState}
+                    marks={marks}
+                    className="w-full max-w-full"
+                  />
+                )}
+              </MapFrame>
+            ) : (
+              mapSlot ?? (
                 <ActivityMap
                   coordinates={coordinates}
                   shirtColor={shirtColor}
@@ -388,8 +407,8 @@ export default function PosterCard({
                   marks={marks}
                   className="w-full max-w-full"
                 />
-              )}
-            </MapFrame>
+              )
+            )
           ) : (mapSlot ?? (
             <div
               className={`flex aspect-[3/4] items-center justify-center rounded-[18px] border ${

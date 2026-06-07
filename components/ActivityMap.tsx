@@ -126,22 +126,28 @@ function getRouteColorValue(_routeColor: RouteColor) {
   return '#F97316';
 }
 
-function buildEndPinImage(color: string): { img: HTMLImageElement; dpr: number } {
+function buildEndPinImage(color: string, isDark: boolean): { img: HTMLImageElement; dpr: number } {
   const dpr = 3;
-  const pinW = Math.round(27 * dpr);
-  const pinH = Math.round(16 * dpr);
-  const svg = `<svg width="${pinW}" height="${pinH}" viewBox="0 0 30 18" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0"  y="0" width="6" height="6" fill="${color}"/>
-    <rect x="12" y="0" width="6" height="6" fill="${color}"/>
-    <rect x="24" y="0" width="6" height="6" fill="${color}"/>
-    <rect x="6"  y="6" width="6" height="6" fill="${color}"/>
-    <rect x="18" y="6" width="6" height="6" fill="${color}"/>
-    <rect x="0"  y="12" width="6" height="6" fill="${color}"/>
-    <rect x="12" y="12" width="6" height="6" fill="${color}"/>
-    <rect x="24" y="12" width="6" height="6" fill="${color}"/>
+  const size = 22;
+  const cx = 11, cy = 11, r = 9.5;
+
+  const bgColor = isDark ? '#141414' : '#FFFFFF';
+  const strokeColor = isDark ? '#EDE8DC' : color;
+
+  // Symmetric 2×2 checkerboard clipped to circle:
+  // top-left + bottom-right = color, top-right + bottom-left = bgColor
+  const svg = `<svg width="${size * dpr}" height="${size * dpr}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+    <defs><clipPath id="cc"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath></defs>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${bgColor}"/>
+    <g clip-path="url(#cc)">
+      <rect x="${cx - r}" y="${cy - r}" width="${r}" height="${r}" fill="${color}"/>
+      <rect x="${cx}"     y="${cy}"     width="${r}" height="${r}" fill="${color}"/>
+    </g>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${strokeColor}" stroke-width="1.5"/>
   </svg>`;
+
   const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-  const img = new Image(pinW, pinH);
+  const img = new Image(size * dpr, size * dpr);
   img.src = url;
   return { img, dpr };
 }
@@ -196,11 +202,12 @@ function setupMapLayers(
     paint: { 'line-color': routeMainColor, 'line-width': 5.5, 'line-opacity': 0.98 },
   });
 
-  // All marks — circle (destination marks show circle + flag)
+  // Non-destination marks — circle only
   map.addLayer({
     id: 'marks-dots',
     type: 'circle',
     source: 'marks-source',
+    filter: ['!=', ['get', 'isDestination'], true],
     layout: { visibility: showRoutePoints ? 'visible' : 'none' },
     paint: {
       'circle-radius': 6.5,
@@ -211,8 +218,8 @@ function setupMapLayers(
     },
   });
 
-  // Destination marks — flag icon
-  const { img: pinImg, dpr } = buildEndPinImage(routeMainColor);
+  // Destination marks — checkered circle icon (checkerboard inside circle)
+  const { img: pinImg, dpr } = buildEndPinImage(routeMainColor, isDark);
   pinImg.onload = () => {
     if (!map.hasImage('end-pin')) map.addImage('end-pin', pinImg, { pixelRatio: dpr });
     if (!map.getLayer('marks-flag')) {
@@ -223,8 +230,7 @@ function setupMapLayers(
         filter: ['==', ['get', 'isDestination'], true],
         layout: {
           'icon-image': 'end-pin',
-          'icon-anchor': 'bottom',
-          'icon-offset': [6, -15],
+          'icon-anchor': 'center',
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
           visibility: showRoutePoints ? 'visible' : 'none',
@@ -306,7 +312,7 @@ function applyStyleUpdates(
 
   // 마크 플래그 이미지 색상 업데이트
   if (map.hasImage('end-pin')) {
-    const { img } = buildEndPinImage(routeMainColor);
+    const { img } = buildEndPinImage(routeMainColor, isDark);
     img.onload = () => {
       if (map.hasImage('end-pin')) map.updateImage('end-pin', img);
     };

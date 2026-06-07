@@ -215,16 +215,6 @@ async function drawMixedTitle(
     setSegFont(seg);
     const t = segText(seg);
     ctx.fillText(t, x, centerY);
-    if (seg.korean) {
-      // Simulate bold via stroke — NanumSonPyeonjiche has no bold variant.
-      // 0.06em equivalent: lineWidth = 6% of font size.
-      ctx.save();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = fontSizePx * 0.06;
-      ctx.lineJoin = 'round';
-      ctx.strokeText(t, x, centerY);
-      ctx.restore();
-    }
     x += ctx.measureText(t).width;
   }
 

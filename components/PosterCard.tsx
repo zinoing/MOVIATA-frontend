@@ -152,8 +152,8 @@ function splitByScript(text: string): TextSegment[] {
 const FC = {
   wrapper: 'font-belmonte',
   title: {
-    compact: 'text-[1.68rem] font-bold leading-[1.1] tracking-[0.01em] uppercase',
-    full: 'text-[3rem] font-bold leading-[1.0] tracking-[0.01em] uppercase',
+    compact: 'text-[1.68rem] font-bold leading-[1.3] tracking-[0.01em] uppercase',
+    full: 'text-[3rem] font-bold leading-[1.3] tracking-[0.01em] uppercase',
   },
   meta: 'text-[19px] font-bold tracking-[0.12em]',
   statValue: {
@@ -332,7 +332,7 @@ export default function PosterCard({
       >
         <h1
           className={`${titleClass} ${primaryTextClass} text-center`}
-          style={{ whiteSpace: 'nowrap', overflowX: 'hidden' }}
+          style={{ whiteSpace: 'nowrap', overflow: 'clip' }}
         >
           {containsKorean(title || titleFallback)
             ? splitByScript(title || titleFallback).map((seg, i) =>

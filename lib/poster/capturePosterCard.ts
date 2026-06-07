@@ -75,11 +75,12 @@ import { POSTER_W, POSTER_H } from './dimensions';
 // fails on first page load when the font file is not yet in the HTTP cache,
 // causing the SVG foreignObject to fall back to a wider system font and
 // truncate text that fits only with the custom font.
-async function buildEmbeddedFontCSS(): Promise<string> {
+async function buildEmbeddedFontCSS(embedKoreanFont = false): Promise<string> {
   // Only embed Belmonte Ballpoint Print — the font that causes visible
   // truncation when missing. Inter is a large variable TTF (~400 KB base64)
   // that bloats the SVG enough to make html-to-image produce a blank layer;
   // coordinate labels fall back to system sans-serif which is acceptable.
+  // NanumSonPyeonjiche is only embedded when the title contains Korean.
   const fontDefs = [
     {
       family: 'Belmonte Ballpoint Print',
@@ -88,6 +89,13 @@ async function buildEmbeddedFontCSS(): Promise<string> {
       url: '/fonts/Belmonte_Ballpoint/Webfonts/Woff2/Belmonte-Ballpoint-Print.woff2',
       format: 'woff2',
     },
+    ...(embedKoreanFont ? [{
+      family: 'NanumSonPyeonjiche',
+      weight: '400',
+      style: 'normal',
+      url: '/fonts/NanumSonPyeonjiche/NanumSonPyeonjiche.woff2',
+      format: 'woff2',
+    }] : []),
   ];
 
   const rules = await Promise.all(
@@ -200,11 +208,18 @@ export async function capturePosterCard(
 
   // Build embedded font CSS and trigger browser font loads in parallel so
   // html-to-image always has the fonts available in the SVG context.
-  const [fontEmbedCSS] = await Promise.all([
-    buildEmbeddedFontCSS(),
+  const h1Text = captureTarget.querySelector('h1')?.textContent ?? '';
+  const hasKorean = /[가-힣]/.test(h1Text);
+
+  const fontLoads: Promise<unknown>[] = [
+    buildEmbeddedFontCSS(hasKorean),
     document.fonts.load('500 15px "EB Garamond"').catch(() => {}),
     document.fonts.load('400 16px "Belmonte Ballpoint Print"').catch(() => {}),
-  ]);
+  ];
+  if (hasKorean) {
+    fontLoads.push(document.fonts.load('400 16px "NanumSonPyeonjiche"').catch(() => {}));
+  }
+  const [fontEmbedCSS] = await Promise.all(fontLoads);
   await document.fonts.ready;
 
   // Step 5: pre-fetch all avatar <img> srcs and replace with base64 data URLs.

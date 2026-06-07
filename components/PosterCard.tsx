@@ -332,7 +332,7 @@ export default function PosterCard({
       >
         <h1
           className={`${titleClass} ${primaryTextClass} text-center`}
-          style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}
+          style={{ whiteSpace: 'nowrap', overflowX: 'hidden' }}
         >
           {containsKorean(title || titleFallback)
             ? splitByScript(title || titleFallback).map((seg, i) =>

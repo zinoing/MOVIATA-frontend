@@ -22,10 +22,21 @@
  *   replace each img.src with its base64 data URL before calling toPng, then
  *   restore the original srcs afterwards.
  *
+ *   KOREAN FONT FIX:
+ *   NanumSonPyeonjiche is 2.6 MB WOFF2 (~3.5 MB base64). Embedding it in the
+ *   SVG foreignObject (as html-to-image requires for custom fonts) makes the
+ *   SVG too large and causes silent failure — the same problem noted for Inter.
+ *   Fix: hide the h1 during html-to-image capture (visibility:hidden preserves
+ *   layout), then re-draw the title on the output canvas with Canvas 2D, which
+ *   can use document.fonts directly without base64 embedding.
+ *
  * Layer 2 — Map snapshot:
  *   The pre-captured map PNG is drawn directly onto the output canvas at the
  *   map container's position relative to the card, measured at runtime via
  *   getBoundingClientRect.
+ *
+ * Layer 3 — Korean title overlay (only when title contains Korean):
+ *   Canvas 2D fillText with NanumSonPyeonjiche / Belmonte per script segment.
  */
 
 /**
@@ -75,12 +86,11 @@ import { POSTER_W, POSTER_H } from './dimensions';
 // fails on first page load when the font file is not yet in the HTTP cache,
 // causing the SVG foreignObject to fall back to a wider system font and
 // truncate text that fits only with the custom font.
-async function buildEmbeddedFontCSS(embedKoreanFont = false): Promise<string> {
+async function buildEmbeddedFontCSS(): Promise<string> {
   // Only embed Belmonte Ballpoint Print — the font that causes visible
-  // truncation when missing. Inter is a large variable TTF (~400 KB base64)
-  // that bloats the SVG enough to make html-to-image produce a blank layer;
-  // coordinate labels fall back to system sans-serif which is acceptable.
-  // NanumSonPyeonjiche is only embedded when the title contains Korean.
+  // truncation when missing. Inter and NanumSonPyeonjiche are both large
+  // enough to bloat the SVG and cause html-to-image to produce a blank layer.
+  // Korean titles are handled by Canvas 2D overlay (Layer 3) instead.
   const fontDefs = [
     {
       family: 'Belmonte Ballpoint Print',
@@ -89,13 +99,6 @@ async function buildEmbeddedFontCSS(embedKoreanFont = false): Promise<string> {
       url: '/fonts/Belmonte_Ballpoint/Webfonts/Woff2/Belmonte-Ballpoint-Print.woff2',
       format: 'woff2',
     },
-    ...(embedKoreanFont ? [{
-      family: 'NanumSonPyeonjiche',
-      weight: '400',
-      style: 'normal',
-      url: '/fonts/NanumSonPyeonjiche/NanumSonPyeonjiche.woff2',
-      format: 'woff2',
-    }] : []),
   ];
 
   const rules = await Promise.all(
@@ -118,6 +121,104 @@ async function buildEmbeddedFontCSS(embedKoreanFont = false): Promise<string> {
   );
 
   return rules.filter(Boolean).join('\n');
+}
+
+// --- Korean title canvas overlay helpers ---
+
+function isKoreanChar(ch: string) {
+  return /[가-힣]/.test(ch);
+}
+
+type TitleSegment = { text: string; korean: boolean };
+
+function splitByScript(text: string): TitleSegment[] {
+  if (!text) return [];
+  const segs: TitleSegment[] = [];
+  let cur = text[0]!;
+  let curKorean = isKoreanChar(text[0]!);
+  for (let i = 1; i < text.length; i++) {
+    const k = isKoreanChar(text[i]!);
+    if (k === curKorean) {
+      cur += text[i];
+    } else {
+      segs.push({ text: cur, korean: curKorean });
+      cur = text[i]!;
+      curKorean = k;
+    }
+  }
+  segs.push({ text: cur, korean: curKorean });
+  return segs;
+}
+
+// Draws the poster title directly onto an existing canvas with the correct
+// per-segment fonts (NanumSonPyeonjiche for Korean, Belmonte for Latin).
+// Called after html-to-image capture when the h1 was hidden (visibility:hidden).
+async function drawMixedTitle(
+  ctx: CanvasRenderingContext2D,
+  titleText: string,
+  h1El: HTMLElement,
+  cardRect: DOMRect,
+  displayScale: number,
+  pixelRatio: number,
+): Promise<void> {
+  const computed = window.getComputedStyle(h1El);
+  // fontSize is in CSS px at zoom:1 scale; scale to canvas pixels
+  const fontSizePx = (parseFloat(computed.fontSize) / displayScale) * pixelRatio;
+  const color = computed.color;
+
+  // Ensure NanumSonPyeonjiche is loaded via FontFace API.
+  // document.fonts.load was already called earlier; this is a fast no-op if ready.
+  if (!document.fonts.check(`400 ${fontSizePx}px "NanumSonPyeonjiche"`)) {
+    try {
+      const face = new FontFace(
+        'NanumSonPyeonjiche',
+        'url(/fonts/NanumSonPyeonjiche/NanumSonPyeonjiche.woff2)',
+      );
+      await face.load();
+      document.fonts.add(face);
+    } catch {
+      // If font load fails, canvas falls back to system Korean font — acceptable.
+    }
+  }
+
+  const segs = splitByScript(titleText);
+
+  const setSegFont = (seg: TitleSegment) => {
+    if (seg.korean) {
+      ctx.font = `400 ${fontSizePx}px "NanumSonPyeonjiche"`;
+    } else {
+      ctx.font = `700 ${fontSizePx}px "Belmonte Ballpoint Print"`;
+    }
+  };
+
+  const segText = (seg: TitleSegment) =>
+    seg.korean ? seg.text : seg.text.toUpperCase();
+
+  // Measure total rendered width for centering
+  let totalWidth = 0;
+  for (const seg of segs) {
+    setSegFont(seg);
+    totalWidth += ctx.measureText(segText(seg)).width;
+  }
+
+  // Vertical center: midpoint of h1 bounding box, converted to canvas coords
+  const h1Rect = h1El.getBoundingClientRect();
+  const centerY =
+    ((h1Rect.top - cardRect.top + h1Rect.height / 2) / displayScale) * pixelRatio;
+
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.textBaseline = 'middle';
+
+  let x = (ctx.canvas.width - totalWidth) / 2;
+  for (const seg of segs) {
+    setSegFont(seg);
+    const t = segText(seg);
+    ctx.fillText(t, x, centerY);
+    x += ctx.measureText(t).width;
+  }
+
+  ctx.restore();
 }
 
 export async function capturePosterCard(
@@ -190,7 +291,7 @@ export async function capturePosterCard(
     h1.style.whiteSpace = 'normal';
   }
 
-  // Step 4: measure map position NOW — after card is forced to POSTER_W width
+  // Step 4: measure positions NOW — after card is forced to POSTER_W width
   // with zoom cancelled (≈ natural CSS pixels). getBoundingClientRect() forces
   // synchronous layout recomputation, so we get the 428px layout coordinates.
   //
@@ -206,13 +307,18 @@ export async function capturePosterCard(
   const mapW = mapFrameRect ? mapFrameRect.width / displayScale : 0;
   const mapH = mapFrameRect ? mapFrameRect.height / displayScale : 0;
 
-  // Build embedded font CSS and trigger browser font loads in parallel so
-  // html-to-image always has the fonts available in the SVG context.
-  const h1Text = captureTarget.querySelector('h1')?.textContent ?? '';
+  // Detect Korean in title. If present:
+  //   • hide h1 so html-to-image skips it (visibility:hidden preserves layout)
+  //   • draw title on canvas after capture via Layer 3
+  const h1Text = h1?.textContent ?? '';
   const hasKorean = /[가-힣]/.test(h1Text);
+  const savedH1Visibility = h1?.style.visibility ?? '';
 
+  // Build embedded font CSS and trigger browser font loads in parallel.
+  // NanumSonPyeonjiche is intentionally excluded from SVG embedding — its
+  // 2.6 MB WOFF2 (~3.5 MB base64) exceeds the safe SVG size limit.
   const fontLoads: Promise<unknown>[] = [
-    buildEmbeddedFontCSS(hasKorean),
+    buildEmbeddedFontCSS(),
     document.fonts.load('500 15px "EB Garamond"').catch(() => {}),
     document.fonts.load('400 16px "Belmonte Ballpoint Print"').catch(() => {}),
   ];
@@ -221,6 +327,12 @@ export async function capturePosterCard(
   }
   const [fontEmbedCSS] = await Promise.all(fontLoads);
   await document.fonts.ready;
+
+  // Hide h1 for Korean titles so html-to-image leaves a clean background gap
+  // that Layer 3 will fill with correctly-fonted canvas text.
+  if (hasKorean && h1) {
+    h1.style.visibility = 'hidden';
+  }
 
   // Step 5: pre-fetch all avatar <img> srcs and replace with base64 data URLs.
   // html-to-image fetches images in parallel internally — without this step,
@@ -240,7 +352,7 @@ export async function capturePosterCard(
       height: cardH,
       pixelRatio: 1,
       cacheBust: false,
-      fontEmbedCSS,
+      fontEmbedCSS: fontEmbedCSS as string,
     }).catch(() => {});
 
     // Layer 1: capture card UI with html-to-image at full pixel ratio
@@ -249,7 +361,7 @@ export async function capturePosterCard(
       width: cardW,
       height: cardH,
       cacheBust: false,
-      fontEmbedCSS,
+      fontEmbedCSS: fontEmbedCSS as string,
     });
 
     // Build output canvas
@@ -286,6 +398,13 @@ export async function capturePosterCard(
       );
     }
 
+    // Layer 3: draw Korean (mixed-script) title directly on canvas.
+    // Canvas 2D can use document.fonts without base64-embedding the font file,
+    // bypassing the SVG size limit that makes html-to-image fail for large fonts.
+    if (hasKorean && h1) {
+      await drawMixedTitle(ctx, h1Text, h1, captureCardRect, displayScale, PIXEL_RATIO);
+    }
+
     return out.toDataURL('image/png');
   } finally {
     // Restore inlined img srcs
@@ -296,6 +415,7 @@ export async function capturePosterCard(
       h1.innerHTML = savedH1Html;
       h1.style.whiteSpace = savedH1WhiteSpace;
     }
+    if (h1) h1.style.visibility = savedH1Visibility;
 
     // Restore captureTarget styles
     captureTarget.style.backgroundColor = savedBg;

@@ -337,7 +337,7 @@ export default function PosterCard({
           {containsKorean(title || titleFallback)
             ? splitByScript(title || titleFallback).map((seg, i) =>
                 seg.korean ? (
-                  <span key={i} style={{ fontFamily: '"NanumSonPyeonjiche", sans-serif', textTransform: 'none', letterSpacing: '0.02em', WebkitTextStroke: '0.06em' }}>
+                  <span key={i} style={{ fontFamily: '"NanumSonPyeonjiche", sans-serif', textTransform: 'none', letterSpacing: '0.02em' }}>
                     {seg.text}
                   </span>
                 ) : (

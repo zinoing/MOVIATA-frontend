@@ -185,7 +185,10 @@ async function drawMixedTitle(
 
   const setSegFont = (seg: TitleSegment) => {
     if (seg.korean) {
-      ctx.font = `400 ${fontSizePx}px "NanumSonPyeonjiche"`;
+      // Use weight 700 to match the h1's font-bold class. NanumSonPyeonjiche
+      // has no 700 variant so the browser/canvas applies synthetic bold,
+      // matching the appearance on the design page DOM preview.
+      ctx.font = `700 ${fontSizePx}px "NanumSonPyeonjiche"`;
     } else {
       ctx.font = `700 ${fontSizePx}px "Belmonte Ballpoint Print"`;
     }

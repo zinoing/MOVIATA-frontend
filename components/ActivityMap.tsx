@@ -131,8 +131,8 @@ function buildEndPinImage(color: string, isDark: boolean): { img: HTMLImageEleme
   const size = 22;
   const cx = 11, cy = 11, r = 9.5;
 
-  const bgColor   = isDark ? '#141414' : '#FFFFFF';
-  const fillColor = isDark ? '#FFFFFF'  : '#1A1A1A';
+  const bgColor   = '#FFFFFF';
+  const fillColor = '#1A1A1A';
   const strokeColor = isDark ? '#EDE8DC' : color;
 
   // 3×3 checkerboard clipped to circle.
@@ -221,7 +221,7 @@ function setupMapLayers(
     layout: { visibility: showRoutePoints ? 'visible' : 'none' },
     paint: {
       'circle-radius': 6.5,
-      'circle-color': isDark ? routeMainColor : '#FFFFFF',
+      'circle-color': '#FFFFFF',
       'circle-stroke-color': isDark ? '#EDE8DC' : routeMainColor,
       'circle-stroke-width': 2.2,
       'circle-opacity': 1,
@@ -316,7 +316,7 @@ function applyStyleUpdates(
 
   // 마크 원 색상
   if (map.getLayer('marks-dots')) {
-    map.setPaintProperty('marks-dots', 'circle-color', isDark ? routeMainColor : '#FFFFFF');
+    map.setPaintProperty('marks-dots', 'circle-color', '#FFFFFF');
     map.setPaintProperty('marks-dots', 'circle-stroke-color', isDark ? '#EDE8DC' : routeMainColor);
   }
 

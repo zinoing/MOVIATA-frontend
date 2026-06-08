@@ -126,25 +126,33 @@ function getRouteColorValue(_routeColor: RouteColor) {
   return '#F97316';
 }
 
-function buildEndPinImage(isDark: boolean): { img: HTMLImageElement; dpr: number } {
+function buildEndPinImage(color: string, isDark: boolean): { img: HTMLImageElement; dpr: number } {
   const dpr = 3;
   const size = 22;
   const cx = 11, cy = 11, r = 9.5;
 
-  // Classic black/white checkerboard: top-left + bottom-right = black, rest = white.
-  // Border is black on light shirt, cream on dark shirt for contrast.
-  const dark = isDark ? '#FFFFFF' : '#1A1A1A';
-  const light = isDark ? '#1A1A1A' : '#FFFFFF';
-  const stroke = isDark ? '#EDE8DC' : '#1A1A1A';
+  const bgColor = isDark ? '#141414' : '#FFFFFF';
+  const strokeColor = isDark ? '#EDE8DC' : color;
+
+  // 3×3 checkerboard clipped to circle.
+  // Cell size = diameter/3. Colored squares where (row+col) is even (5 squares).
+  const cell = (2 * r) / 3; // ≈ 6.333
+  const x0 = cx - r;        // 1.5
+  const y0 = cy - r;        // 1.5
+
+  const coloredRects = [
+    [x0,          y0         ],
+    [x0 + 2*cell, y0         ],
+    [x0 + cell,   y0 + cell  ],
+    [x0,          y0 + 2*cell],
+    [x0 + 2*cell, y0 + 2*cell],
+  ].map(([x, y]) => `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" fill="${color}"/>`).join('');
 
   const svg = `<svg width="${size * dpr}" height="${size * dpr}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
     <defs><clipPath id="cc"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath></defs>
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${light}"/>
-    <g clip-path="url(#cc)">
-      <rect x="${cx - r}" y="${cy - r}" width="${r}" height="${r}" fill="${dark}"/>
-      <rect x="${cx}"     y="${cy}"     width="${r}" height="${r}" fill="${dark}"/>
-    </g>
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${stroke}" stroke-width="2"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${bgColor}"/>
+    <g clip-path="url(#cc)">${coloredRects}</g>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${strokeColor}" stroke-width="1.5"/>
   </svg>`;
 
   const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
@@ -220,7 +228,7 @@ function setupMapLayers(
   });
 
   // Destination marks — checkered circle icon (checkerboard inside circle)
-  const { img: pinImg, dpr } = buildEndPinImage(isDark);
+  const { img: pinImg, dpr } = buildEndPinImage(routeMainColor, isDark);
   pinImg.onload = () => {
     if (!map.hasImage('end-pin')) map.addImage('end-pin', pinImg, { pixelRatio: dpr });
     if (!map.getLayer('marks-flag')) {
@@ -313,7 +321,7 @@ function applyStyleUpdates(
 
   // 마크 플래그 이미지 색상 업데이트
   if (map.hasImage('end-pin')) {
-    const { img } = buildEndPinImage(isDark);
+    const { img } = buildEndPinImage(routeMainColor, isDark);
     img.onload = () => {
       if (map.hasImage('end-pin')) map.updateImage('end-pin', img);
     };

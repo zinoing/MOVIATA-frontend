@@ -152,7 +152,7 @@ function buildEndPinImage(color: string, isDark: boolean): { img: HTMLImageEleme
     <defs><clipPath id="cc"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath></defs>
     <circle cx="${cx}" cy="${cy}" r="${r}" fill="${bgColor}"/>
     <g clip-path="url(#cc)">${coloredRects}</g>
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${strokeColor}" stroke-width="1.5"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${strokeColor}" stroke-width="2.2"/>
   </svg>`;
 
   const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;

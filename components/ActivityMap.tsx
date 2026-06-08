@@ -126,14 +126,14 @@ function getRouteColorValue(_routeColor: RouteColor) {
   return '#F97316';
 }
 
-function buildEndPinImage(isDark: boolean): { img: HTMLImageElement; dpr: number } {
+function buildEndPinImage(color: string, isDark: boolean): { img: HTMLImageElement; dpr: number } {
   const dpr = 3;
   const size = 22;
   const cx = 11, cy = 11, r = 9.5;
 
   const bgColor   = isDark ? '#141414' : '#FFFFFF';
   const fillColor = isDark ? '#FFFFFF'  : '#1A1A1A';
-  const strokeColor = isDark ? '#EDE8DC' : '#1A1A1A';
+  const strokeColor = isDark ? '#EDE8DC' : color;
 
   // 3×3 checkerboard clipped to circle.
   // Cell size = diameter/3. Colored squares where (row+col) is even (5 squares).
@@ -229,7 +229,7 @@ function setupMapLayers(
   });
 
   // Destination marks — checkered circle icon (checkerboard inside circle)
-  const { img: pinImg, dpr } = buildEndPinImage(isDark);
+  const { img: pinImg, dpr } = buildEndPinImage(routeMainColor, isDark);
   pinImg.onload = () => {
     if (!map.hasImage('end-pin')) map.addImage('end-pin', pinImg, { pixelRatio: dpr });
     if (!map.getLayer('marks-flag')) {
@@ -322,7 +322,7 @@ function applyStyleUpdates(
 
   // 마크 플래그 이미지 색상 업데이트
   if (map.hasImage('end-pin')) {
-    const { img } = buildEndPinImage(isDark);
+    const { img } = buildEndPinImage(routeMainColor, isDark);
     img.onload = () => {
       if (map.hasImage('end-pin')) map.updateImage('end-pin', img);
     };

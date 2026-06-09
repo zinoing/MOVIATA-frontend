@@ -221,7 +221,7 @@ function setupMapLayers(
     layout: { visibility: showRoutePoints ? 'visible' : 'none' },
     paint: {
       'circle-radius': 6.5,
-      'circle-color': routeMainColor,
+      'circle-color': isDark ? routeMainColor : '#FFFFFF',
       'circle-stroke-color': isDark ? '#EDE8DC' : routeMainColor,
       'circle-stroke-width': 2.2,
       'circle-opacity': 1,
@@ -316,7 +316,7 @@ function applyStyleUpdates(
 
   // 마크 원 색상
   if (map.getLayer('marks-dots')) {
-    map.setPaintProperty('marks-dots', 'circle-color', routeMainColor);
+    map.setPaintProperty('marks-dots', 'circle-color', isDark ? routeMainColor : '#FFFFFF');
     map.setPaintProperty('marks-dots', 'circle-stroke-color', isDark ? '#EDE8DC' : routeMainColor);
   }
 

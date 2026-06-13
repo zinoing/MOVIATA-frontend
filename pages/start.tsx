@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../components/Layout';
@@ -12,6 +12,21 @@ export default function SourceSelectionPage() {
   const [isGpxLoading, setIsGpxLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const gpxInputRef = useRef<HTMLInputElement>(null);
+
+  // Reset button states when the page is restored from the back/forward cache
+  // (e.g. navigating to Strava then pressing the browser back button), so the
+  // buttons don't stay stuck in their loading state.
+  useEffect(() => {
+    function handlePageShow(event: PageTransitionEvent) {
+      if (event.persisted) {
+        setIsStravaLoading(false);
+        setIsGpxLoading(false);
+        if (gpxInputRef.current) gpxInputRef.current.value = '';
+      }
+    }
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
 
   function handleGpxClick() {
     gpxInputRef.current?.click();

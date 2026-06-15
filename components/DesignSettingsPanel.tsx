@@ -22,6 +22,7 @@ export type DesignEditorState = {
   elevation: string;
   time: string;
   myInstagramId: string;
+  friendInstagramId: string;
   selectedUsers: ProfileUser[];
   routeColor: 'orange';
   showMap: boolean;
@@ -33,9 +34,12 @@ export type DesignEditorState = {
 type DesignSettingsPanelProps = {
   value: DesignEditorState;
   onChange: (next: DesignEditorState) => void;
+  onOpenFriendPicker: () => void;
+  onRemoveFriend: (userId: string) => void;
   onLoadMyInstagram: () => void;
   myInstagramFetchStatus?: InstagramFetchStatus;
   myInstagramErrorMessage?: string;
+  isAddingFriend?: boolean;
   isMapReady?: boolean;
   isGeneratingSnapshot?: boolean;
   onConfirm: () => void;
@@ -74,6 +78,11 @@ function FieldLabel({
       {required && <span className="ml-1 text-red-500">*</span>}
     </label>
   );
+}
+
+function getAvatarFallback(username?: string) {
+  if (!username) return '?';
+  return username.replace(/^@+/, '').slice(0, 2).toUpperCase();
 }
 
 function normalizeInstagramHandle(input: string) {
@@ -333,9 +342,12 @@ function MarksSection({
 export default function DesignSettingsPanel({
   value,
   onChange,
+  onOpenFriendPicker,
+  onRemoveFriend,
   onLoadMyInstagram,
   myInstagramFetchStatus = 'idle',
   myInstagramErrorMessage = '',
+  isAddingFriend = false,
   isMapReady = false,
   isGeneratingSnapshot = false,
   onConfirm,
@@ -356,7 +368,11 @@ export default function DesignSettingsPanel({
       updateField(value, onChange, key, e.target.value);
     };
 
+  const addedFriends = (value.selectedUsers ?? []).filter((user) => !user.isPrimary);
   const normalizedMyInstagramId = normalizeInstagramHandle(value.myInstagramId);
+
+  const canAddFriend =
+    value.instagramEnabled && addedFriends.length < 1 && !isAddingFriend;
 
   const canLoadMyInstagram =
     value.instagramEnabled &&
@@ -451,6 +467,75 @@ export default function DesignSettingsPanel({
                 ) : null}
               </div>
 
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <FieldLabel>{t('instagram.friend')}</FieldLabel>
+                  <span className="text-xs text-neutral-400">
+                    {t('instagram.addedCount', { count: addedFriends.length })}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={onOpenFriendPicker}
+                  disabled={!canAddFriend || isGeneratingSnapshot}
+                  className={`w-full rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
+                    canAddFriend && !isGeneratingSnapshot
+                      ? 'border-neutral-300 text-neutral-700 hover:border-neutral-500 hover:text-neutral-900'
+                      : 'cursor-not-allowed border-neutral-200 text-neutral-400'
+                  }`}
+                >
+                  {isAddingFriend
+                    ? t('instagram.loading')
+                    : addedFriends.length > 0
+                      ? t('instagram.friendAdded')
+                      : t('instagram.addFriend')}
+                </button>
+              </div>
+
+              {addedFriends.length > 0 && (
+                <div>
+                  <FieldLabel>{t('instagram.addedFriend')}</FieldLabel>
+                  <div className="space-y-2">
+                    {addedFriends.map((friend) => (
+                      <div
+                        key={friend.id}
+                        className="flex items-center justify-between rounded-xl border border-neutral-200 px-3 py-3"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          {friend.avatarUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={friend.avatarUrl}
+                              alt={`@${friend.username}`}
+                              className="h-10 w-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-700">
+                              {getAvatarFallback(friend.username)}
+                            </div>
+                          )}
+
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-neutral-900">
+                              @{friend.username}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => onRemoveFriend(friend.id)}
+                          disabled={isGeneratingSnapshot}
+                          className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {t('instagram.remove')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </section>

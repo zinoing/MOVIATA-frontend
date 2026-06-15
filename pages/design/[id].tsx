@@ -7,12 +7,14 @@ import PosterCard from '../../components/PosterCard';
 import DesignSettingsPanel, {
   type DesignEditorState,
 } from '../../components/DesignSettingsPanel';
+import FriendPickerModal from '../../components/FriendPickerModal';
 import {
   type ActivityDetail,
   formatDistanceKm,
   formatMinutes,
 } from '../../lib/activity';
 import { apiFetch } from '../../lib/api';
+import { addManualProfileUser } from '../../lib/design/friends';
 import { decodePolyline, getPrimaryRoute, smoothRoute } from '../../lib/polyline';
 import { useInstagramProfile } from '../../hooks/useInstagramProfile';
 import { createProfileUser, dedupeProfileUsers } from '../../lib/profileUsers';
@@ -109,6 +111,8 @@ export default function DesignWorkspacePage() {
   const [activityFetchState, setActivityFetchState] =
     useState<ActivityFetchState>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [isFriendPickerOpen, setIsFriendPickerOpen] = useState(false);
+  const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [isGeneratingSnapshot, setIsGeneratingSnapshot] = useState(false);
   const [fixedMapViewState, setFixedMapViewState] =
     useState<FixedMapViewState | null>(null);
@@ -234,6 +238,59 @@ export default function DesignWorkspacePage() {
     void loadStreams();
     return () => { ignore = true; };
   }, [id, posterCoordinates]);
+
+  const handleOpenFriendPicker = useCallback(() => {
+    if (isAddingFriend) return;
+    setIsFriendPickerOpen(true);
+  }, [isAddingFriend]);
+
+  const handleCloseFriendPicker = useCallback(() => {
+    setIsFriendPickerOpen(false);
+  }, []);
+
+  const handleManualAdd = useCallback(
+    async (username: string) => {
+      try {
+        setIsAddingFriend(true);
+
+        if (!editor) return;
+
+        const extraFriendCount = editor.selectedUsers.filter(
+          (user) => !user.isPrimary,
+        ).length;
+
+        if (extraFriendCount >= 1) return;
+
+        const nextSelectedUsers = await addManualProfileUser(
+          editor.selectedUsers,
+          username,
+        );
+
+        setEditor((prev) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            selectedUsers: nextSelectedUsers,
+          };
+        });
+      } finally {
+        setIsAddingFriend(false);
+      }
+    },
+    [editor],
+  );
+
+  const handleRemoveUser = useCallback((userId: string) => {
+    setEditor((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        selectedUsers: prev.selectedUsers.filter((user) => user.id !== userId),
+      };
+    });
+  }, []);
 
   const handleEditorChange = useCallback(
     (next: DesignEditorState) => {
@@ -547,6 +604,7 @@ export default function DesignWorkspacePage() {
                         instagramEnabled={editor.instagramEnabled}
                         instagramId={editor.myInstagramId}
                         selectedUsers={editor.selectedUsers}
+                        onRemoveUser={handleRemoveUser}
                         onMapViewStateChange={setFixedMapViewState}
                         onMapCanvas={handleMapCanvas}
                         initialMapViewState={fixedMapViewState}
@@ -565,6 +623,8 @@ export default function DesignWorkspacePage() {
               <DesignSettingsPanel
                 value={editor}
                 onChange={handleEditorChange}
+                onOpenFriendPicker={handleOpenFriendPicker}
+                onRemoveFriend={handleRemoveUser}
                 onLoadMyInstagram={handleLoadMyInstagram}
                 myInstagramFetchStatus={instagram.state.fetchState.status}
                 myInstagramErrorMessage={
@@ -573,6 +633,7 @@ export default function DesignWorkspacePage() {
                     ? instagram.state.fetchState.errorMessage
                     : undefined
                 }
+                isAddingFriend={isAddingFriend}
                 isMapReady={isMapReady}
                 isGeneratingSnapshot={isGeneratingSnapshot}
                 onConfirm={handleConfirm}
@@ -589,7 +650,14 @@ export default function DesignWorkspacePage() {
           </div>
         )}
 
-
+      {editor && (
+        <FriendPickerModal
+          isOpen={isFriendPickerOpen}
+          selectedUsers={editor.selectedUsers}
+          onClose={handleCloseFriendPicker}
+          onManualAdd={handleManualAdd}
+        />
+      )}
     </Layout>
   );
 }

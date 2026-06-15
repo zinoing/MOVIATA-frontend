@@ -6,7 +6,9 @@ import PosterCard from '../../components/PosterCard';
 import DesignSettingsPanel, {
   type DesignEditorState,
 } from '../../components/DesignSettingsPanel';
+import FriendPickerModal from '../../components/FriendPickerModal';
 import { formatDistanceKm, formatMinutes } from '../../lib/activity';
+import { addManualProfileUser } from '../../lib/design/friends';
 import { useInstagramProfile } from '../../hooks/useInstagramProfile';
 import { createProfileUser, dedupeProfileUsers } from '../../lib/profileUsers';
 import { useDesignConfig } from '../../context/DesignConfigContext';
@@ -47,6 +49,8 @@ export default function GpxDesignPage() {
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [gpxData, setGpxData] = useState<GpxData | null>(null);
   const [editor, setEditor] = useState<DesignEditorState | null>(null);
+  const [isFriendPickerOpen, setIsFriendPickerOpen] = useState(false);
+  const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [isGeneratingSnapshot, setIsGeneratingSnapshot] = useState(false);
   const [fixedMapViewState, setFixedMapViewState] =
     useState<FixedMapViewState | null>(null);
@@ -171,6 +175,33 @@ export default function GpxDesignPage() {
     [instagram],
   );
 
+  const handleOpenFriendPicker = useCallback(() => {
+    if (!isAddingFriend) setIsFriendPickerOpen(true);
+  }, [isAddingFriend]);
+
+  const handleCloseFriendPicker = useCallback(() => setIsFriendPickerOpen(false), []);
+
+  const handleManualAdd = useCallback(
+    async (username: string) => {
+      try {
+        setIsAddingFriend(true);
+        if (!editor) return;
+        if (editor.selectedUsers.filter((u) => !u.isPrimary).length >= 1) return;
+        const next = await addManualProfileUser(editor.selectedUsers, username);
+        setEditor((prev) => prev ? { ...prev, selectedUsers: next } : prev);
+      } finally {
+        setIsAddingFriend(false);
+      }
+    },
+    [editor],
+  );
+
+  const handleRemoveUser = useCallback((userId: string) => {
+    setEditor((prev) =>
+      prev ? { ...prev, selectedUsers: prev.selectedUsers.filter((u) => u.id !== userId) } : prev,
+    );
+  }, []);
+
   const handleLoadMyInstagram = useCallback(async () => {
     if (!editor) return;
     await instagram.fetchProfile(editor.myInstagramId);
@@ -270,6 +301,7 @@ export default function GpxDesignPage() {
                       instagramEnabled={editor.instagramEnabled}
                       instagramId={editor.myInstagramId}
                       selectedUsers={editor.selectedUsers}
+                      onRemoveUser={handleRemoveUser}
                       onMapViewStateChange={setFixedMapViewState}
                       onMapCanvas={handleMapCanvas}
                     />
@@ -285,6 +317,8 @@ export default function GpxDesignPage() {
             <DesignSettingsPanel
               value={editor}
               onChange={handleEditorChange}
+              onOpenFriendPicker={handleOpenFriendPicker}
+              onRemoveFriend={handleRemoveUser}
               onLoadMyInstagram={handleLoadMyInstagram}
               myInstagramFetchStatus={instagram.state.fetchState.status}
               myInstagramErrorMessage={
@@ -293,6 +327,7 @@ export default function GpxDesignPage() {
                   ? instagram.state.fetchState.errorMessage
                   : undefined
               }
+              isAddingFriend={isAddingFriend}
               isMapReady={isMapReady}
               isGeneratingSnapshot={isGeneratingSnapshot}
               onConfirm={handleConfirm}
@@ -302,7 +337,14 @@ export default function GpxDesignPage() {
         </div>
       )}
 
-
+      {editor && (
+        <FriendPickerModal
+          isOpen={isFriendPickerOpen}
+          selectedUsers={editor.selectedUsers}
+          onClose={handleCloseFriendPicker}
+          onManualAdd={handleManualAdd}
+        />
+      )}
     </Layout>
   );
 }

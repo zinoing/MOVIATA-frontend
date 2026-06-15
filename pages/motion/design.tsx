@@ -3,7 +3,9 @@ import { useRouter } from 'next/router';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/Layout';
 import DesignSettingsPanel, { type DesignEditorState } from '../../components/DesignSettingsPanel';
+import FriendPickerModal from '../../components/FriendPickerModal';
 import PosterCard from '../../components/PosterCard';
+import { addManualProfileUser } from '../../lib/design/friends';
 import { useInstagramProfile } from '../../hooks/useInstagramProfile';
 import { createProfileUser, dedupeProfileUsers } from '../../lib/profileUsers';
 import { useDesignConfig } from '../../context/DesignConfigContext';
@@ -109,6 +111,8 @@ export default function MotionDesignPage() {
   const [compositeImage, setCompositeImage] = useState<string | null>(null);
   const [processedComposite, setProcessedComposite] = useState<string | null>(null);
   const [editor, setEditor] = useState<DesignEditorState>(DEFAULT_EDITOR);
+  const [isFriendPickerOpen, setIsFriendPickerOpen] = useState(false);
+  const [isAddingFriend, setIsAddingFriend] = useState(false);
   const [isGeneratingSnapshot, setIsGeneratingSnapshot] = useState(false);
   const pageRef = useRef<HTMLDivElement>(null);
 
@@ -260,6 +264,30 @@ export default function MotionDesignPage() {
     [instagram],
   );
 
+  const handleOpenFriendPicker = useCallback(() => {
+    if (!isAddingFriend) setIsFriendPickerOpen(true);
+  }, [isAddingFriend]);
+
+  const handleCloseFriendPicker = useCallback(() => setIsFriendPickerOpen(false), []);
+
+  const handleManualAdd = useCallback(
+    async (username: string) => {
+      try {
+        setIsAddingFriend(true);
+        if (editor.selectedUsers.filter((u) => !u.isPrimary).length >= 1) return;
+        const next = await addManualProfileUser(editor.selectedUsers, username);
+        setEditor((prev) => ({ ...prev, selectedUsers: next }));
+      } finally {
+        setIsAddingFriend(false);
+      }
+    },
+    [editor.selectedUsers],
+  );
+
+  const handleRemoveUser = useCallback((userId: string) => {
+    setEditor((prev) => ({ ...prev, selectedUsers: prev.selectedUsers.filter((u) => u.id !== userId) }));
+  }, []);
+
   const handleLoadMyInstagram = useCallback(async () => {
     await instagram.fetchProfile(editor.myInstagramId);
   }, [editor.myInstagramId, instagram]);
@@ -333,6 +361,7 @@ export default function MotionDesignPage() {
                   instagramEnabled={editor.instagramEnabled}
                   instagramId={editor.myInstagramId}
                   selectedUsers={editor.selectedUsers}
+                  onRemoveUser={handleRemoveUser}
                   titleFallback=""
                   mapSlot={
                     processedComposite ? (
@@ -360,6 +389,8 @@ export default function MotionDesignPage() {
             <DesignSettingsPanel
               value={editor}
               onChange={handleEditorChange}
+              onOpenFriendPicker={handleOpenFriendPicker}
+              onRemoveFriend={handleRemoveUser}
               onLoadMyInstagram={handleLoadMyInstagram}
               myInstagramFetchStatus={instagram.state.fetchState.status}
               myInstagramErrorMessage={
@@ -368,6 +399,7 @@ export default function MotionDesignPage() {
                   ? instagram.state.fetchState.errorMessage
                   : undefined
               }
+              isAddingFriend={isAddingFriend}
               isMapReady={true}
               isGeneratingSnapshot={isGeneratingSnapshot}
               onConfirm={handleConfirm}
@@ -377,7 +409,12 @@ export default function MotionDesignPage() {
         </div>
       )}
 
-
+      <FriendPickerModal
+        isOpen={isFriendPickerOpen}
+        selectedUsers={editor.selectedUsers}
+        onClose={handleCloseFriendPicker}
+        onManualAdd={handleManualAdd}
+      />
     </Layout>
   );
 }

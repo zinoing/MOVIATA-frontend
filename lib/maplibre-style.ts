@@ -9,8 +9,11 @@ export function buildContourStyle(shirtColor: 'white' | 'black' = 'white'): Styl
   const lineColor = isDark ? '#ffffff' : '#1a1a1a';
   const lineColorIndex = isDark ? '#ffffff' : '#000000';
 
+  const haloColor = isDark ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)';
+
   return {
     version: 8,
+    glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
     sources: {
       contours: {
         type: 'vector',
@@ -68,6 +71,30 @@ export function buildContourStyle(shirtColor: 'white' | 'black' = 'white'): Styl
           'line-color': lineColorIndex,
           'line-width': ['interpolate', ['linear'], ['zoom'], 9, 1.2, 11, 1.8, 13, 2.4, 15, 3.0],
           'line-opacity': 1,
+        },
+      },
+
+      // ── 해발고도 레이블: 주곡선(nth_line 10)에만 표시
+      {
+        id: 'contour-label',
+        type: 'symbol',
+        source: 'contours',
+        'source-layer': 'contour',
+        minzoom: 11,
+        filter: ['==', ['get', 'nth_line'], 10],
+        layout: {
+          'text-field': ['concat', ['to-string', ['get', 'height']], 'm'],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': 9,
+          'symbol-placement': 'line',
+          'text-max-angle': 30,
+          'symbol-spacing': 250,
+          'text-pitch-alignment': 'viewport',
+        },
+        paint: {
+          'text-color': lineColorIndex,
+          'text-halo-color': haloColor,
+          'text-halo-width': 1.5,
         },
       },
     ],

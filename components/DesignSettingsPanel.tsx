@@ -22,7 +22,6 @@ export type DesignEditorState = {
   elevation: string;
   time: string;
   myInstagramId: string;
-  friendInstagramId: string;
   selectedUsers: ProfileUser[];
   routeColor: 'orange';
   showMap: boolean;

@@ -93,10 +93,6 @@ export default function ProfileGroup({
         overflow: 'visible',
       }}
     >
-      {/* Primary avatar
-          FIX: explicit width/height + alignSelf: 'flex-start' prevents html2canvas
-          from stretching this wrapper to match the text column's full height,
-          which was causing the avatar to appear oversized after capture. */}
       <div
         style={{
           flexShrink: 0,
@@ -109,7 +105,6 @@ export default function ProfileGroup({
       </div>
 
       {taggedUser ? (
-        /* Two-line layout: flex column, html2canvas-safe */
         <div
           style={{
             display: 'flex',
@@ -117,11 +112,9 @@ export default function ProfileGroup({
             gap: compact ? 1 : 1,
           }}
         >
-          {/* Primary handle */}
           <div
             style={{
               fontSize: primaryFontSize,
-              fontWeight: 600,
               lineHeight: 1.3,
               color: primaryColor,
               whiteSpace: 'nowrap',
@@ -130,7 +123,6 @@ export default function ProfileGroup({
             {getDisplayHandle(primaryUser)}
           </div>
 
-          {/* Friend row */}
           <div
             style={{
               display: 'flex',
@@ -166,11 +158,9 @@ export default function ProfileGroup({
           </div>
         </div>
       ) : (
-        /* Single-line layout */
         <div
           style={{
             fontSize: primaryFontSize,
-            fontWeight: 600,
             lineHeight: 1.3,
             color: primaryColor,
             whiteSpace: 'nowrap',

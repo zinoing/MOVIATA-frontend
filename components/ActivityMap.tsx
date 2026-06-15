@@ -126,39 +126,11 @@ function getRouteColorValue(_routeColor: RouteColor) {
   return '#F97316';
 }
 
-function buildEndPinImage(color: string, isDark: boolean): { img: HTMLImageElement; dpr: number } {
+function buildFlagImage(): { img: HTMLImageElement; dpr: number } {
   const dpr = 3;
-  const size = 22;
-  const cx = 11, cy = 11, r = 9.5;
-
-  const bgColor   = '#FFFFFF';
-  const fillColor = '#1A1A1A';
-  const strokeColor = isDark ? '#EDE8DC' : color;
-
-  // 3×3 checkerboard clipped to circle.
-  // Cell size = diameter/3. Colored squares where (row+col) is even (5 squares).
-  const cell = (2 * r) / 3; // ≈ 6.333
-  const x0 = cx - r;        // 1.5
-  const y0 = cy - r;        // 1.5
-
-  const coloredRects = [
-    [x0,          y0         ],
-    [x0 + 2*cell, y0         ],
-    [x0 + cell,   y0 + cell  ],
-    [x0,          y0 + 2*cell],
-    [x0 + 2*cell, y0 + 2*cell],
-  ].map(([x, y]) => `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" fill="${fillColor}"/>`).join('');
-
-  const svg = `<svg width="${size * dpr}" height="${size * dpr}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-    <defs><clipPath id="cc"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath></defs>
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${bgColor}"/>
-    <g clip-path="url(#cc)">${coloredRects}</g>
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${strokeColor}" stroke-width="2.2"/>
-  </svg>`;
-
-  const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  const size = 44;
   const img = new Image(size * dpr, size * dpr);
-  img.src = url;
+  img.src = '/resources/checkered-flag.svg';
   return { img, dpr };
 }
 
@@ -221,17 +193,17 @@ function setupMapLayers(
     layout: { visibility: showRoutePoints ? 'visible' : 'none' },
     paint: {
       'circle-radius': 6.5,
-      'circle-color': isDark ? routeMainColor : '#FFFFFF',
-      'circle-stroke-color': isDark ? '#EDE8DC' : routeMainColor,
+      'circle-color': routeMainColor,
+      'circle-stroke-color': '#EDE8DC',
       'circle-stroke-width': 2.2,
       'circle-opacity': 1,
     },
   });
 
-  // Destination marks — checkered circle icon (checkerboard inside circle)
-  const { img: pinImg, dpr } = buildEndPinImage(routeMainColor, isDark);
-  pinImg.onload = () => {
-    if (!map.hasImage('end-pin')) map.addImage('end-pin', pinImg, { pixelRatio: dpr });
+  // Destination marks — checkered flag SVG (pole tip anchored to mark position)
+  const { img: flagImg, dpr } = buildFlagImage();
+  flagImg.onload = () => {
+    if (!map.hasImage('end-pin')) map.addImage('end-pin', flagImg, { pixelRatio: dpr });
     if (!map.getLayer('marks-flag')) {
       map.addLayer({
         id: 'marks-flag',
@@ -240,7 +212,7 @@ function setupMapLayers(
         filter: ['==', ['get', 'isDestination'], true],
         layout: {
           'icon-image': 'end-pin',
-          'icon-anchor': 'center',
+          'icon-anchor': 'bottom-left',
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
           visibility: showRoutePoints ? 'visible' : 'none',
@@ -316,17 +288,10 @@ function applyStyleUpdates(
 
   // 마크 원 색상
   if (map.getLayer('marks-dots')) {
-    map.setPaintProperty('marks-dots', 'circle-color', isDark ? routeMainColor : '#FFFFFF');
-    map.setPaintProperty('marks-dots', 'circle-stroke-color', isDark ? '#EDE8DC' : routeMainColor);
+    map.setPaintProperty('marks-dots', 'circle-color', routeMainColor);
+    map.setPaintProperty('marks-dots', 'circle-stroke-color', '#EDE8DC');
   }
 
-  // 마크 플래그 이미지 색상 업데이트
-  if (map.hasImage('end-pin')) {
-    const { img } = buildEndPinImage(routeMainColor, isDark);
-    img.onload = () => {
-      if (map.hasImage('end-pin')) map.updateImage('end-pin', img);
-    };
-  }
 
   // 배경 레이어
   if (map.getLayer('background')) {

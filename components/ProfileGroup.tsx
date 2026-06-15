@@ -117,7 +117,7 @@ export default function ProfileGroup({
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: compact ? 3 : 4,
+            gap: compact ? 1 : 1,
           }}
         >
           {/* Primary handle */}

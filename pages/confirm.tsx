@@ -161,10 +161,24 @@ export default function ConfirmPage() {
     }
   };
 
-  const handleDownloadPng = () => {
+  const handleDownloadPng = async () => {
     if (!posterSnapshot) return;
+
+    const img = new Image();
+    img.src = posterSnapshot;
+    await new Promise<void>(resolve => { img.onload = () => resolve(); });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width * 2;
+    canvas.height = img.height * 2;
+
+    const ctx = canvas.getContext('2d')!;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
     const a = document.createElement('a');
-    a.href = posterSnapshot;
+    a.href = canvas.toDataURL('image/png');
     a.download = `moviata-${config.title || 'design'}.png`;
     a.click();
   };

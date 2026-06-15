@@ -40,9 +40,6 @@ function CircleAvatar({
     height: size,
     borderRadius: '50%',
     flexShrink: 0,
-    // FIX: inline-block instead of block so the element participates in
-    // the flex line's baseline calculation the same way in both the browser
-    // and html2canvas.  'block' caused the avatar to shift upward after capture.
     display: 'inline-block',
     verticalAlign: 'middle',
   };
@@ -117,7 +114,7 @@ export default function ProfileGroup({
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: compact ? 3 : 4,
+            gap: compact ? 1 : 1,
           }}
         >
           {/* Primary handle */}
@@ -133,11 +130,7 @@ export default function ProfileGroup({
             {getDisplayHandle(primaryUser)}
           </div>
 
-          {/* Friend row
-              FIX: all three children (↻ glyph, avatar, handle) are given the
-              same explicit height via lineHeight === friendSize so html2canvas
-              has no ambiguity about the row's height and every item sits on the
-              same centre line. */}
+          {/* Friend row */}
           <div
             style={{
               display: 'flex',

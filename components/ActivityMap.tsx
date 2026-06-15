@@ -128,7 +128,7 @@ function getRouteColorValue(_routeColor: RouteColor) {
 
 function buildFlagImage(): { img: HTMLImageElement; dpr: number } {
   const dpr = 3;
-  const size = 44;
+  const size = 32;
   const img = new Image(size * dpr, size * dpr);
   img.src = '/resources/checkered-flag.svg';
   return { img, dpr };

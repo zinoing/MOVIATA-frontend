@@ -124,7 +124,6 @@ export default function ProfileGroup({
           <div
             style={{
               fontSize: primaryFontSize,
-              fontWeight: 600,
               lineHeight: 1.3,
               color: primaryColor,
               whiteSpace: 'nowrap',
@@ -177,7 +176,6 @@ export default function ProfileGroup({
         <div
           style={{
             fontSize: primaryFontSize,
-            fontWeight: 600,
             lineHeight: 1.3,
             color: primaryColor,
             whiteSpace: 'nowrap',

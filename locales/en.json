@@ -321,9 +321,11 @@
   "motionPointSelect": {
     "label": "MOTION",
     "title": "SELECT POINTS",
-    "subtitle": "Click to mark the person's position. Click the dot to remove it.",
+    "subtitle": "Click to mark the person, then the object. The object is optional. Click a dot to remove it.",
     "personPointLabel": "1st — Person",
-    "objectPointLabel": "2nd & 3rd — Object",
+    "objectPointLabel": "2nd — Object",
+    "placePerson": "Click the person",
+    "placeObject": "Click the object (optional)",
     "frameCounter": "{current} / {total}",
     "stepGuide": {
       "1": "Click the center of the torso",

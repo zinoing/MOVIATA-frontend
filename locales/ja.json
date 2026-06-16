@@ -321,9 +321,11 @@
   "motionPointSelect": {
     "label": "MOTION",
     "title": "ポイント選択",
-    "subtitle": "人物の位置をクリックしてください。点をクリックすると削除されます。",
+    "subtitle": "人物、続いてオブジェクトの位置をクリックしてください。オブジェクトは任意です。点をクリックすると削除されます。",
     "personPointLabel": "1点目 — 人物",
-    "objectPointLabel": "2・3点目 — オブジェクト",
+    "objectPointLabel": "2点目 — オブジェクト",
+    "placePerson": "人物をクリック",
+    "placeObject": "オブジェクトをクリック（任意）",
     "frameCounter": "{current} / {total}",
     "stepGuide": {
       "1": "胴体の中心をクリックしてください",

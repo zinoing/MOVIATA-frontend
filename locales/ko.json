@@ -321,9 +321,11 @@
   "motionPointSelect": {
     "label": "MOTION",
     "title": "포인트 선택",
-    "subtitle": "인물의 위치를 클릭하세요. 점을 다시 클릭하면 취소됩니다.",
+    "subtitle": "인물과 오브젝트의 위치를 차례로 클릭하세요. 오브젝트는 선택이며, 점을 다시 클릭하면 취소됩니다.",
     "personPointLabel": "1번째 — 인물",
-    "objectPointLabel": "2·3번째 — 오브젝트",
+    "objectPointLabel": "2번째 — 오브젝트",
+    "placePerson": "인물 위치를 클릭",
+    "placeObject": "오브젝트 위치를 클릭 (선택)",
     "frameCounter": "{current} / {total}",
     "stepGuide": {
       "1": "몸통 중심을 클릭하세요",

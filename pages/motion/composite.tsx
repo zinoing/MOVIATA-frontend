@@ -283,7 +283,7 @@ export default function MotionCompositePage() {
         jobId,
         framePaths: selectedFramePaths,
         frameData: capturedFrameData,
-        personColor: '#000000',
+        personColor: '#FF5A1F',
         backgroundColor: '#000000',
         outlineThickness: 3,
         mode: 'ghost',

@@ -22,7 +22,7 @@ export default function ActivityTypePage() {
       label: 'MOTION',
       description: t('activities.motion.description'),
       image: '/activity-type/motion.jpg',
-      available: true,
+      available: false,
     },
   ];
 
